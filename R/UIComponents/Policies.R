@@ -8,52 +8,31 @@ Policies <- tabItem(tabName = "policies",
                                 h4("Edit this Category"),
                                 selectInput("cat_name", "Pick a Category", choices = c("Labs", "PS", "Quizzes")),
                                 textInput("change_cat_name", "Enter Category Name", value = "", width = "100%"),
-                                shinyWidgets::autonumericInput("weight", "What is this category weighted?", value = "", currencySymbol = "%",
-                                                               currencySymbolPlacement = "s"),
+                                fluidRow(
+                                    column(6,
+                                           shinyWidgets::autonumericInput("weight", "Category Weight", value = "", currencySymbol = "%",
+                                                                          currencySymbolPlacement = "s"),
+                                           ),
+                                    column(6,
+                                           selectInput("clobber_with", "Clobber with...",
+                                                       choices = c("None", "Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2"))
+                                           )
+                                ),
                                 fluidRow(
                                     column(4,
-                                           radioButtons("grading_policy", strong("Aggregation Method"),
+                                           selectInput("grading_policy", strong("Aggregation Method"),
                                                         choices = c("Equally Weighted", "Weighted by Points")),
-                                           numericInput("num_drops", "How Many Drops:", 0, step = 1),
-                                           radioButtons("clobber_boolean", strong("Is there a clobber policy?"),
-                                                        choices = c("Yes", "No"),
-                                                        selected = "No"),
-                                           conditionalPanel(
-                                               condition = "input.clobber_boolean == 'Yes'",
-                                               selectInput("clobber_with", "Clobber with...",
-                                                           choices = c("Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2")))
+                                           numericInput("num_drops", "How Many Drops:", 0, step = 1)
                                     ),
-                                    column(8,
-                                           radioButtons("late_boolean", strong("Is there a lateness policy?"),
-                                                        choices = c("Yes", "No"),
-                                                        selected = "No"),
-                                           conditionalPanel(
-                                               condition = "input.late_boolean == 'Yes'",
-                                               fluidRow(
-                                                   column(6,
-                                                          textInput("late_allowed","Allowed lateness?", placeholder = "enter as HH:MM:SS")
-                                                   ),
-                                                   column(6,
-                                                          shinyWidgets::autonumericInput("late_penalty", "Deduction?", value = "", currencySymbol = "%",
-                                                                                         currencySymbolPlacement = "s")
-                                                   ),
-                                                   radioButtons("late_boolean2", strong("Is there another lateness policy?"),
-                                                                choices = c("Yes", "No"),
-                                                                selected = "No"),
-                                                   conditionalPanel(
-                                                       condition = "input.late_boolean2 == 'Yes'",
-                                                       fluidRow(
-                                                           column(6,
-                                                                  textInput("late_allowed2","Allowed lateness?", placeholder = "enter as HH:MM:SS")
-                                                           ),
-                                                           column(6,
-                                                                  shinyWidgets::autonumericInput("late_penalty2", "What percent is deducted?", value = "", currencySymbol = "%",
-                                                                                                 currencySymbolPlacement = "s")
-                                                           )
-                                                       )
-                                                   )
-                                               )
-                                           )
+                                    column(4,
+                                           textInput("late_allowed","First lateness policy?", placeholder = "enter as HH:MM:SS"),
+                                           textInput("late_allowed2","Second lateness policy?", placeholder = "enter as HH:MM:SS")
+                                           ),
+                                    column(4,
+                                           shinyWidgets::autonumericInput("late_penalty", "Deduction?", value = "", currencySymbol = "%",
+                                                                          currencySymbolPlacement = "s"),
+                                           shinyWidgets::autonumericInput("late_penalty2", "Deduction?", value = "", currencySymbol = "%",
+                                                                          currencySymbolPlacement = "s")
                                            )
                                 ),
                                 selectizeInput("assign", "Select Assignments:",
