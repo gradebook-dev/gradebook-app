@@ -5,5 +5,5 @@ An app to help calculate course grades.
 Contributors:
 
 - Andrew Bray
-- Nikita
-- Monika
+- Nikita Jayaprakash
+- Monika Voutov
