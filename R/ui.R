@@ -16,9 +16,19 @@ shinyUI(
             ## Sidebar content
             sidebarMenu(
                 menuItem("Policies", tabName = "policies", icon = icon("th")),
-                menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard"))
-               
+                menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+                br(),
+                hr(),
+                div(class = "sidebar-text",
+                    icon("upload", style = "margin-left: 20px;"),
+                    "Upload Student Data"
+                   
+                ),
+                fileInput("upload", label = NULL, accept = c(".csv"))
+            
+                
             )
+            
             
         ),
         ## Body content
@@ -84,8 +94,11 @@ shinyUI(
                 # First tab content
                 Dashboard,
                 # Second tab content
-                Policies
-  
+                Policies,
+                tabItem(
+                    tabName = "fileinput",
+                    h2("Upload")
+                )
             )
         ))
   
