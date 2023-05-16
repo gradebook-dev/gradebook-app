@@ -6,4 +6,4 @@ Contributors:
 
 - Andrew Bray
 - Nikita
-- Monika Voutov
+- Monika
