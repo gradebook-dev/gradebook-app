@@ -14,15 +14,17 @@ Policies <- tabItem(tabName = "policies",
                                                                           currencySymbolPlacement = "s"),
                                            ),
                                     column(6,
-                                           selectInput("clobber_with", "Clobber with...",
-                                                       choices = c("None", "Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2"))
+                                           shinyWidgets::autonumericInput("num_drops", "How Many Drops?", value = "", currencySymbol = " drops",
+                                                                          currencySymbolPlacement = "s", decimalPlaces = 0)
+                                          
                                            )
                                 ),
                                 fluidRow(
                                     column(4,
                                            selectInput("grading_policy", strong("Aggregation Method"),
                                                         choices = c("Equally Weighted", "Weighted by Points")),
-                                           numericInput("num_drops", "How Many Drops:", 0, step = 1)
+                                           selectInput("clobber_with", "Clobber with...",
+                                                       choices = c("None", "Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2"))
                                     ),
                                     column(4,
                                            textInput("late_allowed","First lateness policy?", placeholder = "enter as HH:MM:SS"),
