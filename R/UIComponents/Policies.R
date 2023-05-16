@@ -1,6 +1,6 @@
 library(shinyWidgets)
 
-Policies <- tabPanel("Policies",
+Policies <- tabItem(tabName = "policies",
                      icon = icon("filter"),
                      fluidRow(
                          #for editing categories
