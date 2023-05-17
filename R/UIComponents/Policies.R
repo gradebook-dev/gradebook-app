@@ -41,8 +41,16 @@ Policies <- tabItem(tabName = "policies",
                                                choices = c("Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2"),
                                                multiple = TRUE,
                                                width = "100%"),
-                                actionGroupButtons(inputIds = c("delete", "save", "new"), 
-                                                   labels = c("Delete", "Save", "New Category"))
+                                fluidRow(
+                                    column(6,
+                                           checkboxInput("as_assign", strong("Save as Aggregated Assignments"), value = FALSE)
+                                           ),
+                                    column(6,
+                                           actionGroupButtons(inputIds = c("delete", "save", "new"), 
+                                                              labels = c("Delete", "Save", "New Category"))
+                                           )
+                                ),
+                                
                                 ),
                          #for category cards
                          column(6,
