@@ -91,9 +91,7 @@ shinyUI(
                                 
                                 '))),
             tabItems(
-                # First tab content
                 Dashboard,
-                # Second tab content
                 Policies,
                 tabItem(
                     tabName = "fileinput",
