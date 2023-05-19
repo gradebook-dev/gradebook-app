@@ -2,6 +2,21 @@ library(shinyWidgets)
 
 Policies <- tabItem(tabName = "policies",
                     icon = icon("filter"),
+                    tags$head(
+                        tags$style(
+                            HTML("
+                                .spacing > * + * {
+                                    margin-left: 10px;
+                                }
+                                .custom-flex-container {
+                                    display: flex;
+                                    align-items: center;
+                                    margin-right: 5px;
+                                }
+                               
+                            ")
+                        )
+                    ),
                     fluidRow(
                         #for editing categories
                         column(6,
@@ -14,35 +29,70 @@ Policies <- tabItem(tabName = "policies",
                                           textInput("change_cat_name", "Category Name", value = "", width = "100%")
                                    )
                                ),
-                               fluidRow(
-                                   column(6,
-                                          shinyWidgets::autonumericInput("weight", "Weight", value = "", currencySymbol = "%",
-                                                                         currencySymbolPlacement = "s"),
-                                   ),
-                                   column(6,
-                                          shinyWidgets::autonumericInput("num_drops", "Drops?", value = "", currencySymbol = " drops",
-                                                                         currencySymbolPlacement = "s", decimalPlaces = 0)
-                                          
-                                   )
-                               ),
-                               fluidRow(
-                                   column(4,
-                                          selectInput("grading_policy", strong("Aggregation"),
-                                                      choices = c("Equally Weighted", "Weighted by Points")),
-                                          selectInput("clobber_with", "Clobber with...",
-                                                      choices = c("None", "Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2"))
-                                   ),
-                                   column(4,
-                                          textInput("late_allowed","First lateness policy?", placeholder = "enter as HH:MM:SS"),
-                                          textInput("late_allowed2","Second lateness policy?", placeholder = "enter as HH:MM:SS")
-                                   ),
-                                   column(4,
-                                          shinyWidgets::autonumericInput("late_penalty", "Deduction?", value = "", currencySymbol = "%",
-                                                                         currencySymbolPlacement = "s"),
-                                          shinyWidgets::autonumericInput("late_penalty2", "Deduction?", value = "", currencySymbol = "%",
-                                                                         currencySymbolPlacement = "s")
-                                   )
-                               ),
+                               fluidRow(column(6,
+                                               div(
+                                                   style = "display: flex; flex-direction: column;",
+                                                   h4("Lateness"),
+                                                   div(
+                                                       style = "display: flex; align-items: center;",
+                                                       class = "spacing",
+                                                       tags$label("Slip Days"),
+                                                       div(
+                                                           style = "display: flex; align-items: center;",
+                                                           class = "custom-flex-container",
+                                                           shinyWidgets::autonumericInput("slip", label = "", value = "", width = "50px", decimalPlaces = 0)
+                                                       )
+                                                   ),
+                                                   div(
+                                                       style = "display: flex; align-items: center;",
+                                                       class = "spacing",
+                                                       tags$label("After"),
+                                                       textInput("late_allowed1", "", placeholder = "HH:MM:SS", width = "100px"),
+                                                       tags$label("scale by:"),
+                                                       shinyWidgets::autonumericInput("late_penalty1", "", value = "", 
+                                                                                      currencySymbolPlacement = "s", width = "50px")
+                                                   ),
+                                                   div(
+                                                       style = "display: flex; align-items: center;",
+                                                       class = "spacing",
+                                                       tags$label("After"),
+                                                       textInput("late_allowed2", "", placeholder = "HH:MM:SS", width = "100px"),
+                                                       tags$label("scale by:"),
+                                                       shinyWidgets::autonumericInput("late_penalty2", "", value = "", 
+                                                                                      currencySymbolPlacement = "s", width = "50px")
+                                                   )
+                                                )
+                                    ),
+                                       column(6,
+                                              div(style = "display: flex; flex-direction: column;",
+                                                  h4("Additional Categories"),
+                                                  div(
+                                                        style = "display: flex; align-items: center;",
+                                                        class = "spacing",
+                                                        tags$label("Weight"),
+                                                        shinyWidgets::autonumericInput("weight", "", value = "", currencySymbol = "%",
+                                                                                            currencySymbolPlacement = "s", width = "100px"),
+                                                        tags$label("Drops?"),
+                                                        shinyWidgets::autonumericInput("num_drops", "", value = "", currencySymbol = " drops",
+                                                                                            currencySymbolPlacement = "s", decimalPlaces = 0,width = "100px")
+                                                      ),
+                                                  div(
+                                                      style = "display: flex; align-items: center; margin-top: -5px;",
+                                                      class = "spacing",
+                                                      tags$label("Aggregation"),
+                                                      selectInput("grading_policy", strong(""),
+                                                                  choices = c("Equally Weighted", "Weighted by Points"))
+                                                      ),
+                                                  div(
+                                                      style = "display: flex; align-items: stretch; align-items: center; margin-top: -15px;",
+                                                      class = "spacing",
+                                                      tags$label("Clobber with..."),
+                                                      selectInput("clobber_with", "",
+                                                                  choices = c("None", "Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2")
+                                                                  )
+                                                  )
+                                               )
+                               )),
                                selectizeInput("assign", "Select Assignments:",
                                               choices = c("Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2"),
                                               multiple = TRUE,
@@ -66,5 +116,5 @@ Policies <- tabItem(tabName = "policies",
                                               multiple = TRUE,
                                               width = "100%")
                         ) 
-                    )
-)
+                    
+))
