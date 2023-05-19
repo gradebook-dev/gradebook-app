@@ -5,27 +5,29 @@ UICompDirectory <- "UIComponents/"
 
 source(paste0(UICompDirectory, "Policies.R"), local = TRUE)
 source(paste0(UICompDirectory, "Dashboard.R"), local = TRUE)
+source(paste0(UICompDirectory, "scratchpad.R"), local = TRUE)
 
 shinyUI(
     dashboardPage(
         dashboardHeader(title = "Gradebook"),
         
-       
-      
+        
+        
         dashboardSidebar(
             ## Sidebar content
             sidebarMenu(
                 menuItem("Policies", tabName = "policies", icon = icon("th")),
                 menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+                menuItem("Scratchpad", tabName = "scratchpad", icon = icon("pencil")),
                 br(),
                 hr(),
                 div(class = "sidebar-text",
                     icon("upload", style = "margin-left: 20px;"),
                     "Upload Student Data"
-                   
+                    
                 ),
                 fileInput("upload", label = NULL, accept = c(".csv"))
-            
+                
                 
             )
             
@@ -93,11 +95,12 @@ shinyUI(
             tabItems(
                 Dashboard,
                 Policies,
+                scratchpad,
                 tabItem(
                     tabName = "fileinput",
                     h2("Upload")
                 )
             )
         ))
-  
+    
 )
