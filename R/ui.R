@@ -9,16 +9,16 @@ source(paste0(UICompDirectory, "scratchpad.R"), local = TRUE)
 
 shinyUI(
     dashboardPage(
-        dashboardHeader(title = "Gradebook!"),
+        dashboardHeader(title = "Gradebook!!!"),
         
         
         
         dashboardSidebar(
             ## Sidebar content
             sidebarMenu(
-                menuItem("Policies", tabName = "policies", icon = icon("th")),
-                menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-                menuItem("Scratchpad", tabName = "scratchpad", icon = icon("pencil")),
+                menuItem("Policies!", tabName = "policies", icon = icon("th")),
+                menuItem("Dashboard!", tabName = "dashboard", icon = icon("dashboard")),
+                menuItem("Scratchpad!", tabName = "scratchpad", icon = icon("pencil")),
                 br(),
                 hr(),
                 div(class = "sidebar-text",
