@@ -9,7 +9,7 @@ source(paste0(UICompDirectory, "scratchpad.R"), local = TRUE)
 
 shinyUI(
     dashboardPage(
-        dashboardHeader(title = "Gradebook"),
+        dashboardHeader(title = "Gradebook!"),
         
         
         
