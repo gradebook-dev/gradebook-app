@@ -1,6 +1,6 @@
 scratchpad <- tabItem(tabName = "scratchpad",
                       fluidRow(
-                          box(plotOutput("plot1", height = 250)),
+                          box(plotOutput("plot", height = 250)),
                           
                           
                       )
