@@ -1,5 +1,6 @@
 # load libraries
 library(shinyWidgets)
+library(DT)
 
 #load helper scripts
 HSLocation <- "helperscripts/"
@@ -18,6 +19,16 @@ shinyServer(function(input, output, session) {
                csv = vroom::vroom(input$upload$datapath, delim = ",", na = c("", "NA")),
                validate("Invalid file; Please upload a .csv or .tsv file")
         )
+    })
+    
+    output$input_data <- renderDataTable({
+        data <- data()
+        if(is.null(input$upload)){
+            return("Upload some data first")
+        }
+        else{
+            read.table(input$upload$datapath, sep = ",", header = TRUE, fill=TRUE)
+        }
     })
     
 ### -------------------------- NEW CATEGORY MODAL ----------------------------###

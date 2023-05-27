@@ -1,8 +1,10 @@
 scratchpad <- tabItem(tabName = "scratchpad",
-                      fluidRow(
-                          box(plotOutput("plot", height = 250)),
-                          
-                          
+                      mainPanel(
+                          tabsetPanel(
+                              tabPanel("Original Data",
+                                       dataTableOutput("input_data")
+                              )
+                          )
                       )
 )
 
