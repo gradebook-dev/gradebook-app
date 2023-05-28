@@ -18,10 +18,13 @@ edit_category_modal <- modalDialog(
                h4("Edit this Category"),
                fluidRow(
                    column(6,
-                          selectInput("cat_name", "Category", choices = c("Labs", "PS", "Quizzes"))
+                          #selectInput("cat_name", "Category", choices = c("Labs", "PS", "Quizzes"))
+                          textInput("change_cat_name", "Category Name", value = "", width = "100%")
                    ),
                    column(6,
-                          textInput("change_cat_name", "Category Name", value = "", width = "100%")
+                          #textInput("change_cat_name", "Category Name", value = "", width = "100%")
+                          autonumericInput("weight", "Weight", value = 0, currentSymbol = "%",
+                                           currencySymbolPlacement = "s", width = "100px")
                    )
                ),
                fluidRow(column(6,
@@ -35,7 +38,7 @@ edit_category_modal <- modalDialog(
                                        div(
                                            style = "display: flex; align-items: center;",
                                            class = "custom-flex-container",
-                                           shinyWidgets::autonumericInput("slip", label = "", value = "", width = "50px", decimalPlaces = 0)
+                                           autonumericInput("slip", label = "", value = "", width = "50px", decimalPlaces = 0)
                                        )
                                    ),
                                    div(
@@ -44,7 +47,7 @@ edit_category_modal <- modalDialog(
                                        tags$label("After"),
                                        textInput("late_allowed1", "", placeholder = "HH:MM:SS", width = "100px"),
                                        tags$label("scale by:"),
-                                       shinyWidgets::autonumericInput("late_penalty1", "", value = "",
+                                       autonumericInput("late_penalty1", "", value = "",
                                                                       currencySymbolPlacement = "s", width = "50px")
                                    ),
                                    div(
@@ -53,7 +56,7 @@ edit_category_modal <- modalDialog(
                                        tags$label("After"),
                                        textInput("late_allowed2", "", placeholder = "HH:MM:SS", width = "100px"),
                                        tags$label("scale by:"),
-                                       shinyWidgets::autonumericInput("late_penalty2", "", value = "",
+                                       autonumericInput("late_penalty2", "", value = "",
                                                                       currencySymbolPlacement = "s", width = "50px")
                                    )
                                 )
@@ -64,11 +67,11 @@ edit_category_modal <- modalDialog(
                                   div(
                                         style = "display: flex; align-items: center;",
                                         class = "spacing",
-                                        tags$label("Weight"),
-                                        shinyWidgets::autonumericInput("weight", "", value = "", currencySymbol = "%",
-                                                                            currencySymbolPlacement = "s", width = "100px"),
+                                        #tags$label("Weight"),
+                                        # shinyWidgets::autonumericInput("weight", "", value = "", currencySymbol = "%",
+                                        #                                     currencySymbolPlacement = "s", width = "100px"),
                                         tags$label("Drops?"),
-                                        shinyWidgets::autonumericInput("num_drops", "", value = "", currencySymbol = " drops",
+                                        autonumericInput("num_drops", "", value = "", currencySymbol = " drops",
                                                                             currencySymbolPlacement = "s", decimalPlaces = 0,width = "100px")
                                       ),
                                   div(
@@ -107,7 +110,7 @@ edit_category_modal <- modalDialog(
 
 )
 # added default category to end of cat_list
-addCategory <- function(cat_list){
+addCategory <- function(cat_list, editing_num){
     i <- length(cat_list$name) + 1
     cat_list$name[i] <- paste0("New Category ", i)
     cat_list$slip_days[i] <- 0
@@ -120,6 +123,7 @@ addCategory <- function(cat_list){
     cat_list$aggregation[i] <- "Equally Weighted"
     cat_list$clobber[i] <- "None"
     cat_list$assigns[i] <- ""
+    cat_list$nr[i] <- paste0("cat", editing_num)
     return (cat_list)
 }
 #deletes category "cat_name"
@@ -136,6 +140,7 @@ deleteCategory <- function(cat_list, cat_name){
     cat_list$aggregation <- cat_list$aggregation[-i]
     cat_list$clobber <- cat_list$clobber[-i]
     cat_list$assigns <- cat_list$assigns[-i]
+    cat_list$nr <- cat_list$nr[-i]
     return(cat_list)
 }
 # updates category "cat_name" with input data

@@ -6,7 +6,6 @@ library(DT)
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "categories.R"), local = TRUE)
 
-
 shinyServer(function(input, output, session) {
 
 #### -------------------------- UPLOAD A FILE ----------------------------#### 
@@ -37,10 +36,12 @@ shinyServer(function(input, output, session) {
     # })
     #Note: addCategory and deleteCategory functions are in categories.R
     editing <- reactiveValues(name = NULL, #editing$name saves the original name for the category we're updating
-                             new = NULL) #remembers if this category is new with default values
+                             new = NULL,   #remembers if this category is new with default values
+                             num = 1)      #used to make unique ids for category cards
     #when you create a new category
     observeEvent(input$new_cat, {
-        cat$list <- addCategory(cat$list) #adds new category with default values
+        cat$list <- addCategory(cat$list, editing$num) #adds new category with default values
+        editing$num <- editing$num + 1
         showModal(edit_category_modal) #opens edit modal
         i <- length(cat$list$name)
         updateModalValues(paste0("New Category ", i)) #updates all UI in modal, function defined below
@@ -64,26 +65,44 @@ shinyServer(function(input, output, session) {
     observeEvent(input$save, {
         cat$list <- updateCategory(cat$list, input, editing$name)
         if (editing$new){ #if we're making a new category
-            nr <- input$change_cat_name
+            i <- length(cat$list$name)
+            nr <- cat$list$nr[i]
             insertUI( #creates UI for this category
                 selector = '#inputList',
                 ui=div(
-                    id = paste0("newInput",nr),
-                    h4(nr),
-                    actionButton(paste0('removeBtn',nr), 'Remove') #remove button for this category
+                    id = paste0("cat",nr),
+                    h4(cat$list$name[i]),
+                    #rest of information about this category will be here
+                    actionButton(paste0('delete',nr), label = NULL, icon = icon("trash-can"),  style = "background-color: transparent; "), #remove button for this category
+                    actionButton(paste0('edit',nr), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; "),
                     #edit button
                 )
             )
-            observeEvent(input[[paste0('removeBtn',nr)]],{
-                cat$list <- deleteCategory(cat$list, nr) #if this remove button pressed, it deletes this category
-                shiny::removeUI(
-                    selector = paste0("#newInput",nr) #this removes the UI for this category
+            
+            observeEvent(input[[paste0('edit',nr)]],{
+                showModal(edit_category_modal) #opens edit modal
+                i <- which(cat$list$nr == nr)
+                updateModalValues(cat$list$name[i]) #updates all UI in modal, function defined below
+                editing$name <- cat$list$name[i] #saves original name of category
+                editing$new <- FALSE #this is a new category with default value
+                
+            })
+            
+            observeEvent(input[[paste0('delete',nr)]],{
+                i <- which(cat$list$nr == nr)
+                cat$list <- deleteCategory(cat$list, cat$list$name[i]) #if this remove button pressed, it deletes this category
+                removeUI(
+                    selector = paste0("#cat",nr) #this removes the UI for this category
                 )
             })
         }
         removeModal() 
         editing$name <- NULL  #reset all editing values
         editing$new <- NULL
+    })
+    
+    observe({
+        print(editing$name)
     })
     
  #### -------------------------- UPDATED EDIT MODAL  ----------------------------####    
