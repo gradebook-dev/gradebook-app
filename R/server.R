@@ -118,15 +118,7 @@ updateModalValues <- function(cat_name){
     
 #### -------------------------- CAT$LIST  ----------------------------####  
     #create reactive list for all category criteria
-    cat <- reactiveValues(list = list(name = "New Category 1", #creates default values
-                                      slip_days = 0,
-                                      late_time1 = "00:00:00", late_scale1 = 0,
-                                      late_time2 = "00:00:00", late_scale2 = 0,
-                                      weight = 0, drops = 0,
-                                      aggregation = "Equally Weighted",
-                                      clobber = "None",
-                                      assigns = "None"
-                                      )) 
+    cat <- reactiveValues(list = NULL) 
     
     #outputs cat_list in Scratchpad
     output$cat_list <- renderTable(as.data.frame(cat$list))
