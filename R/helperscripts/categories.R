@@ -142,8 +142,6 @@ deleteCategory <- function(cat_list, cat_name){
 updateCategory <- function(cat_list, input, cat_name){
     i <- which(cat_list$name == cat_name)
     #if no input, sets to default values
-    print(input$late_allowed1 == "")
-    print(input$late_allowed2 == "")
     cat_list$name[i] <- ifelse(input$change_cat_name == "", paste0("Category ", i), input$change_cat_name)
     cat_list$slip_days[i] <- ifelse(length(input$slip) == 0, 0, input$slip)
     cat_list$late_time1[i] <- ifelse(input$late_allowed1 == "", "00:00:00", input$late_allowed1)
