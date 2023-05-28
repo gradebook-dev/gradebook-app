@@ -106,7 +106,7 @@ edit_category_modal <- modalDialog(
                )
 
 )
-
+# added default category to end of cat_list
 addCategory <- function(cat_list){
     i <- length(cat_list$name) + 1
     cat_list$name[i] <- paste0("New Category ", i)
@@ -122,7 +122,7 @@ addCategory <- function(cat_list){
     cat_list$assigns[i] <- ""
     return (cat_list)
 }
-
+#deletes category "cat_name"
 deleteCategory <- function(cat_list, cat_name){
     i <- which(cat_list$name == cat_name)
     cat_list$name <- cat_list$name[-i]
@@ -138,7 +138,7 @@ deleteCategory <- function(cat_list, cat_name){
     cat_list$assigns <- cat_list$assigns[-i]
     return(cat_list)
 }
-
+# updates category "cat_name" with input data
 updateCategory <- function(cat_list, input, cat_name){
     i <- which(cat_list$name == cat_name)
     #if no input, sets to default values

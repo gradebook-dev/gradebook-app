@@ -10,7 +10,7 @@ source(paste0(HSLocation, "categories.R"), local = TRUE)
 shinyServer(function(input, output, session) {
 
 #### -------------------------- UPLOAD A FILE ----------------------------#### 
-    
+    #saves uploaded .csv in data
     data <- reactive({
         req(input$upload)
         
@@ -20,7 +20,7 @@ shinyServer(function(input, output, session) {
                validate("Invalid file; Please upload a .csv or .tsv file")
         )
     })
-    
+    #shows inputted .csv in Scratchpad
     output$input_data <- renderDataTable({
         data <- data()
         if(is.null(input$upload)){
@@ -38,14 +38,14 @@ shinyServer(function(input, output, session) {
     #Note: addCategory and deleteCategory functions are in categories.R
     editing <- reactiveValues(name = NULL, #editing$name saves the original name for the category we're updating
                              new = NULL) #remembers if this category is new with default values
-    
+    #when you create a new category
     observeEvent(input$new_cat, {
         cat$list <- addCategory(cat$list) #adds new category with default values
-        showModal(edit_category_modal)
+        showModal(edit_category_modal) #opens edit modal
         i <- length(cat$list$name)
         updateModalValues(paste0("New Category ", i)) #updates all UI in modal, function defined below
-        editing$name <- paste0("New Category ", i)
-        editing$new <- TRUE
+        editing$name <- paste0("New Category ", i) #saves original name of category
+        editing$new <- TRUE #this is a new category with default value
         
     })
     
@@ -54,6 +54,7 @@ shinyServer(function(input, output, session) {
             i <- length(cat$list$name)
             cat$list <- deleteCategory(cat$list, editing$name) #deletes default category   
         }
+        editing$name <- NULL #reset all editing values
         editing$new <- NULL
         removeModal() 
     })
@@ -62,26 +63,26 @@ shinyServer(function(input, output, session) {
 #### -------------------------- CATEGORY CARDS  ----------------------------#### 
     observeEvent(input$save, {
         cat$list <- updateCategory(cat$list, input, editing$name)
-        if (editing$new){
+        if (editing$new){ #if we're making a new category
             nr <- input$change_cat_name
-            insertUI(
+            insertUI( #creates UI for this category
                 selector = '#inputList',
                 ui=div(
                     id = paste0("newInput",nr),
                     h4(nr),
-                    actionButton(paste0('removeBtn',nr), 'Remove')
+                    actionButton(paste0('removeBtn',nr), 'Remove') #remove button for this category
                     #edit button
                 )
             )
             observeEvent(input[[paste0('removeBtn',nr)]],{
-                cat$list <- deleteCategory(cat$list, nr)
+                cat$list <- deleteCategory(cat$list, nr) #if this remove button pressed, it deletes this category
                 shiny::removeUI(
-                    selector = paste0("#newInput",nr)
+                    selector = paste0("#newInput",nr) #this removes the UI for this category
                 )
             })
         }
         removeModal() 
-        editing$name <- NULL
+        editing$name <- NULL  #reset all editing values
         editing$new <- NULL
     })
     
