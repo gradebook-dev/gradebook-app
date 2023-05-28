@@ -39,5 +39,6 @@ Policies <- tabItem(tabName = "policies",
                                 actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
                                 actionButton("edit_cat", label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent;")
                     ))
-                    )
+                    ),
+    tags$div(id='inputList'),
 )

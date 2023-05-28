@@ -58,8 +58,28 @@ shinyServer(function(input, output, session) {
         removeModal() 
     })
     
+    
+#### -------------------------- CATEGORY CARDS  ----------------------------#### 
     observeEvent(input$save, {
         cat$list <- updateCategory(cat$list, input, editing$name)
+        if (editing$new){
+            nr <- input$change_cat_name
+            insertUI(
+                selector = '#inputList',
+                ui=div(
+                    id = paste0("newInput",nr),
+                    h4(nr),
+                    actionButton(paste0('removeBtn',nr), 'Remove')
+                    #edit button
+                )
+            )
+            observeEvent(input[[paste0('removeBtn',nr)]],{
+                cat$list <- deleteCategory(cat$list, nr)
+                shiny::removeUI(
+                    selector = paste0("#newInput",nr)
+                )
+            })
+        }
         removeModal() 
         editing$name <- NULL
         editing$new <- NULL
