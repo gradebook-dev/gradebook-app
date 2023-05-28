@@ -100,10 +100,7 @@ shinyServer(function(input, output, session) {
         editing$name <- NULL  #reset all editing values
         editing$new <- NULL
     })
-    
-    observe({
-        print(editing$name)
-    })
+
     
  #### -------------------------- UPDATED EDIT MODAL  ----------------------------####    
 updateModalValues <- function(cat_name){
