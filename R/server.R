@@ -9,7 +9,7 @@ source(paste0(HSLocation, "categories.R"), local = TRUE)
 
 shinyServer(function(input, output, session) {
 
-### -------------------------- UPLOAD A FILE ----------------------------###   
+#### -------------------------- UPLOAD A FILE ----------------------------#### 
     
     data <- reactive({
         req(input$upload)
@@ -31,23 +31,61 @@ shinyServer(function(input, output, session) {
         }
     })
     
-### -------------------------- NEW CATEGORY MODAL ----------------------------###
-    observeEvent(input$edit_cat, {
-        showModal(edit_category_modal)
-    })
+#### -------------------------- NEW CATEGORY MODAL ----------------------------####
+    # observeEvent(input$edit_cat, {
+    #     showModal(edit_category_modal)
+    # })
+    #Note: addCategory and deleteCategory functions are in categories.R
+    editing <- reactiveValues(name = NULL, #editing$name saves the original name for the category we're updating
+                             new = NULL) #remembers if this category is new with default values
     
     observeEvent(input$new_cat, {
-        showModal(new_category_modal)
+        cat$list <- addCategory(cat$list) #adds new category with default values
+        showModal(edit_category_modal)
+        i <- length(cat$list$name)
+        updateModalValues(paste0("New Category ", i)) #updates all UI in modal, function defined below
+        editing$name <- paste0("New Category ", i)
+        editing$new <- TRUE
+        
     })
     
     observeEvent(input$cancel, {
+        if (editing$new){
+            i <- length(cat$list$name)
+            cat$list <- deleteCategory(cat$list, editing$name) #deletes default category   
+        }
+        editing$new <- NULL
         removeModal() 
     })
     
+    observeEvent(input$save, {
+        cat$list <- updateCategory(cat$list, input, editing$name)
+        removeModal() 
+        editing$name <- NULL
+        editing$new <- NULL
+    })
     
-### -------------------------- POLICY-COURSE NAME  ----------------------------###
+ #### -------------------------- UPDATED EDIT MODAL  ----------------------------####    
+updateModalValues <- function(cat_name){
+    #updated edit_category_modal with info from category "cat_name"
+    i <- which(cat$list$name == cat_name)
+    updateTextInput(session, "change_cat_name", value = cat$list$name[i])
+    updateAutonumericInput(session, "slip", value = cat$list$slip_days[i])
+    updateTextInput(session, "late_allowed1", value = cat$list$late_time1[i])
+    updateTextInput(session, "late_allowed2", value = cat$list$late_time2[i])
+    updateAutonumericInput(session, "late_penalty1", "", value = cat$list$late_scale1[i])
+    updateAutonumericInput(session, "late_penalty2", "", value = cat$list$late_scale2[i])
+    updateAutonumericInput(session, "weight", "", value = cat$list$weight[i])
+    updateAutonumericInput(session, "num_drops", "", value = cat$list$drops[i])
+    updateSelectInput(session, "grading_policy", selected = cat$list$aggregation[i])
+    updateSelectInput(session, "clobber_with", selected = cat$list$clobber[i])
+    updateSelectizeInput(session, "assign", selected = cat$list$assigns[i])
+}
+    
+#### -------------------------- POLICY-COURSE NAME  ----------------------------####
     # initialize class_name and class_description as reactive values
-    course_name_rv <- reactiveValues(course_name = "Your Course Name", course_description = "This is the description of what the policy file is for and author/date info. Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)")
+    course_name_rv <- reactiveValues(course_name = "Your Course Name", 
+                                     course_description = "This is the description of what the policy file is for and author/date info. Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)")
     
     observeEvent(input$edit_policy_name, {
         showModal(modalDialog(
@@ -78,8 +116,20 @@ shinyServer(function(input, output, session) {
  
 
     
-### -------------------------- NEXT FUNCTIONALITY...  ----------------------------###  
-
+#### -------------------------- CAT$LIST  ----------------------------####  
+    #create reactive list for all category criteria
+    cat <- reactiveValues(list = list(name = "New Category 1", #creates default values
+                                      slip_days = 0,
+                                      late_time1 = "00:00:00", late_scale1 = 0,
+                                      late_time2 = "00:00:00", late_scale2 = 0,
+                                      weight = 0, drops = 0,
+                                      aggregation = "Equally Weighted",
+                                      clobber = "None",
+                                      assigns = "None"
+                                      )) 
+    
+    #outputs cat_list in Scratchpad
+    output$cat_list <- renderTable(as.data.frame(cat$list))
     
     
 })

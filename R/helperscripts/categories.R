@@ -101,18 +101,68 @@ edit_category_modal <- modalDialog(
                    )
                ),
                footer = tagList(
-                   modalButton("Cancel"),
+                   actionButton("cancel", "Cancel"),
                    actionButton("save", "Save")
                )
 
 )
 
-new_category_modal <- modalDialog(
-    
-    title = "Create New Category",
-    textInput("category_name_input", "Category Name", value = ""),
-    footer = tagList(
-        modalButton("Cancel"),
-        actionButton("add_category_name", "Save"),
-    )
-)
+addCategory <- function(cat_list){
+    i <- length(cat_list$name) + 1
+    cat_list$name[i] <- paste0("New Category ", i)
+    cat_list$slip_days[i] <- 0
+    cat_list$late_time1[i] <- "00:00:00"
+    cat_list$late_time2[i] <- "00:00:00"
+    cat_list$late_scale1[i] <- 0
+    cat_list$late_scale2[i] <- 0
+    cat_list$weight[i] <- 0
+    cat_list$drops[i] <- 0
+    cat_list$aggregation[i] <- "Equally Weighted"
+    cat_list$clobber[i] <- "None"
+    cat_list$assigns[i] <- ""
+    return (cat_list)
+}
+
+deleteCategory <- function(cat_list, cat_name){
+    i <- which(cat_list$name == cat_name)
+    cat_list$name <- cat_list$name[-i]
+    cat_list$slip_days <- cat_list$slip_days[-i]
+    cat_list$late_time1 <- cat_list$late_time1[-i]
+    cat_list$late_time2 <- cat_list$late_time2[-i]
+    cat_list$late_scale1 <- cat_list$late_scale1[-i]
+    cat_list$late_scale2 <- cat_list$late_scale2[-i]
+    cat_list$weight <- cat_list$weight[-i]
+    cat_list$drops <- cat_list$drops[-i]
+    cat_list$aggregation <- cat_list$aggregation[-i]
+    cat_list$clobber <- cat_list$clobber[-i]
+    cat_list$assigns <- cat_list$assigns[-i]
+    return(cat_list)
+}
+
+updateCategory <- function(cat_list, input, cat_name){
+    i <- which(cat_list$name == cat_name)
+    #if no input, sets to default values
+    print(input$late_allowed1 == "")
+    print(input$late_allowed2 == "")
+    cat_list$name[i] <- ifelse(input$change_cat_name == "", paste0("Category ", i), input$change_cat_name)
+    cat_list$slip_days[i] <- ifelse(length(input$slip) == 0, 0, input$slip)
+    cat_list$late_time1[i] <- ifelse(input$late_allowed1 == "", "00:00:00", input$late_allowed1)
+    cat_list$late_time2[i] <- ifelse(input$late_allowed2 == "", "00:00:00", input$late_allowed2)
+    cat_list$late_scale1[i] <- ifelse(length(input$late_penalty1) == 0, 0, input$late_penalty1)
+    cat_list$late_scale2[i] <- ifelse(length(input$late_penalty2) == 0, 0, input$late_penalty2)
+    cat_list$weight[i] <- ifelse(length(input$weight) == 0, 0, input$weight)
+    cat_list$drops[i] <- ifelse(length(input$num_drops) == 0, 0, input$num_drops)
+    cat_list$aggregation[i] <- ifelse(length(input$grading_policy) == 0, "Equally Weighted", input$grading_policy)
+    cat_list$clobber[i] <- ifelse(length(input$clobber_with) == 0, "None", input$clobber_with)
+    cat_list$assigns[i] <- ifelse(length(input$assign) == 0, "None", input$assign)
+    return (cat_list)
+}
+# new_category_modal <- modalDialog(
+#     
+#     title = "Create New Category",
+#     textInput("category_name_input", "Category Name", value = ""),
+#     footer = tagList(
+#         modalButton("Cancel"),
+#         actionButton("add_category_name", "Save"),
+#     )
+# )
