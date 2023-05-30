@@ -93,6 +93,7 @@ edit_category_modal <- modalDialog(
                selectizeInput("assign", "Select Assignments:",
                               choices = c("Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2"),
                               multiple = TRUE,
+                              options = list(delimiter = ','),
                               width = "100%"),
                fluidRow(
                    column(6,
@@ -146,6 +147,7 @@ deleteCategory <- function(cat_list, cat_name){
 # updates category "cat_name" with input data
 updateCategory <- function(cat_list, input, cat_name){
     i <- which(cat_list$name == cat_name)
+    
     #if no input, sets to default values
     cat_list$name[i] <- ifelse(input$change_cat_name == "", paste0("Category ", i), input$change_cat_name)
     cat_list$slip_days[i] <- ifelse(length(input$slip) == 0, 0, input$slip)
@@ -157,15 +159,10 @@ updateCategory <- function(cat_list, input, cat_name){
     cat_list$drops[i] <- ifelse(length(input$num_drops) == 0, 0, input$num_drops)
     cat_list$aggregation[i] <- ifelse(length(input$grading_policy) == 0, "Equally Weighted", input$grading_policy)
     cat_list$clobber[i] <- ifelse(length(input$clobber_with) == 0, "None", input$clobber_with)
-    cat_list$assigns[i] <- ifelse(length(input$assign) == 0, "None", input$assign)
+    
+    #adding assignemtns to the cat_list
+    assignments <- ifelse(length(input$assign) == 0, "None", paste(input$assign, collapse = ", "))
+    cat_list$assigns[i] <- assignments
+    
     return (cat_list)
 }
-# new_category_modal <- modalDialog(
-#     
-#     title = "Create New Category",
-#     textInput("category_name_input", "Category Name", value = ""),
-#     footer = tagList(
-#         modalButton("Cancel"),
-#         actionButton("add_category_name", "Save"),
-#     )
-# )

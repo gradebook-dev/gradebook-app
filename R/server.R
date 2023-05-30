@@ -114,7 +114,7 @@ updateModalValues <- function(cat_name){
     updateAutonumericInput(session, "num_drops", "", value = cat$list$drops[i])
     updateSelectInput(session, "grading_policy", selected = cat$list$aggregation[i])
     updateSelectInput(session, "clobber_with", selected = cat$list$clobber[i])
-    updateSelectizeInput(session, "assign", selected = cat$list$assigns[i])
+    updateSelectizeInput(session, "assign", selected = strsplit(cat$list$assigns[i], ", ")[[1]])
 }
     
 #### -------------------------- POLICY-COURSE NAME  ----------------------------####
