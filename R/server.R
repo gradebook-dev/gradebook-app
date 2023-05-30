@@ -31,9 +31,7 @@ shinyServer(function(input, output, session) {
     })
     
 #### -------------------------- NEW CATEGORY MODAL ----------------------------####
-    # observeEvent(input$edit_cat, {
-    #     showModal(edit_category_modal)
-    # })
+
     #Note: addCategory and deleteCategory functions are in categories.R
     editing <- reactiveValues(name = NULL, #editing$name saves the original name for the category we're updating
                              new = NULL,   #remembers if this category is new with default values

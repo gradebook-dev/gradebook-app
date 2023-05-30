@@ -17,15 +17,14 @@ edit_category_modal <- modalDialog(
                 ),
                h4("Edit this Category"),
                fluidRow(
-                   column(6,
-                          #selectInput("cat_name", "Category", choices = c("Labs", "PS", "Quizzes"))
+                    column(6,
                           textInput("change_cat_name", "Category Name", value = "", width = "100%")
-                   ),
-                   column(6,
-                          #textInput("change_cat_name", "Category Name", value = "", width = "100%")
-                          autonumericInput("weight", "Weight", value = 0, currentSymbol = "%",
-                                           currencySymbolPlacement = "s", width = "100px")
-                   )
+                    ),
+                    column(6,
+
+                           tags$label(""),
+                   
+               )
                ),
                fluidRow(column(6,
                                div(
@@ -67,9 +66,9 @@ edit_category_modal <- modalDialog(
                                   div(
                                         style = "display: flex; align-items: center;",
                                         class = "spacing",
-                                        #tags$label("Weight"),
-                                        # shinyWidgets::autonumericInput("weight", "", value = "", currencySymbol = "%",
-                                        #                                     currencySymbolPlacement = "s", width = "100px"),
+                                        tags$label("Weight"),
+                                        shinyWidgets::autonumericInput("weight", "", value = "", currencySymbol = "%",
+                                                                            currencySymbolPlacement = "s", width = "100px"),
                                         tags$label("Drops?"),
                                         autonumericInput("num_drops", "", value = "", currencySymbol = " drops",
                                                                             currencySymbolPlacement = "s", decimalPlaces = 0,width = "100px")
@@ -109,6 +108,7 @@ edit_category_modal <- modalDialog(
                )
 
 )
+
 # added default category to end of cat_list
 addCategory <- function(cat_list, editing_num){
     i <- length(cat_list$name) + 1
