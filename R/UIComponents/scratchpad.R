@@ -9,7 +9,11 @@ scratchpad <- tabItem(tabName = "scratchpad",
                                        ),
                               tabPanel("assigns$table",
                                        dataTableOutput("assign")
-                                       )
+                                       ),
+                              tabPanel("new_data()",
+                                       dataTableOutput("new_data")),
+                              tabPanel("pivotdf()",
+                                       dataTableOutput("pivotdf"))
                               
                           )
                       )
