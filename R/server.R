@@ -83,20 +83,20 @@ shinyServer(function(input, output, session) {
         new_data()
     })
     
-    # processed_sids <- reactive({
-    #     new_data <- new_data()
-    #     process_sids(new_data)
-    # })
-    # 
-    # pivotdf <- reactive({
-    #     processed_sids <- processed_sids()$unique_sids
-    #     
-    #     pivot(processed_sids, assigns$table, categories$cat_table)
-    # })
-    # 
-    # output$pivotdf <- renderDataTable({
-    #     pivotdf()
-    # })  
+    processed_sids <- reactive({
+        new_data <- new_data()
+        process_sids(new_data)
+    })
+
+    pivotdf <- reactive({
+        processed_sids <- processed_sids()$unique_sids
+
+        pivot(processed_sids, assigns$table, categories$cat_table)
+    })
+
+    output$pivotdf <- renderDataTable({
+        pivotdf()
+    })
 #### -------------------------- NEW CATEGORY MODAL ----------------------------####
 
     #Note: addCategory and deleteCategory functions are in categories.R
