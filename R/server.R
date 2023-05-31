@@ -154,7 +154,19 @@ updateModalValues <- function(cat_name){
     updateAutonumericInput(session, "num_drops", "", value = cat$list$drops[i])
     updateSelectInput(session, "grading_policy", selected = cat$list$aggregation[i])
     updateSelectInput(session, "clobber_with", selected = cat$list$clobber[i])
+    
+    choices <- ""
+    if (!is.null(assign$table)){
+        choices <- assign$table %>% filter (category == "Unassigned") %>% select(colnames) 
+    }
+    # Preload selected values
+    preloaded_values <- cat$list$assigns[i]
+    if (length(preloaded_values) != 0){
+        preloaded_values <- unlist(strsplit(preloaded_values, ", ")) # Split the string and unlist the result
+        choices = c(choices, preloaded_values)
+    }
     updateSelectizeInput(session, "assign", selected = strsplit(cat$list$assigns[i], ", ")[[1]])
+    updateSelectizeInput(session, "assign", choices = choices, selected = preloaded_values)
 }
     
 #### -------------------------- POLICY-COURSE NAME  ----------------------------####
