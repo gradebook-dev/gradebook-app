@@ -6,6 +6,9 @@ scratchpad <- tabItem(tabName = "scratchpad",
                               ),
                               tabPanel("cat_list",
                                        tableOutput("cat_list")
+                                       ),
+                              tabPanel("assigns$table",
+                                       dataTableOutput("assign")
                                        )
                               
                           )

@@ -1,10 +1,12 @@
 # load libraries
 library(shinyWidgets)
+library(tidyverse)
 library(DT)
 
 #load helper scripts
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "categories.R"), local = TRUE)
+source(paste0(HSLocation, "Assignments.R"), local = TRUE)
 
 shinyServer(function(input, output, session) {
 
@@ -29,7 +31,33 @@ shinyServer(function(input, output, session) {
             read.table(input$upload$datapath, sep = ",", header = TRUE, fill=TRUE)
         }
     })
+
+#### -------------------------- ASSIGNMENTS ----------------------------####
+
+    assign <- reactiveValues(table = NULL)
     
+    observe({
+        data <- data()
+        assign$table <- createAssignTable(data)%>%
+            filter(!str_detect(colnames, "Name|Sections|Max|Time|Late|Email|SID"))
+    })
+    
+    output$assign <- renderDataTable({
+        assign$table
+        })
+    
+    output$unassigned <- renderUI(
+        if (!is.null(assign$table)){
+            HTML(markdown::renderMarkdown(text = paste(paste0("- ", getUnassigned(assign$table), "\n"), collapse = "")))
+        } else {
+            textOutput("unassigned_message")
+        }
+    )
+    
+    output$unassigned_message <- renderText({"Let's upload some data first..."})
+
+#### -------------------------- PIVOT + STUDENT IDS ----------------------------####
+        
 #### -------------------------- NEW CATEGORY MODAL ----------------------------####
 
     #Note: addCategory and deleteCategory functions are in categories.R
