@@ -169,10 +169,11 @@ updateCategory <- function(cat_list, input, cat_name){
 
 
 update_ui_categories <- function(cat_list, id) {
-    print(cat_list)
-    category <- cat_list[[id]]
-    print(paste0("Category: ", category$name))
-    print(id)
+    # print(cat_list)
+    # category <- cat_list[[id]]
+    # print(paste0("Category: ", category$name))
+    # print(id)
+    i <- which(cat_list$nr == id)
     tagList(
         div(
             style = "padding: 0px 20px 20px 20px;",
@@ -181,11 +182,11 @@ update_ui_categories <- function(cat_list, id) {
                 tags$div(
                     div(
                         style = "display: flex; align-items: center;",
-                        paste("Slip Days: ", category$slip_days),
-                        paste("Weight: ", category$weight),
-                        paste("Drops: ", category$drops),
-                        paste("Clobber Policy: ", category$clobber),
-                        paste("Assignments Included: ", category$assigns)
+                        paste("Slip Days: ", cat_list$slip_days[i]),
+                        paste("Weight: ", cat_list$weight[i]),
+                        paste("Drops: ", cat_list$drops[i]),
+                        paste("Clobber Policy: ", cat_list$clobber[i]),
+                        paste("Assignments Included: ", cat_list$assigns[i])
                     )
                 )
             )
