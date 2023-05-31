@@ -90,6 +90,10 @@ shinyServer(function(input, output, session) {
 #### -------------------------- CATEGORY CARDS  ----------------------------#### 
     observeEvent(input$save, {
         cat$list <- updateCategory(cat$list, input, editing$name)
+        if (!is.null(assign$table)){
+            assign$table <- resetAssigns(assign$table, editing$name)
+            assign$table <- updateAssigns(assign$table, input$assign, input$change_cat_name)   
+        }
         if (editing$new){ #if we're making a new category
             i <- length(cat$list$name)
             nr <- cat$list$nr[i]
