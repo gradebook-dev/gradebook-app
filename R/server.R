@@ -18,7 +18,8 @@ shinyServer(function(input, output, session) {
         
         ext <- tools::file_ext(input$upload$name)
         switch(ext,
-               csv = vroom::vroom(input$upload$datapath, delim = ",", na = c("", "NA")),
+               csv = vroom::vroom(input$upload$datapath, delim = ",",
+                                  na = c("", "NA")),
                validate("Invalid file; Please upload a .csv or .tsv file")
         )
     })
@@ -30,13 +31,57 @@ shinyServer(function(input, output, session) {
         }
         else{
             read.table(input$upload$datapath, sep = ",", header = TRUE, fill=TRUE)
+            
         }
     })
+    
+    
+    #### -------------------------- POLICY-COURSE NAME  ----------------------------####
+    # initialize class_name and class_description as reactive values
+    course_name_rv <- reactiveValues(course_name = "Your Course Name", 
+                                     course_description = "This is the description of what the policy file is for and author/date info. Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)")
+    
+    observeEvent(input$edit_policy_name, {
+        showModal(modalDialog(
+            title = "Edit Policy",
+            textInput("course_name_input", "Course Name", value = course_name_rv$course_name),
+            textInput("course_desc_input", "Course Description", value = course_name_rv$course_description),
+            footer = tagList(
+                modalButton("Cancel"),
+                actionButton("save_changes_course", "Save Changes")
+            )
+        ))
+    })
+    
+    # When save_changes is clicked, update the reactive values and close modal
+    observeEvent(input$save_changes_course, {
+        course_name_rv$course_name <- isolate(input$course_name_input)
+        course_name_rv$course_description <- isolate(input$course_desc_input)
+        removeModal()
+    })
+    # Update course_name in policy tab
+    output$course_name_display <- renderText({
+        course_name_rv$course_name
+    })
+    # Update course description in policy tab
+    output$course_description_display <- renderText({
+        course_name_rv$course_description
+    })
+    
 
 #### -------------------------- ASSIGNMENTS ----------------------------####
 
+    #reactive unassigned assignments table
     assign <- reactiveValues(table = NULL)
     
+    #takes reactive data output and creates a reactive assignment table
+    #contains all the columns from the original dataframe(names, emails, all columns from assignments, etc)
+    assignments <- reactive({
+        data <- data()
+        createAssignTable(data)
+    })
+    
+    #creates unassigned assignments table, excludes all names, sections, latenes, etc...
     observe({
         data <- data()
         assign$table <- createAssignTable(data)%>%
@@ -47,6 +92,7 @@ shinyServer(function(input, output, session) {
         assign$table
         })
     
+    #a list of unassigned assignments in policies tab
     output$unassigned <- renderUI(
         if (!is.null(assign$table)){
             HTML(markdown::renderMarkdown(text = paste(paste0("- ", getUnassigned(assign$table), "\n"), collapse = "")))
@@ -60,7 +106,7 @@ shinyServer(function(input, output, session) {
 #### -------------------------- PIVOT + STUDENT IDS ----------------------------####
     new_data <- reactive({
         # Get the new column names from the form data frame
-        new_colnames <- assign$table$new_colnames
+        new_colnames <- assignments()$new_colnames
         # Rename the columns of the data frame using the new column names
         data_new_colnames <- data() %>%
             rename(!!!setNames(names(.), new_colnames))
@@ -91,7 +137,7 @@ shinyServer(function(input, output, session) {
     pivotdf <- reactive({
         processed_sids <- processed_sids()$unique_sids
 
-        pivot(processed_sids, assigns$table, categories$cat_table)
+        pivot(processed_sids, assign$table, cat$list)
     })
 
     output$pivotdf <- renderDataTable({
@@ -157,6 +203,7 @@ shinyServer(function(input, output, session) {
                     
                         
                 )
+               
                 )
             )
             
@@ -167,6 +214,7 @@ shinyServer(function(input, output, session) {
                 updateModalValues(cat$list$name[i]) #updates all UI in modal, function defined below
                 editing$name <- cat$list$name[i] #saves original name of category
                 editing$new <- FALSE #this is a new category with default value
+                update_ui_categories(cat$list, nr)
             })
             
             observeEvent(input[[paste0('delete',nr)]],{
@@ -212,39 +260,6 @@ updateModalValues <- function(cat_name){
     updateSelectizeInput(session, "assign", choices = choices, selected = preloaded_values)
 }
     
-#### -------------------------- POLICY-COURSE NAME  ----------------------------####
-    # initialize class_name and class_description as reactive values
-    course_name_rv <- reactiveValues(course_name = "Your Course Name", 
-                                     course_description = "This is the description of what the policy file is for and author/date info. Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)")
-    
-    observeEvent(input$edit_policy_name, {
-        showModal(modalDialog(
-            title = "Edit Policy",
-            textInput("course_name_input", "Course Name", value = course_name_rv$course_name),
-            textInput("course_desc_input", "Course Description", value = course_name_rv$course_description),
-            footer = tagList(
-                modalButton("Cancel"),
-                actionButton("save_changes_course", "Save Changes")
-            )
-        ))
-    })
-    
-    # When save_changes is clicked, update the reactive values and close modal
-    observeEvent(input$save_changes_course, {
-        course_name_rv$course_name <- isolate(input$course_name_input)
-        course_name_rv$course_description <- isolate(input$course_desc_input)
-        removeModal()
-    })
-    # Update course_name in policy tab
-    output$course_name_display <- renderText({
-        course_name_rv$course_name
-    })
-    # Update course description in policy tab
-    output$course_description_display <- renderText({
-        course_name_rv$course_description
-    })
- 
-
     
 #### -------------------------- CAT$LIST  ----------------------------####  
     #create reactive list for all category criteria

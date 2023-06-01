@@ -46,7 +46,7 @@ Policies <- tabItem(tabName = "policies",
                tags$div(id='inputList') #this is all the dynamic UI for categories
                ),
         column(4,
-               h4("New Categories:"),
+               h4("New Assignments:"),
                uiOutput("unassigned")
                )
     )

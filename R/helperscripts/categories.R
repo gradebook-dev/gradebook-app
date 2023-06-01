@@ -169,10 +169,6 @@ updateCategory <- function(cat_list, input, cat_name){
 
 
 update_ui_categories <- function(cat_list, id) {
-    # print(cat_list)
-    # category <- cat_list[[id]]
-    # print(paste0("Category: ", category$name))
-    # print(id)
     i <- which(cat_list$nr == id)
     tagList(
         div(
