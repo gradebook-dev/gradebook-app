@@ -48,13 +48,16 @@ shinyServer(function(input, output, session) {
     
 ### -------------------------- POLICY-COURSE NAME  ----------------------------###
     # initialize class_name and class_description as reactive values
-    course_name_rv <- reactiveValues(course_name = "Your Course Name", course_description = "This is the description of what the policy file is for and author/date info. Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)")
+    policy <- reactiveValues(coursewide = list(course_name = "Your Course Name",
+                                              description = "This is the description of what the policy file is for and author/date info. 
+                                              Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)"),
+                             categories = list())
     
     observeEvent(input$edit_policy_name, {
         showModal(modalDialog(
             title = "Edit Policy",
-            textInput("course_name_input", "Course Name", value = course_name_rv$course_name),
-            textInput("course_desc_input", "Course Description", value = course_name_rv$course_description),
+            textInput("course_name_input", "Course Name", value = policy$coursewide$course_name),
+            textInput("course_desc_input", "Course Description", value = policy$coursewide$description),
             footer = tagList(
                 modalButton("Cancel"),
                 actionButton("save_changes_course", "Save Changes")
@@ -64,17 +67,17 @@ shinyServer(function(input, output, session) {
     
     # When save_changes is clicked, update the reactive values and close modal
     observeEvent(input$save_changes_course, {
-        course_name_rv$course_name <- isolate(input$course_name_input)
-        course_name_rv$course_description <- isolate(input$course_desc_input)
+        policy$coursewide$course_name <- isolate(input$course_name_input)
+        policy$coursewide$description <- isolate(input$course_desc_input)
         removeModal()
     })
     # Update course_name in policy tab
     output$course_name_display <- renderText({
-        course_name_rv$course_name
+        policy$coursewide$course_name
     })
     # Update course description in policy tab
     output$course_description_display <- renderText({
-        course_name_rv$course_description
+        policy$coursewide$description
     })
  
 
