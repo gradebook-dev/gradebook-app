@@ -119,10 +119,10 @@ shinyServer(function(input, output, session) {
     })
     # this allows lubridate values to be saved in the dataframe
     convert_to_min <- function(hms){
-        save <- lubridate::hms(hms)
-        save <- period_to_seconds(save)
-        save <- save/60
-        return (save)
+        to_hms <- lubridate::hms(hms)
+        to_seconds <- period_to_seconds(to_hms)
+        to_minutes <- to_seconds/60
+        return (to_minutes)
     }
     
     output$new_data <- renderDataTable({
