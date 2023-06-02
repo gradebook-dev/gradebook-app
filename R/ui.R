@@ -2,10 +2,10 @@ library(shinydashboard)
 library(shiny)
 library(shinyWidgets)
 #Create UI Comps
-UICompDirectory <- "UIComponents/"
+UICompDirectory <- "ui_components/"
 
-source(paste0(UICompDirectory, "Policies.R"), local = TRUE)
-source(paste0(UICompDirectory, "Dashboard.R"), local = TRUE)
+source(paste0(UICompDirectory, "policies.R"), local = TRUE)
+source(paste0(UICompDirectory, "dashboard.R"), local = TRUE)
 source(paste0(UICompDirectory, "scratchpad.R"), local = TRUE)
 
 shinyUI(
