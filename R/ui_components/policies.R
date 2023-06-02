@@ -35,9 +35,19 @@ Policies <- tabItem(tabName = "policies",
                                 tags$div(
                                     tags$label("Categories", style = "font-weight: 400; font-size: 20px;"),
                                     style = "margin-right: 10px;"
-                                ),   
+                                ), 
+                                verbatimTextOutput("editing"),
                                 actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
-                                actionButton("edit_cat", label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent;")
+                                br()
                             ))
+                    ),
+                    fluidRow(
+                        column(8,
+                               tags$div(id='inputList') #this is all the dynamic UI for categories
+                               ),
+                        column(4,
+                               h4("New Assignments:"),
+                               uiOutput("unassigned")
+                               )
                     )
 )
