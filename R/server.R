@@ -20,6 +20,18 @@ shinyServer(function(input, output, session) {
         )
     })
     
+    #shows inputted .csv in Scratchpad
+    output$input_data <- renderDataTable({
+        data <- data()
+        if(is.null(input$upload)){
+            return("Upload some data first")
+        }
+        else{
+            read.table(input$upload$datapath, sep = ",", header = TRUE, fill=TRUE)
+            
+        }
+    })
+    
 ### -------------------------- NEW CATEGORY MODAL ----------------------------###
     observeEvent(input$edit_cat, {
         showModal(edit_category_modal)
