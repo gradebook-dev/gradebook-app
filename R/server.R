@@ -41,6 +41,7 @@ shinyServer(function(input, output, session) {
                                               Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)"),
                              categories = list())
     
+    #shows policy$categories in Scratchpad under cat_list tab
     output$cat_list <- renderPrint({
         Hmisc::list.tree(policy$categories)
         })
