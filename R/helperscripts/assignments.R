@@ -38,9 +38,7 @@ getUnassigned <- function(assign_table){
 
 #updates assignments in assignment table when they are assigned a category
 updateAssigns <- function(assignments, assign, cat_name){
-    if (is.null(assign)){
-        assignments <- assignments %>% mutate(category = cat_name)
-    } else {
+    if (!is.null(assign)){
         selected <- data.frame(colnames = assign)
         selected <- semi_join(assignments, selected, "colnames") %>% mutate(category = cat_name)
         assignments <- rbind(selected, anti_join(assignments, selected, "colnames"))

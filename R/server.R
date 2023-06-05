@@ -75,6 +75,11 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$save, {
+        policy$categories <- updateCategory(policy$categories, input, editing$num)
+        if (!is.null(assign$table)){
+            assign$table <- resetAssigns(assign$table, editing$name)
+            assign$table <- updateAssigns(assign$table, input$assign, input$change_cat_name)
+        }
         editing$num <- editing$num + 1 #increases with the making of a new category
         removeModal() 
     })
@@ -108,7 +113,13 @@ shinyServer(function(input, output, session) {
     }
     
 #### -------------------------- CATEGORY CARDS  ----------------------------#### 
-    
+    observe(input$save{
+        i <- length(policy$categories)
+        print(i)
+        for (x in 1:i){
+            
+        }
+    })
     
 #### -------------------------- POLICY-COURSE NAME  ----------------------------####
     # When save_changes is clicked, update the reactive values and close modal
@@ -160,7 +171,7 @@ shinyServer(function(input, output, session) {
     output$unassigned_message <- renderText({"Let's upload some data first..."})
     
     
-    #### -------------------------- PIVOT + STUDENT IDS ----------------------------####
+#### -------------------------- PIVOT + STUDENT IDS ----------------------------####
     new_data <- reactive({
         # Get the new column names from the form data frame
         new_colnames <- assignments()$new_colnames

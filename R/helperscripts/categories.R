@@ -91,7 +91,7 @@ edit_category_modal <- modalDialog(
            )
     )),
     selectizeInput("assign", "Select Assignments:",
-                   choices = c("Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2"),
+                   choices = "",
                    multiple = TRUE,
                    options = list(delimiter = ','),
                    width = "100%"),
@@ -146,24 +146,23 @@ deleteCategory <- function(cat_list, edit_num){
 
 # updates category "cat_name" with input data
 updateCategory <- function(cat_list, input, cat_name){
-    i <- which(cat_list$name == cat_name)
-    
+    i <- getCatIndex(cat_list, edit_num)
     #if no input, sets to default values
-    cat_list$name[i] <- ifelse(input$change_cat_name == "", paste0("Category ", i), input$change_cat_name)
-    cat_list$slip_days[i] <- ifelse(length(input$slip) == 0, 0, input$slip)
-    cat_list$late_time1[i] <- ifelse(input$late_allowed1 == "", "00:00:00", input$late_allowed1)
-    cat_list$late_time2[i] <- ifelse(input$late_allowed2 == "", "00:00:00", input$late_allowed2)
-    cat_list$late_scale1[i] <- ifelse(length(input$late_penalty1) == 0, 0, input$late_penalty1)
-    cat_list$late_scale2[i] <- ifelse(length(input$late_penalty2) == 0, 0, input$late_penalty2)
-    cat_list$weight[i] <- ifelse(length(input$weight) == 0, 0, input$weight)
-    cat_list$drops[i] <- ifelse(length(input$num_drops) == 0, 0, input$num_drops)
-    cat_list$aggregation[i] <- ifelse(length(input$grading_policy) == 0, "Equally Weighted", input$grading_policy)
-    cat_list$clobber[i] <- ifelse(length(input$clobber_with) == 0, "None", input$clobber_with)
-    
-    #adding assignemtns to the cat_list
+    cat_list[[i]]$name <- ifelse(input$change_cat_name == "", paste0("Category ", i), input$change_cat_name)
+    cat_list[[i]]$slip_days <- ifelse(length(input$slip) == 0, 0, input$slip)
+    cat_list[[i]]$late_time1 <- ifelse(input$late_allowed1 == "", "00:00:00", input$late_allowed1)
+    cat_list[[i]]$late_time2 <- ifelse(input$late_allowed2 == "", "00:00:00", input$late_allowed2)
+    cat_list[[i]]$late_scale1 <- ifelse(length(input$late_penalty1) == 0, 0, input$late_penalty1)
+    cat_list[[i]]$late_scale2 <- ifelse(length(input$late_penalty2) == 0, 0, input$late_penalty2)
+    cat_list[[i]]$weight <- ifelse(length(input$weight) == 0, 0, input$weight)
+    cat_list[[i]]$drops <- ifelse(length(input$num_drops) == 0, 0, input$num_drops)
+    cat_list[[i]]$aggregation <- ifelse(length(input$grading_policy) == 0, "Equally Weighted", input$grading_policy)
+    cat_list[[i]]$clobber <- ifelse(length(input$clobber_with) == 0, "None", input$clobber_with)
+
+    #adding assignemtns to the cat_list[[i]]
     assignments <- ifelse(length(input$assign) == 0, "None", paste(input$assign, collapse = ", "))
-    cat_list$assigns[i] <- assignments
-    
+    cat_list[[i]]$assigns[i] <- assignments
+
     return (cat_list)
 }
 
