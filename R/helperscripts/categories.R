@@ -145,7 +145,7 @@ deleteCategory <- function(cat_list, edit_num){
 }
 
 # updates category "cat_name" with input data
-updateCategory <- function(cat_list, input, cat_name){
+updateCategory <- function(cat_list, input, edit_num){
     i <- getCatIndex(cat_list, edit_num)
     #if no input, sets to default values
     cat_list[[i]]$name <- ifelse(input$change_cat_name == "", paste0("Category ", i), input$change_cat_name)
