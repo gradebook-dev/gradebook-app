@@ -8,7 +8,7 @@ source(paste0(HSLocation, "categories.R"), local = TRUE)
 
 shinyServer(function(input, output, session) {
 
-### -------------------------- UPLOAD A FILE ----------------------------###   
+### -------------------------- UPLOAD A FILE ----------------------------####   
     
     data <- reactive({
         req(input$upload)
@@ -32,24 +32,10 @@ shinyServer(function(input, output, session) {
         }
     })
     
-### -------------------------- NEW CATEGORY MODAL ----------------------------###
-    observeEvent(input$edit_cat, {
-        showModal(edit_category_modal)
-    })
-    
-    observeEvent(input$new_cat, {
-        showModal(new_category_modal)
-    })
-    
-    observeEvent(input$cancel, {
-        removeModal() 
-    })
-    
-    
-### -------------------------- POLICY-COURSE NAME  ----------------------------###
+#### -------------------------- POLICY-COURSE NAME  ----------------------------####
     # initialize class_name and class_description as reactive values
     policy <- reactiveValues(coursewide = list(course_name = "Your Course Name",
-                                              description = "This is the description of what the policy file is for and author/date info. 
+                                               description = "This is the description of what the policy file is for and author/date info. 
                                               Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)"),
                              categories = list())
     
@@ -64,7 +50,25 @@ shinyServer(function(input, output, session) {
             )
         ))
     })
+#### -------------------------- NEW CATEGORY MODAL ----------------------------####
     
+    #Note: addCategory and deleteCategory functions are in categories.R
+    editing <- reactiveValues(num = 1)      #used to make unique ids for category cards
+    
+    observeEvent(input$new_cat, {
+        showModal(edit_category_modal) #opens edit modal
+    })
+    
+    observeEvent(input$cancel, {
+        removeModal() 
+    })
+    
+#### -------------------------- CATEGORY CARDS  ----------------------------#### 
+    observeEvent(input$save, {
+        removeModal() 
+    })
+    
+#### -------------------------- POLICY-COURSE NAME  ----------------------------####
     # When save_changes is clicked, update the reactive values and close modal
     observeEvent(input$save_changes_course, {
         policy$coursewide$course_name <- isolate(input$course_name_input)
@@ -79,10 +83,8 @@ shinyServer(function(input, output, session) {
     output$course_description_display <- renderText({
         policy$coursewide$description
     })
- 
-
     
-### -------------------------- NEXT FUNCTIONALITY...  ----------------------------###  
+#### -------------------------- NEXT FUNCTIONALITY...  ----------------------------####  
 
     
     
