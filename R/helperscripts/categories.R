@@ -110,23 +110,40 @@ edit_category_modal <- modalDialog(
     
 )
 
+# added default category to end of cat_list
+addCategory <- function(cat_list, edit_num){
+    #create default category
+    new_category <- list(name = paste0("New Category ", edit_num),
+                     slip_days = 0,
+                     late_time1 = "00:00:00",
+                     late_time2 = "00:00:00",
+                     late_scale1 = 0,
+                     late_scale2 = 0,
+                     weight = 0,
+                     drops = 0,
+                     aggregation = "Equally Weighted",
+                     clobber = "None",
+                     assigns = "",
+                     nr = paste0("cat", edit_num)
+                     )
+    cat_list[[length(cat_list)+1]] <- new_category
+    return (cat_list)
+}
+
+getCatIndex <- function(cat_list, edit_num){
+    nrs <- purrr::map(cat_list, "nr") |>
+        unlist()
+    i <- which(nrs == paste0("cat", edit_num))
+}
+
 #deletes category "cat_name"
-deleteCategory <- function(cat_list, cat_name){
-    i <- which(cat_list$name == cat_name)
-    cat_list$name <- cat_list$name[-i]
-    cat_list$slip_days <- cat_list$slip_days[-i]
-    cat_list$late_time1 <- cat_list$late_time1[-i]
-    cat_list$late_time2 <- cat_list$late_time2[-i]
-    cat_list$late_scale1 <- cat_list$late_scale1[-i]
-    cat_list$late_scale2 <- cat_list$late_scale2[-i]
-    cat_list$weight <- cat_list$weight[-i]
-    cat_list$drops <- cat_list$drops[-i]
-    cat_list$aggregation <- cat_list$aggregation[-i]
-    cat_list$clobber <- cat_list$clobber[-i]
-    cat_list$assigns <- cat_list$assigns[-i]
-    cat_list$nr <- cat_list$nr[-i]
+deleteCategory <- function(cat_list, edit_num){
+    i <- getCatIndex(cat_list, edit_num)
+    cat_list <- cat_list[-i]
+    
     return(cat_list)
 }
+
 # updates category "cat_name" with input data
 updateCategory <- function(cat_list, input, cat_name){
     i <- which(cat_list$name == cat_name)

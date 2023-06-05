@@ -10,7 +10,7 @@ source(paste0(HSLocation, "process-sid.R"), local = TRUE)
 
 shinyServer(function(input, output, session) {
 
-### -------------------------- UPLOAD A FILE ----------------------------####   
+#### -------------------------- UPLOAD A FILE ----------------------------####   
     
     data <- reactive({
         req(input$upload)
@@ -56,19 +56,54 @@ shinyServer(function(input, output, session) {
     
     #Note: addCategory and deleteCategory functions are in categories.R
     editing <- reactiveValues(num = 1)      #used to make unique ids for category cards
+     
     
     observeEvent(input$new_cat, {
         showModal(edit_category_modal) #opens edit modal
+        policy$categories <- addCategory(policy$categories, editing$num) #adds new category with default values
+        updateModalValues(editing$num) #updates all UI in modal, function defined below
     })
     
     observeEvent(input$cancel, {
+        policy$categories <- deleteCategory(policy$categories, editing$num) #delete default category
         removeModal() 
     })
     
-#### -------------------------- CATEGORY CARDS  ----------------------------#### 
     observeEvent(input$save, {
+        editing$num <- editing$num + 1 #increases with the making of a new category
         removeModal() 
     })
+    
+    updateModalValues <- function(edit_num){
+        #updated edit_category_modal with info from category with nr edit_num
+        i <- getCatIndex(policy$categories, editing$num)
+         updateTextInput(session, "change_cat_name", value = policy$categories[[i]]$name[i])
+         updateAutonumericInput(session, "slip", value = policy$categories[[i]]$slip_days[i])
+         updateTextInput(session, "late_allowed1", value = policy$categories[[i]]$late_time1[i])
+        updateTextInput(session, "late_allowed2", value = policy$categories[[i]]$late_time2[i])
+        updateAutonumericInput(session, "late_penalty1", "", value = policy$categories[[i]]$late_scale1[i])
+        updateAutonumericInput(session, "late_penalty2", "", value = policy$categories[[i]]$late_scale2[i])
+        updateAutonumericInput(session, "weight", "", value = policy$categories[[i]]$weight[i])
+        updateAutonumericInput(session, "num_drops", "", value = policy$categories[[i]]$drops[i])
+        updateSelectInput(session, "grading_policy", selected = policy$categories[[i]]$aggregation[i])
+        updateSelectInput(session, "clobber_with", selected = policy$categories[[i]]$clobber[i])
+        
+        choices <- ""
+        if (!is.null(assign$table)){
+            choices <- assign$table %>% filter (category == "Unassigned") %>% select(colnames)
+        }
+        # Preload selected values
+        preloaded_values <- policy$categories[[i]]$assigns[i]
+        if (length(preloaded_values) != 0){
+            preloaded_values <- unlist(strsplit(preloaded_values, ", ")) # Split the string and unlist the result
+            choices = c(choices, preloaded_values)
+        }
+        updateSelectizeInput(session, "assign", selected = strsplit(policy$categories[[i]]$assigns[i], ", ")[[1]])
+        updateSelectizeInput(session, "assign", choices = choices, selected = preloaded_values)
+    }
+    
+#### -------------------------- CATEGORY CARDS  ----------------------------#### 
+    
     
 #### -------------------------- POLICY-COURSE NAME  ----------------------------####
     # When save_changes is clicked, update the reactive values and close modal
