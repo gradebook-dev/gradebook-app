@@ -107,5 +107,15 @@ shinyServer(function(input, output, session) {
         assign$table
     })
     
+    #a list of unassigned assignments in policies tab
+    output$unassigned <- renderUI(
+        if (!is.null(assign$table)){
+            HTML(markdown::renderMarkdown(text = paste(paste0("- ", getUnassigned(assign$table), "\n"), collapse = "")))
+        } else {
+            textOutput("unassigned_message")
+        }
+    )
+    
+    output$unassigned_message <- renderText({"Let's upload some data first..."})
     
 })
