@@ -5,7 +5,7 @@ scratchpad <- tabItem(tabName = "scratchpad",
                                        dataTableOutput("input_data")
                               ),
                               tabPanel("cat_list",
-                                       tableOutput("cat_list")
+                                       verbatimTextOutput("cat_list")
                               ),
                               tabPanel("assigns$table",
                                        dataTableOutput("assign")

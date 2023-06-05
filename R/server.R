@@ -41,6 +41,10 @@ shinyServer(function(input, output, session) {
                                               Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)"),
                              categories = list())
     
+    output$cat_list <- renderPrint({
+        Hmisc::list.tree(policy$categories)
+        })
+    
     observeEvent(input$edit_policy_name, {
         showModal(modalDialog(
             title = "Edit Policy",
