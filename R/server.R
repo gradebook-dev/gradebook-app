@@ -4,7 +4,8 @@ library(shinyWidgets)
 #load helper scripts
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "categories.R"), local = TRUE)
-
+source(paste0(HSLocation, "assignments.R"), local = TRUE)
+source(paste0(HSLocation, "process-sid.R"), local = TRUE)
 
 shinyServer(function(input, output, session) {
 
@@ -84,8 +85,27 @@ shinyServer(function(input, output, session) {
         policy$coursewide$description
     })
     
-#### -------------------------- NEXT FUNCTIONALITY...  ----------------------------####  
-
+#### -------------------------- ASSIGNMENTS  ----------------------------####  
+    #reactive unassigned assignments table
+    assign <- reactiveValues(table = NULL)
+    
+    #takes reactive data output and creates a reactive assignment table
+    #contains all the columns from the original dataframe(names, emails, all columns from assignments, etc)
+    assignments <- reactive({
+        data <- data()
+        createAssignTable(data)
+    })
+    
+    #creates unassigned assignments table, excludes all names, sections, latenes, etc...
+    observe({
+        data <- data()
+        assign$table <- createAssignTable(data)%>%
+            filter(!str_detect(colnames, "Name|Sections|Max|Time|Late|Email|SID"))
+    })
+    
+    output$assign <- renderDataTable({
+        assign$table
+    })
     
     
 })
