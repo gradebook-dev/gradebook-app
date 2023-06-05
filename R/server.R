@@ -1,5 +1,6 @@
 # load libraries
 library(shinyWidgets)
+library(DT)
 
 #load helper scripts
 HSLocation <- "helperscripts/"
@@ -118,4 +119,45 @@ shinyServer(function(input, output, session) {
     
     output$unassigned_message <- renderText({"Let's upload some data first..."})
     
+    
+    #### -------------------------- PIVOT + STUDENT IDS ----------------------------####
+    new_data <- reactive({
+        # Get the new column names from the form data frame
+        new_colnames <- assignments()$new_colnames
+        # Rename the columns of the data frame using the new column names
+        data_new_colnames <- data() %>%
+            rename(!!!setNames(names(.), new_colnames))
+        #fix dates
+        new_time <- data_new_colnames%>%
+            mutate(across(contains("submission_time"), lubridate::mdy_hm), #convert to datetimes , previous format: lubridate::ymd_hms
+                   across(contains("lateness"), convert_to_min),
+                   across(contains("lateness"), as.character))
+        return(new_time)
+    })
+    # this allows lubridate values to be saved in the dataframe
+    convert_to_min <- function(hms){
+        save <- lubridate::hms(hms)
+        save <- period_to_seconds(save)
+        save <- save/60
+        return (save)
+    }
+    
+    output$new_data <- renderDataTable({
+        new_data()
+    })
+    
+    processed_sids <- reactive({
+        new_data <- new_data()
+        process_sids(new_data)
+    })
+    
+    pivotdf <- reactive({
+        processed_sids <- processed_sids()$unique_sids
+        
+        pivot(processed_sids, assign$table, cat$list)
+    })
+    
+    output$pivotdf <- renderDataTable({
+        pivotdf()
+    })
 })
