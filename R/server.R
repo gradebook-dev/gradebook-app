@@ -82,28 +82,28 @@ shinyServer(function(input, output, session) {
     updateModalValues <- function(edit_num){
         #updated edit_category_modal with info from category with nr edit_num
         i <- getCatIndex(policy$categories, editing$num)
-         updateTextInput(session, "change_cat_name", value = policy$categories[[i]]$name[i])
-         updateAutonumericInput(session, "slip", value = policy$categories[[i]]$slip_days[i])
-         updateTextInput(session, "late_allowed1", value = policy$categories[[i]]$late_time1[i])
-        updateTextInput(session, "late_allowed2", value = policy$categories[[i]]$late_time2[i])
-        updateAutonumericInput(session, "late_penalty1", "", value = policy$categories[[i]]$late_scale1[i])
-        updateAutonumericInput(session, "late_penalty2", "", value = policy$categories[[i]]$late_scale2[i])
-        updateAutonumericInput(session, "weight", "", value = policy$categories[[i]]$weight[i])
-        updateAutonumericInput(session, "num_drops", "", value = policy$categories[[i]]$drops[i])
-        updateSelectInput(session, "grading_policy", selected = policy$categories[[i]]$aggregation[i])
-        updateSelectInput(session, "clobber_with", selected = policy$categories[[i]]$clobber[i])
+        updateTextInput(session, "change_cat_name", value = policy$categories[[i]]$name)
+        updateAutonumericInput(session, "slip", value = policy$categories[[i]]$slip_days)
+        updateTextInput(session, "late_allowed1", value = policy$categories[[i]]$late_time1)
+        updateTextInput(session, "late_allowed2", value = policy$categories[[i]]$late_time2)
+        updateAutonumericInput(session, "late_penalty1", "", value = policy$categories[[i]]$late_scale1)
+        updateAutonumericInput(session, "late_penalty2", "", value = policy$categories[[i]]$late_scale2)
+        updateAutonumericInput(session, "weight", "", value = policy$categories[[i]]$weight)
+        updateAutonumericInput(session, "num_drops", "", value = policy$categories[[i]]$drops)
+        updateSelectInput(session, "grading_policy", selected = policy$categories[[i]]$aggregation)
+        updateSelectInput(session, "clobber_with", selected = policy$categories[[i]]$clobber)
         
         choices <- ""
         if (!is.null(assign$table)){
             choices <- assign$table %>% filter (category == "Unassigned") %>% select(colnames)
         }
         # Preload selected values
-        preloaded_values <- policy$categories[[i]]$assigns[i]
+        preloaded_values <- policy$categories[[i]]$assigns
         if (length(preloaded_values) != 0){
             preloaded_values <- unlist(strsplit(preloaded_values, ", ")) # Split the string and unlist the result
             choices = c(choices, preloaded_values)
         }
-        updateSelectizeInput(session, "assign", selected = strsplit(policy$categories[[i]]$assigns[i], ", ")[[1]])
+        updateSelectizeInput(session, "assign", selected = strsplit(policy$categories[[i]]$assigns, ", ")[[1]])
         updateSelectizeInput(session, "assign", choices = choices, selected = preloaded_values)
     }
     
