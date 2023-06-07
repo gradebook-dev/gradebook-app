@@ -37,25 +37,25 @@ edit_category_modal <- modalDialog(
                             div(
                                 style = "display: flex; align-items: center;",
                                 class = "custom-flex-container",
-                                autonumericInput("slip", label = "", value = "", width = "50px", decimalPlaces = 0)
+                                autonumericInput("slip", label = "", value = 0, width = "50px", decimalPlaces = 0)
                             )
                         ),
                         div(
                             style = "display: flex; align-items: center;",
                             class = "spacing",
                             tags$label("After"),
-                            textInput("late_allowed1", "", placeholder = "HH:MM:SS", width = "100px"),
+                            textInput("late_allowed1", "", value = "00:00:00", placeholder = "HH:MM:SS", width = "100px"),
                             tags$label("scale by:"),
-                            autonumericInput("late_penalty1", "", value = "",
+                            autonumericInput("late_penalty1", "", value = 0,
                                              currencySymbolPlacement = "s", width = "50px")
                         ),
                         div(
                             style = "display: flex; align-items: center;",
                             class = "spacing",
                             tags$label("After"),
-                            textInput("late_allowed2", "", placeholder = "HH:MM:SS", width = "100px"),
+                            textInput("late_allowed2", "", value = "00:00:00", placeholder = "HH:MM:SS", width = "100px"),
                             tags$label("scale by:"),
-                            autonumericInput("late_penalty2", "", value = "",
+                            autonumericInput("late_penalty2", "", value = 0,
                                              currencySymbolPlacement = "s", width = "50px")
                         )
                     )
@@ -67,26 +67,24 @@ edit_category_modal <- modalDialog(
                    style = "display: flex; align-items: center;",
                    class = "spacing",
                    tags$label("Weight"),
-                   shinyWidgets::autonumericInput("weight", "", value = "", currencySymbol = "%",
+                   shinyWidgets::autonumericInput("weight", "", value = 0, currencySymbol = "%",
                                                   currencySymbolPlacement = "s", width = "100px"),
                    tags$label("Drops?"),
-                   autonumericInput("num_drops", "", value = "", currencySymbol = " drops",
+                   autonumericInput("num_drops", "", value = 0, currencySymbol = " drops",
                                     currencySymbolPlacement = "s", decimalPlaces = 0,width = "100px")
                ),
                div(
                    style = "display: flex; align-items: center; margin-top: -5px;",
                    class = "spacing",
                    tags$label("Aggregation"),
-                   selectInput("grading_policy", strong(""),
+                   selectInput("grading_policy", strong(""), selected = "Equally Weighted",
                                choices = c("Equally Weighted", "Weighted by Points"))
                ),
                div(
                    style = "display: flex; align-items: stretch; align-items: center; margin-top: -15px;",
                    class = "spacing",
                    tags$label("Clobber with..."),
-                   selectInput("clobber_with", "",
-                               choices = c("None", "Lab 1", "Lab 2", "Quiz 1", "Quiz 2", "PS 1", "PS 2")
-                   )
+                   selectInput("clobber_with", "", selected = "None", choices = c("None"))
                )
            )
     )),
@@ -110,59 +108,41 @@ edit_category_modal <- modalDialog(
     
 )
 
-# added default category to end of cat_list
-addCategory <- function(cat_list, edit_num){
-    #create default category
-    new_category <- list(name = paste0("New Category ", edit_num),
-                     slip_days = 0,
-                     late_time1 = "00:00:00",
-                     late_time2 = "00:00:00",
-                     late_scale1 = 0,
-                     late_scale2 = 0,
-                     weight = 0,
-                     drops = 0,
-                     aggregation = "Equally Weighted",
-                     clobber = "None",
-                     assigns = "",
-                     nr = paste0("cat", edit_num)
-                     )
-    cat_list[[length(cat_list)+1]] <- new_category
-    return (cat_list)
-}
-
-getCatIndex <- function(cat_list, edit_num){
+getCatIndex <- function(cat_list, edit_nr){
     nrs <- purrr::map(cat_list, "nr") |>
         unlist()
-    i <- which(nrs == paste0("cat", edit_num))
+    i <- which(nrs == edit_nr)
+    if (length(i) == 0){
+        i <- length(cat_list)+1
+    }
+    return (i)
 }
 
 #deletes category "cat_name"
 deleteCategory <- function(cat_list, edit_num){
-    i <- getCatIndex(cat_list, edit_num)
-    cat_list <- cat_list[-i]
-    
-    return(cat_list)
+   
 }
 
 # updates category "cat_name" with input data
-updateCategory <- function(cat_list, input, edit_num){
-    i <- getCatIndex(cat_list, edit_num)
-    #if no input, sets to default values
-    cat_list[[i]]$name <- ifelse(input$change_cat_name == "", paste0("Category ", i), input$change_cat_name)
-    cat_list[[i]]$slip_days <- ifelse(length(input$slip) == 0, 0, input$slip)
-    cat_list[[i]]$late_time1 <- ifelse(input$late_allowed1 == "", "00:00:00", input$late_allowed1)
-    cat_list[[i]]$late_time2 <- ifelse(input$late_allowed2 == "", "00:00:00", input$late_allowed2)
-    cat_list[[i]]$late_scale1 <- ifelse(length(input$late_penalty1) == 0, 0, input$late_penalty1)
-    cat_list[[i]]$late_scale2 <- ifelse(length(input$late_penalty2) == 0, 0, input$late_penalty2)
-    cat_list[[i]]$weight <- ifelse(length(input$weight) == 0, 0, input$weight)
-    cat_list[[i]]$drops <- ifelse(length(input$num_drops) == 0, 0, input$num_drops)
-    cat_list[[i]]$aggregation <- ifelse(length(input$grading_policy) == 0, "Equally Weighted", input$grading_policy)
-    cat_list[[i]]$clobber <- ifelse(length(input$clobber_with) == 0, "None", input$clobber_with)
-
-    #adding assignemtns to the cat_list[[i]]
+updateCategory <- function(cat_list, input, edit_nr){
+    #create default category
+    edit_num <- unlist(strsplit(edit_nr, "cat"))[2]
     assignments <- ifelse(length(input$assign) == 0, "None", paste(input$assign, collapse = ", "))
-    cat_list[[i]]$assigns[i] <- assignments
-
+    category <- list(name = ifelse(input$change_cat_name == "", paste0("Category ", edit_num), input$change_cat_name),
+                         slip_days = ifelse(length(input$slip) == 0, 0, input$slip),
+                         late_time1 = ifelse(input$late_allowed1 == "", "00:00:00", input$late_allowed1),
+                         late_time2 = ifelse(input$late_allowed2 == "", "00:00:00", input$late_allowed2),
+                         late_scale1 = ifelse(length(input$late_penalty1) == 0, 0, input$late_penalty1),
+                         late_scale2 = ifelse(length(input$late_penalty2) == 0, 0, input$late_penalty2),
+                         weight = ifelse(length(input$weight) == 0, 0, input$weight),
+                         drops = ifelse(length(input$num_drops) == 0, 0, input$num_drops),
+                         aggregation = ifelse(length(input$grading_policy) == 0, "Equally Weighted", input$grading_policy),
+                         clobber = ifelse(length(input$clobber_with) == 0, "None", input$clobber_with),
+                         assigns = ifelse(length(input$assign) == 0, "None", paste(input$assign, collapse = ", ")),
+                         nr = edit_nr
+    )
+    i <- getCatIndex(cat_list, edit_nr)
+    cat_list[[i]] <- category
     return (cat_list)
 }
 

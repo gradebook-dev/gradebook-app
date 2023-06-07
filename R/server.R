@@ -60,33 +60,30 @@ shinyServer(function(input, output, session) {
 #### -------------------------- NEW CATEGORY MODAL ----------------------------####
     
     #Note: addCategory and deleteCategory functions are in categories.R
-    editing <- reactiveValues(num = 1) #used to make unique ids for category card
+    editing <- reactiveValues(num = 1,    #used to make unique ids for category card
+                              nr = NULL) #used to differentiate editing with making new category
      
     
     observeEvent(input$new_cat, {
+        editing$nr <- paste0("cat", editing$num)
         showModal(edit_category_modal) #opens edit modal
-        policy$categories <- addCategory(policy$categories, editing$num) #adds new category with default values
-        updateModalValues(editing$num) #updates all UI in modal, function defined below
+        #updates values that aren't always the same but still default
+        updateTextInput(session, "change_cat_name", value = paste0("Category ", editing$num))
+        if (!is.null(assign$table)){ #updates assignments if data has been loaded
+            choices <- assign$table %>% filter (category == "Unassigned") %>% select(colnames)
+            updateSelectizeInput(session, "assign", choices = choices, selected = "")
+            updateSelectInput(session, "clobber_with", choices = c("None", choices))
+        }
+        
     })
     
     observeEvent(input$cancel, {
-        policy$categories <- deleteCategory(policy$categories, editing$num) #delete default category
-        removeModal() 
+        removeModal()
     })
     
-    observeEvent(input$save, {
-        policy$categories <- updateCategory(policy$categories, input, editing$num)
-        if (!is.null(assign$table)){
-            assign$table <- resetAssigns(assign$table, editing$name)
-            assign$table <- updateAssigns(assign$table, input$assign, input$change_cat_name)
-        }
-        editing$num <- editing$num + 1 #increases with the making of a new category
-        removeModal() 
-    })
-    
-    updateModalValues <- function(edit_num){
+    updateModalValues <- function(edit_nr){
         #updated edit_category_modal with info from category with nr edit_num
-        i <- getCatIndex(policy$categories, editing$num)
+        i <- getCatIndex(policy$categories, edit_nr)
         updateTextInput(session, "change_cat_name", value = policy$categories[[i]]$name)
         updateAutonumericInput(session, "slip", value = policy$categories[[i]]$slip_days)
         updateTextInput(session, "late_allowed1", value = policy$categories[[i]]$late_time1)
@@ -104,7 +101,7 @@ shinyServer(function(input, output, session) {
         }
         # Preload selected values
         preloaded_values <- policy$categories[[i]]$assigns
-        if (length(preloaded_values) != 0){
+        if ((preloaded_values) != "None"){
             preloaded_values <- unlist(strsplit(preloaded_values, ", ")) # Split the string and unlist the result
             choices = c(choices, preloaded_values)
         }
@@ -113,58 +110,13 @@ shinyServer(function(input, output, session) {
     }
     
 #### -------------------------- CATEGORY CARDS  ----------------------------#### 
+    
     observeEvent(input$save, {
-        x <- length(policy$categories)
-        for (i in 1:x){
-            nr <- policy$categories[[i]]$nr
-            removeUI(
-                selector = paste0("#cat",nr) #this removes the UI for this category
-            )
-            insertUI( #creates UI for this category
-                selector = '#inputList',
-                ui=div(
-                    id = paste0("cat",nr),
-                    div(
-                        style = "border: 1px solid #000; padding: 10px; border-radius: 5px; margin-top: 20px;",
-                        tags$div(
-                            style = "display: flex; justify-content: left; align-items: center;",
-                            
-                            tags$div(
-                                h4(policy$categories[[i]]$name),
-                                style = "margin-right: 10px;"),
-                            #rest of information about this category will be here
-                            actionButton(paste0('delete',nr), label = NULL, icon = icon("trash-can"),  style = "background-color: transparent; margin-right: 10px;"), #remove button for this category
-                            #edit button
-                            actionButton(paste0('edit',nr), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; ")
-                        ),
-                        #update_ui_categories(cat$list, nr)
-                        
-                        
-                    )
-                    
-                )
-            )
-            
-            # observeEvent(input[[paste0('edit',nr)]],{
-            #     showModal(edit_category_modal) #opens edit modal
-            #     i <- which(cat$list$nr == nr)
-            #     nr <- cat$list$nr[i]
-            #     updateModalValues(cat$list$name[i]) #updates all UI in modal, function defined below
-            #     editing$name <- cat$list$name[i] #saves original name of category
-            #     editing$new <- FALSE #this is a new category with default value
-            #     update_ui_categories(cat$list, nr)
-            # })
-            
-            observeEvent(input[[paste0('delete',nr)]],{
-                edit_num <- unlist(strsplit(nr, "cat"))[2]
-                i <- getCatIndex(policy$categories, edit_num)
-                policy$categories <- deleteCategory(policy$categories, edit_num) #if this remove button pressed, it deletes this category
-                removeUI(
-                    selector = paste0("#cat",nr) #this removes the UI for this category
-                )
-            })
-        }
+        policy$categories <- updateCategory(policy$categories, input, editing$nr)
+        removeModal()
+        editing$num <- editing$num + 1
     })
+    
     
 #### -------------------------- POLICY-COURSE NAME  ----------------------------####
     # When save_changes is clicked, update the reactive values and close modal
