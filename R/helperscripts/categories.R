@@ -152,20 +152,43 @@ update_ui_categories <- function(cat_list, nr) {
     i <- getCatIndex(cat_list, nr)
     tagList(
         div(
-            style = "padding: 0px 20px 20px 20px;",
-            tags$div(
-                style = "justify-content: left; align-items: center;",
-                tags$div(
-                    div(
-                        style = "display: flex; align-items: center;",
-                        paste("Slip Days: ", cat_list[[i]]$slip_days),
-                        paste("Weight: ", cat_list[[i]]$weight),
-                        paste("Drops: ", cat_list[[i]]$drops),
-                        paste("Clobber Policy: ", cat_list[[i]]$clobber),
-                        paste("Assignments Included: ", cat_list[[i]]$assigns)
-                    )
-                )
+            # style = "padding: 0px 20px 20px 20px;",
+            # tags$div(
+            #     style = "justify-content: left; align-items: center;",
+            #     tags$div(
+            #         div(
+            #             style = "display: flex; align-items: center;",
+            #             paste("Slip Days: ", cat_list[[i]]$slip_days),
+            #             paste("Weight: ", cat_list[[i]]$weight),
+            #             paste("Drops: ", cat_list[[i]]$drops),
+            #             paste("Clobber Policy: ", cat_list[[i]]$clobber),
+            #             paste("Assignments Included: ", cat_list[[i]]$assigns)
+            #         ),
+            #         div(
+            #             
+            #         )
+            #     )
+            # )
+            
+            style = "border-left: 1px solid #ddd; padding-left: 10px; display: flex;",
+            div(
+                style = "flex: 1; display: flex; flex-direction: column; margin-right: 10px;",
+                p(strong("Weight:"), style = "margin-bottom: 5px;"),
+                p(strong("Drops:"), style = "margin-bottom: 5px;"),
+                p(strong("Grading Policy:"), style = "margin-bottom: 5px;"),
+                p(strong("Clobber Policy:"), style = "margin-bottom: 5px;"),
+                p(strong("Slip Days:"), style = "margin-bottom: 5px;"),
+                p(strong("Assignments Included:"), style = "margin-bottom: 5px;")
+            ),
+            div(
+                style = "flex: 1; display: flex; flex-direction: column;",
+                p(paste(cat_list[[i]]$weight), style = "margin-bottom: 5px;"),
+                p(paste(cat_list[[i]]$drops), style = "margin-bottom: 5px;"),
+                p(paste(cat_list[[i]]$aggregation), style = "margin-bottom: 5px;"),
+                p(paste(cat_list[[i]]$clobber), style = "margin-bottom: 5px;"),
+                p(paste(cat_list[[i]]$slip_days), style = "margin-bottom: 5px;"),
+                p(paste(cat_list[[i]]$assigns), style = "margin-bottom: 5px;")
             )
         )
-    )
+        )
 }

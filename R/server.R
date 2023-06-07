@@ -116,6 +116,8 @@ shinyServer(function(input, output, session) {
         removeModal()
         editing$num <- editing$num + 1
         
+        
+        
         #UI below
         x <- length(policy$categories)
         for (i in 1:length(policy$categories)){ #iterates through all categories
@@ -148,15 +150,12 @@ shinyServer(function(input, output, session) {
                 )
             )
             
-            # observeEvent(input[[paste0('edit',nr)]],{
-            #     showModal(edit_category_modal) #opens edit modal
-            #     i <- which(cat$list$nr == nr)
-            #     nr <- cat$list$nr[i]
-            #     updateModalValues(cat$list$name[i]) #updates all UI in modal, function defined below
-            #     editing$name <- cat$list$name[i] #saves original name of category
-            #     editing$new <- FALSE #this is a new category with default value
-            #     update_ui_categories(cat$list, nr)
-            # })
+            
+            observeEvent(input[[paste0('edit',nr)]],{
+                showModal(edit_category_modal) #opens edit modal
+                editing$nr <- nr
+                updateModalValues(nr)
+            })
             
             observeEvent(input[[paste0('delete',nr)]],{
                 policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
