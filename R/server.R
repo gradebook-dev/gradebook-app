@@ -72,7 +72,7 @@ shinyServer(function(input, output, session) {
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
             choices <- assign$table %>% filter (category == "Unassigned") %>% select(colnames)
             updateSelectizeInput(session, "assign", choices = choices, selected = "")
-            updateSelectInput(session, "clobber_with", choices = c("None", choices))
+            updateSelectInput(session, "clobber_with", choices = c("None", select(assign$table, colnames)))
         }
         
     })
@@ -94,10 +94,10 @@ shinyServer(function(input, output, session) {
         updateAutonumericInput(session, "num_drops", "", value = policy$categories[[i]]$drops)
         updateSelectInput(session, "grading_policy", selected = policy$categories[[i]]$aggregation)
         updateSelectInput(session, "clobber_with", selected = policy$categories[[i]]$clobber)
-        
         choices <- ""
         if (!is.null(assign$table)){
             choices <- assign$table %>% filter (category == "Unassigned") %>% select(colnames)
+            updateSelectInput(session, "clobber_with", choices = c("None", select(assign$table, colnames)))
         }
         # Preload selected values
         preloaded_values <- policy$categories[[i]]$assigns
@@ -115,6 +115,56 @@ shinyServer(function(input, output, session) {
         policy$categories <- updateCategory(policy$categories, input, editing$nr)
         removeModal()
         editing$num <- editing$num + 1
+        
+        #UI below
+        x <- length(policy$categories)
+        for (i in 1:length(policy$categories)){ #iterates through all categories
+            nr <- policy$categories[[i]]$nr
+            removeUI(
+                selector = paste0("#cat",nr) #this removes the UI for this category
+            )
+            insertUI( #creates UI for this category
+                selector = '#inputList',
+                ui=div(
+                    id = paste0("cat",nr),
+                    div(
+                        style = "border: 1px solid #000; padding: 10px; border-radius: 5px; margin-top: 20px;",
+                        tags$div(
+                            style = "display: flex; justify-content: left; align-items: center;",
+                            
+                            tags$div(
+                                h4(policy$categories[[i]]$name),
+                                style = "margin-right: 10px;"),
+                            #rest of information about this category will be here
+                            actionButton(paste0('delete',nr), label = NULL, icon = icon("trash-can"),  style = "background-color: transparent; margin-right: 10px;"), #remove button for this category
+                            #edit button
+                            actionButton(paste0('edit',nr), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; ")
+                        ),
+                        update_ui_categories(policy$categories, nr)
+                        
+                        
+                    )
+                    
+                )
+            )
+            
+            # observeEvent(input[[paste0('edit',nr)]],{
+            #     showModal(edit_category_modal) #opens edit modal
+            #     i <- which(cat$list$nr == nr)
+            #     nr <- cat$list$nr[i]
+            #     updateModalValues(cat$list$name[i]) #updates all UI in modal, function defined below
+            #     editing$name <- cat$list$name[i] #saves original name of category
+            #     editing$new <- FALSE #this is a new category with default value
+            #     update_ui_categories(cat$list, nr)
+            # })
+            
+            observeEvent(input[[paste0('delete',nr)]],{
+                policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
+                removeUI(
+                    selector = paste0("#cat",nr) #this removes the UI for this category
+                )
+            })
+        }
     })
     
     

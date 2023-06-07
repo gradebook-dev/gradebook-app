@@ -119,8 +119,9 @@ getCatIndex <- function(cat_list, edit_nr){
 }
 
 #deletes category "cat_name"
-deleteCategory <- function(cat_list, edit_num){
-   
+deleteCategory <- function(cat_list, edit_nr){
+    i <- getCatIndex(cat_list, edit_nr)
+    cat_list <- cat_list[-i]
 }
 
 # updates category "cat_name" with input data
@@ -147,8 +148,8 @@ updateCategory <- function(cat_list, input, edit_nr){
 }
 
 
-update_ui_categories <- function(cat_list, id) {
-    i <- which(cat_list$nr == id)
+update_ui_categories <- function(cat_list, nr) {
+    i <- getCatIndex(cat_list, nr)
     tagList(
         div(
             style = "padding: 0px 20px 20px 20px;",
@@ -157,11 +158,11 @@ update_ui_categories <- function(cat_list, id) {
                 tags$div(
                     div(
                         style = "display: flex; align-items: center;",
-                        paste("Slip Days: ", cat_list$slip_days[i]),
-                        paste("Weight: ", cat_list$weight[i]),
-                        paste("Drops: ", cat_list$drops[i]),
-                        paste("Clobber Policy: ", cat_list$clobber[i]),
-                        paste("Assignments Included: ", cat_list$assigns[i])
+                        paste("Slip Days: ", cat_list[[i]]$slip_days),
+                        paste("Weight: ", cat_list[[i]]$weight),
+                        paste("Drops: ", cat_list[[i]]$drops),
+                        paste("Clobber Policy: ", cat_list[[i]]$clobber),
+                        paste("Assignments Included: ", cat_list[[i]]$assigns)
                     )
                 )
             )
