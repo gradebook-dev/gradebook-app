@@ -37,20 +37,21 @@ getUnassigned <- function(assign_table){
 }
 
 #updates assignments in assignment table when they are assigned a category
-updateAssigns <- function(assignments, assign, cat_name){
-    if (!is.null(assign)){
-        selected <- data.frame(colnames = assign)
-        selected <- semi_join(assignments, selected, "colnames") %>% mutate(category = cat_name)
-        assignments <- rbind(selected, anti_join(assignments, selected, "colnames"))
+updateAssigns <- function(assigns_table, assignments, original_cat, new_cat){
+    assigns_table <- resetAssigns(assigns_table, original_cat)
+    if (!is.null(assignments)){
+        selected <- data.frame(colnames = assignments)
+        selected <- semi_join(assigns_table, selected, "colnames") %>% mutate(category = new_cat)
+        assigns_table <- rbind(selected, anti_join(assigns_table, selected, "colnames"))
     }
-    return (assignments)
+    return (assigns_table)
 }
 
 #resets all assignments of a category to "Unassigned"
-resetAssigns <- function(assignments, original_category){
-    selected <- assignments %>%
-        filter(category %in% original_category) %>%
+resetAssigns <- function(assigns_table, original_category){
+    selected <- assigns_table %>%
+        filter(category == original_category) %>%
         mutate(category = "Unassigned")
-    assignments <- rbind(selected, anti_join(assignments, selected, "colnames"))
-    return (assignments)
+    assigns_table <- rbind(selected, anti_join(assigns_table, selected, "colnames"))
+    return (assigns_table)
 }

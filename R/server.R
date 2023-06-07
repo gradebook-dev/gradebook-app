@@ -112,14 +112,19 @@ shinyServer(function(input, output, session) {
 #### -------------------------- CATEGORY CARDS  ----------------------------#### 
     
     observeEvent(input$save, {
+        i <- getCatIndex(policy$categories, editing$nr)
+        original_name <- input$change_cat_name #if this is a new cateogyr 
+        if (i < length(policy$categories)){ #if it's not a new category
+            original_name <- policy$categories[[i]]$name 
+        }
         policy$categories <- updateCategory(policy$categories, input, editing$nr)
+        assign$table <- updateAssigns(assign$table, input$assign, original_name, input$change_cat_name)
         removeModal()
         editing$num <- editing$num + 1
         
         
         
         #UI below
-        x <- length(policy$categories)
         for (i in 1:length(policy$categories)){ #iterates through all categories
             nr <- policy$categories[[i]]$nr
             removeUI(
@@ -158,6 +163,8 @@ shinyServer(function(input, output, session) {
             })
             
             observeEvent(input[[paste0('delete',nr)]],{
+                i <- getCatIndex(policy$categories, nr)
+                assign$table <- resetAssigns(assign$table, policy$categories[[i]]$name)
                 policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
                 removeUI(
                     selector = paste0("#cat",nr) #this removes the UI for this category
