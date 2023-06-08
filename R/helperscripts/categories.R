@@ -128,7 +128,6 @@ deleteCategory <- function(cat_list, edit_nr){
 updateCategory <- function(cat_list, input, edit_nr){
     #create default category
     edit_num <- unlist(strsplit(edit_nr, "cat"))[2]
-    assignments <- ifelse(length(input$assign) == 0, "None", paste(input$assign, collapse = ", "))
     category <- list(name = ifelse(input$change_cat_name == "", paste0("Category ", edit_num), input$change_cat_name),
                          slip_days = ifelse(length(input$slip) == 0, 0, input$slip),
                          late_time1 = ifelse(input$late_allowed1 == "", "00:00:00", input$late_allowed1),
@@ -139,9 +138,13 @@ updateCategory <- function(cat_list, input, edit_nr){
                          drops = ifelse(length(input$num_drops) == 0, 0, input$num_drops),
                          aggregation = ifelse(length(input$grading_policy) == 0, "Equally Weighted", input$grading_policy),
                          clobber = ifelse(length(input$clobber_with) == 0, "None", input$clobber_with),
-                         assigns = ifelse(length(input$assign) == 0, "None", input$assign),
+                         assigns = input$assign,
+                         #assigns = ifelse(length(input$assign) == 0, "None", as.vector(input$assign)),
                          nr = edit_nr
     )
+    if (length(input$assign) == 0){
+        category$assigns <- "None"
+    }
     i <- getCatIndex(cat_list, edit_nr)
     cat_list[[i]] <- category
     return (cat_list)
@@ -150,6 +153,7 @@ updateCategory <- function(cat_list, input, edit_nr){
 
 update_ui_categories <- function(cat_list, nr) {
     i <- getCatIndex(cat_list, nr)
+    assignments <- stringr::str_c(cat_list[[i]]$assigns, collapse = ", ") 
     tagList(
         div(
             # style = "padding: 0px 20px 20px 20px;",
@@ -187,7 +191,7 @@ update_ui_categories <- function(cat_list, nr) {
                 p(paste(cat_list[[i]]$aggregation), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$clobber), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$slip_days), style = "margin-bottom: 5px;"),
-                p(paste(cat_list[[i]]$assigns), style = "margin-bottom: 5px;")
+                p(paste(assignments), style = "margin-bottom: 5px;")
             )
         )
         )
