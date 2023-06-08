@@ -65,13 +65,20 @@ pivot <- function(new_data, assignments_dataframe, cat_table){
     
     add_categories_to_pivot <- sxa %>%
         left_join(assignments_dataframe %>% select(new_colnames, colnames, category), by = c("assignments" = "new_colnames"))
-    if (!is.null(cat_table)){
-        add_cat_table_to_pivot <- add_categories_to_pivot %>%
-            left_join(cat_table %>% select(Categories, Weights, Drops, Grading_Policy, Clobber_Policy, Late_Policy), by = c("category"="Categories"))
-        return(add_cat_table_to_pivot)
+    colnames(add_categories_to_pivot)[colnames(add_categories_to_pivot) == "lateness_(h_m_s)"] ="lateness(min)"
+    x <- length(cat_table)
+    if (x > 0){
+        cat_data_frame <- as.data.frame(cat_table[[1]]) %>% select(name, weight, drops, aggregation, slip_days, clobber, late_time1, late_scale1, late_time2, late_scale2)
+        if (x >1) {
+            for (i in 2:length(cat_table)){
+                row <- as.data.frame(cat_table[[i]]) %>% select(name, weight, drops, aggregation, slip_days, clobber, late_time1, late_scale1, late_time2, late_scale2)
+                cat_data_frame <- rbind(cat_data_frame, row)
+            }   
+        }
+        add_categories_to_pivot <- add_categories_to_pivot %>%
+            left_join(cat_data_frame, by = c("category" = "name"))
     }
-    else{
-        return(add_categories_to_pivot)
-    }
+
+    return(add_categories_to_pivot)
     
 }

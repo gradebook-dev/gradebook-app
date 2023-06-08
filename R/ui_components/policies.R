@@ -15,6 +15,7 @@ Policies <- tabItem(tabName = "policies",
                                             style = "font-size: 20px; display: inline-block; margin-right: 10px;"
                                         ),
                                         actionButton("edit_policy_name", label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; "),
+                                        actionGroupButtons(inputIds = c("save_json", "upload_json"), labels = c("Save this Course", "Upload your Course")),
                                         style = "border: none; background: transparent;"
                                         
                                     ),

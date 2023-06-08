@@ -1,6 +1,7 @@
 # load libraries
 library(shinyWidgets)
 library(DT)
+library(tidyverse)
 
 #load helper scripts
 HSLocation <- "helperscripts/"
@@ -29,7 +30,10 @@ shinyServer(function(input, output, session) {
             return("Upload some data first")
         }
         else{
-            read.table(input$upload$datapath, sep = ",", header = TRUE, fill=TRUE)
+            datatable(
+                read.table(input$upload$datapath, sep = ",", header = TRUE, fill=TRUE),
+                options = list(scrollX = TRUE)
+            )
             
         }
     })
@@ -194,6 +198,16 @@ shinyServer(function(input, output, session) {
     #reactive unassigned assignments table
     assign <- reactiveValues(table = NULL)
     
+    observe({
+        # if (length(policy$categories) != 0){
+        #     for (i in 1:length(policy$categories)){
+        #         name <- policy$categories[[i]]$name
+        #         assign <- policy$categories[[i]]$assigns
+        #         assigns$table <- updateCategory(assigns$table, assign, name)
+        #     }   
+        # }
+    })
+    
     #takes reactive data output and creates a reactive assignment table
     #contains all the columns from the original dataframe(names, emails, all columns from assignments, etc)
     assignments <- reactive({
@@ -247,7 +261,8 @@ shinyServer(function(input, output, session) {
     }
     
     output$new_data <- renderDataTable({
-        new_data()
+        datatable(new_data(),
+        options = list(scrollX = TRUE))
     })
     
     processed_sids <- reactive({
@@ -258,10 +273,36 @@ shinyServer(function(input, output, session) {
     pivotdf <- reactive({
         processed_sids <- processed_sids()$unique_sids
         
-        pivot(processed_sids, assign$table, cat$list)
+        pivot(processed_sids, assign$table, policy$categories)
     })
     
     output$pivotdf <- renderDataTable({
-        pivotdf()
+        datatable(
+            pivotdf(),
+            options = list(scrollX = TRUE)
+        )
+        })
+    
+    #### -------------------------- JSON ----------------------------####
+    path <- "../../gradebook-data"
+    dir.create(path, showWarnings = FALSE)
+    
+    #save config
+    observeEvent(input$save_json, {
+        p_list1 <- policy$coursewide
+        p_list2 <- policy$categories
+        jsonlite::write_json(list(p_list1, p_list2), paste(path, "cat_table.json", sep = "/"))
     })
+    
+    #load config
+    observeEvent(input$upload_json, {
+        if (file.exists(paste(path, "cat_table.json", sep = "/"))) {
+            df <- jsonlite::fromJSON(paste(path, "cat_table.json", sep = "/"))
+            policy$coursewide <- df[[1]]
+            policy$categories <- df[[2]]
+        } else {
+            print("File not found")
+        }
+    })
+    
 })

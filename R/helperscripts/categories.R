@@ -139,7 +139,7 @@ updateCategory <- function(cat_list, input, edit_nr){
                          drops = ifelse(length(input$num_drops) == 0, 0, input$num_drops),
                          aggregation = ifelse(length(input$grading_policy) == 0, "Equally Weighted", input$grading_policy),
                          clobber = ifelse(length(input$clobber_with) == 0, "None", input$clobber_with),
-                         assigns = ifelse(length(input$assign) == 0, "None", paste(input$assign, collapse = ", ")),
+                         assigns = ifelse(length(input$assign) == 0, "None", input$assign),
                          nr = edit_nr
     )
     i <- getCatIndex(cat_list, edit_nr)
