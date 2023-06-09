@@ -45,9 +45,10 @@ shinyServer(function(input, output, session) {
                                               Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)"),
                              categories = list())
     
-    #shows policy$categories in Scratchpad under cat_list tab
-    output$cat_list <- renderPrint({
-        Hmisc::list.tree(policy$categories)
+    #shows policy$categories in Scratchpad under policy_list tab
+    output$policy_list <- renderPrint({
+        # Hmisc::list.tree(policy)
+        Hmisc::list.tree(list(coursewide = policy$coursewide, categories = policy$categories))
         })
     
     observeEvent(input$edit_policy_name, {
@@ -125,12 +126,9 @@ shinyServer(function(input, output, session) {
         assign$table <- updateAssigns(assign$table, input$assign, original_name, input$change_cat_name)
         removeModal()
         editing$num <- editing$num + 1
-        
-        
-        
-        #UI below
-        for (i in 1:length(policy$categories)){ #iterates through all categories
-            nr <- policy$categories[[i]]$nr
+            
+        rerender_ui <- function(x) {
+            nr <- x$nr
             removeUI(
                 selector = paste0("#cat",nr) #this removes the UI for this category
             )
@@ -144,7 +142,7 @@ shinyServer(function(input, output, session) {
                             style = "display: flex; justify-content: left; align-items: center;",
                             
                             tags$div(
-                                h4(policy$categories[[i]]$name),
+                                h4(x$name),
                                 style = "margin-right: 10px;"),
                             #rest of information about this category will be here
                             actionButton(paste0('delete',nr), label = NULL, icon = icon("trash-can"),  style = "background-color: transparent; margin-right: 10px;"), #remove button for this category
@@ -152,13 +150,9 @@ shinyServer(function(input, output, session) {
                             actionButton(paste0('edit',nr), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; ")
                         ),
                         update_ui_categories(policy$categories, nr)
-                        
-                        
                     )
-                    
                 )
             )
-            
             
             observeEvent(input[[paste0('edit',nr)]],{
                 showModal(edit_category_modal) #opens edit modal
@@ -168,13 +162,14 @@ shinyServer(function(input, output, session) {
             
             observeEvent(input[[paste0('delete',nr)]],{
                 i <- getCatIndex(policy$categories, nr)
-                assign$table <- resetAssigns(assign$table, policy$categories[[i]]$name)
+                assign$table <- resetAssigns(assign$table, x$name)
                 policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
                 removeUI(
                     selector = paste0("#cat",nr) #this removes the UI for this category
                 )
             })
         }
+        purrr::walk(policy$categories, rerender_ui)
     })
     
     
