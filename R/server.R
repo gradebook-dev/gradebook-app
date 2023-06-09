@@ -306,7 +306,7 @@ shinyServer(function(input, output, session) {
         p_coursewide <- policy$coursewide
         p_categories <- policy$categories
         list <- list(p_coursewide, p_categories)
-        jsonlite::write_json(list, path_json)
+        jsonlite::write_json(list, path_json, auto_unbox = TRUE, pretty = TRUE)
         
         #current number of JSON files
         len <- length(cat_json()$Name)
@@ -321,8 +321,8 @@ shinyServer(function(input, output, session) {
         cat_json(getJsonFiles())
         
         updateSelectInput(session, "pick_policy", choices = cat_json()$Name)
-
-    })
+   
+         })
     #observe for changes to the JSON files and update the list of policies
     observe({
         json_files_names <- getJsonFiles()[["Name"]]
@@ -331,11 +331,9 @@ shinyServer(function(input, output, session) {
         }
         updateSelectInput(session, "pick_policy", choices = json_files_names)
     })
-    
-    
     observeEvent(input$upload_json, {
-        if (input$pick_policy == "No policy files"){
-            print("No policy files available in directory")
+        if (input$pick_policy == "No policy files") {
+            print("No policy files available in the directory")
             return()
         }
         
@@ -346,7 +344,8 @@ shinyServer(function(input, output, session) {
             return()
         }
         if (file.exists(json_files$Path[[i]])) {
-            df <- jsonlite::fromJSON(json_files$Path[[i]])
+            df <- jsonlite::fromJSON(json_files$Path[[i]], simplifyVector = TRUE, simplifyDataFrame = FALSE)
+            
             policy$coursewide <- df[[1]]
             policy$categories <- df[[2]]
         } else {
