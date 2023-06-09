@@ -27,8 +27,22 @@ shinyUI(
                     "Upload Student Data"
                     
                 ),
-                fileInput("upload", label = NULL, accept = c(".csv"))
-                
+                fileInput("upload", label = NULL, accept = c(".csv")),
+                hr(),
+                div(class = "sidebar-text",
+                    style = "margin-left: 20px;",
+                    "Pick Course File:"
+                ),
+                div(style = "margin-top: -20px;",
+                    selectizeInput("pick_policy", "",
+                                   choices = '',
+                                   multiple = FALSE,
+                                   width = "100%"),
+                ),
+                div(style = "display: flex; align-items: center;",
+                    actionButton("upload_json", "Upload Your Course"),
+                    actionButton("delete_json", "", icon = icon("trash-can"))
+                )
                 
             )
             

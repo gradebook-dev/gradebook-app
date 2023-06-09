@@ -287,22 +287,121 @@ shinyServer(function(input, output, session) {
     path <- "../../gradebook-data"
     dir.create(path, showWarnings = FALSE)
     
+    #make a df with json names and paths
+    getJsonFiles <- function() {
+        json_files <- list.files(path, pattern = "\\.json$", full.names = TRUE)# the regex pattern only gets the .json files in the category.
+        json_names <- tools::file_path_sans_ext(basename(json_files)) #removes the path and .json extention elaving just the name
+        # Return a list with the names and full paths of the JSON files
+        return(list(Name = json_names, Path = json_files))
+    }
+    #initializea reactive value that stores the names and paths of the JSON files
+    cat_json <- reactiveVal(getJsonFiles())
+
     #save config
     observeEvent(input$save_json, {
-        p_list1 <- policy$coursewide
-        p_list2 <- policy$categories
-        jsonlite::write_json(list(p_list1, p_list2), paste(path, "cat_table.json", sep = "/"))
+        # Create the file name and path
+        name <- paste0(policy$coursewide$course_name, ".json")
+        path_json <- file.path(path, name)
+        #the data to be saved
+        p_coursewide <- policy$coursewide
+        p_categories <- policy$categories
+        list <- list(p_coursewide, p_categories)
+        jsonlite::write_json(list, path_json)
+        
+        #current number of JSON files
+        len <- length(cat_json()$Name)
+        # 1: Get the value of cat_json() into an R list
+        cat_json_list <- cat_json()
+        # 2: modify the list
+        cat_json_list$Name[[len + 1]] <- policy$coursewide$course_name
+        cat_json_list$Path[[len + 1]] <- path_json
+        # 3: Update the whole reactive value with the new list
+        cat_json(cat_json_list)
+        # 4: Update cat_json reactive variable
+        cat_json(getJsonFiles())
+        
+        updateSelectInput(session, "pick_policy", choices = cat_json()$Name)
+
+    })
+    #observe for changes to the JSON files and update the list of policies
+    observe({
+        json_files_names <- getJsonFiles()[["Name"]]
+        if (length(json_files_names) == 0) {
+            json_files_names <- "No policy files"
+        }
+        updateSelectInput(session, "pick_policy", choices = json_files_names)
     })
     
-    #load config
+    
     observeEvent(input$upload_json, {
-        if (file.exists(paste(path, "cat_table.json", sep = "/"))) {
-            df <- jsonlite::fromJSON(paste(path, "cat_table.json", sep = "/"))
+        if (input$pick_policy == "No policy files"){
+            print("No policy files available in directory")
+            return()
+        }
+        
+        json_files <- getJsonFiles()
+        i <- which(input$pick_policy == json_files$Name)
+        if (length(i) == 0) {
+            print("Configuration not found")
+            return()
+        }
+        if (file.exists(json_files$Path[[i]])) {
+            df <- jsonlite::fromJSON(json_files$Path[[i]])
             policy$coursewide <- df[[1]]
             policy$categories <- df[[2]]
         } else {
             print("File not found")
         }
     })
+    # Delete selected JSON file
+    observeEvent(input$delete_json, {
+        #show sweetalert confirmation dialog
+        confirmSweetAlert(
+            session = session,
+            inputId = "delete_config_confirm",
+            title = "Delete JSON File",
+            text = "Are you sure you want to delete this JSON file?",
+            type = "warning",
+            showCancelButton = TRUE,
+            cancelButtonText = "Cancel",
+            confirmButtonText = "Delete",
+            closeOnConfirm = TRUE,
+            closeOnCancel = TRUE
+        )
+    })
+    
+    # Handle confirmation result
+    observeEvent(input$delete_config_confirm, {
+        if (input$delete_config_confirm) {
+            #find chosen file
+            selected_name <- input$pick_policy
+            selected_files <- getJsonFiles()
+            selected_path <- selected_files$Path[selected_files$Name == selected_name]
+            
+            #delete the JSON file and update the reactive value
+            if (length(selected_path) > 0) {
+                selected_path <- selected_path[1]
+                
+                if (file.exists(selected_path)) {
+                    file.remove(selected_path)
+                    # 1:get the value of cat_json() into an R list
+                    cat_json_list <- cat_json()
+                    # 2:modify list
+                    cat_json_list$Name <- cat_json_list$Name[cat_json_list$Path != selected_path]
+                    cat_json_list$Path <- cat_json_list$Path[cat_json_list$Path != selected_path]
+                    # 3:update the whole reactive value with the new list
+                    cat_json(cat_json_list)
+                    updateSelectInput(session, "pick_policy", choices = cat_json()$Name)
+                } else {
+                    print("File not found")
+                }
+            } else {
+                print("Selected policy not found")
+            }
+        }
+
+})
+    
+    
     
 })
