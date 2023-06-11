@@ -65,20 +65,15 @@ pivot <- function(new_data, assignments_dataframe, cat_table){
     
     add_categories_to_pivot <- sxa %>%
         left_join(assignments_dataframe %>% select(new_colnames, colnames, category), by = c("assignments" = "new_colnames"))
-    colnames(add_categories_to_pivot)[colnames(add_categories_to_pivot) == "lateness_(h_m_s)"] ="lateness(min)"
+    colnames(add_categories_to_pivot)[colnames(add_categories_to_pivot) == "lateness_(h_m_s)"] ="lateness_min"
+    
+    #cat_table is the list with categories (policy$categories) which is converted to a data frame categories_df in the server.
     x <- length(cat_table)
     if (x > 0){
-        cat_data_frame <- as.data.frame(cat_table[[1]]) %>% select(name, weight, drops, aggregation, slip_days, clobber, late_time1, late_scale1, late_time2, late_scale2)
-        if (x >1) {
-            for (i in 2:length(cat_table)){
-                row <- as.data.frame(cat_table[[i]]) %>% select(name, weight, drops, aggregation, slip_days, clobber, late_time1, late_scale1, late_time2, late_scale2)
-                cat_data_frame <- rbind(cat_data_frame, row)
-            }   
-        }
+        #remove assigns column from cat_table
+        cat_table <- select(cat_table, -assigns)
         add_categories_to_pivot <- add_categories_to_pivot %>%
-            left_join(cat_data_frame, by = c("category" = "name"))
+            left_join(cat_table, by = c("category" = "name"))
     }
-
     return(add_categories_to_pivot)
-    
 }

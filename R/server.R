@@ -8,6 +8,7 @@ HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "categories.R"), local = TRUE)
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
 source(paste0(HSLocation, "process-sid.R"), local = TRUE)
+source(paste0(HSLocation, "grades.R"), local = TRUE)
 
 shinyServer(function(input, output, session) {
 
@@ -264,19 +265,64 @@ shinyServer(function(input, output, session) {
         new_data <- new_data()
         process_sids(new_data)
     })
+    #### MAKE A DATAFRAME WITH CATEGORIES #####
+    categories_df <- reactive({
+        map_df(policy$categories, ~{
+            item <- .
+            assigns <- paste(item$assigns, collapse = ", ")
+            item$assigns <- assigns
+            as.data.frame(t(unlist(item)))
+        })
+    })
     
+    
+    print(categories_df)
+
     pivotdf <- reactive({
         processed_sids <- processed_sids()$unique_sids
-        
-        pivot(processed_sids, assign$table, policy$categories)
+        pivot(processed_sids, assign$table, categories_df())
     })
     
     output$pivotdf <- renderDataTable({
         datatable(
             pivotdf(),
-            options = list(scrollX = TRUE)
-        )
+            options = list(scrollX = TRUE))
         })
+    
+    
+    
+    #### -------------------------- GRADING ----------------------------####
+    
+    ### Step1: AllGradesTable calculations 
+    allgradestable <- reactive({
+        if (!is.null(pivotdf()) && length(pivotdf()) > 0 && length(assign$table) > 0) {
+            AllGradesTable(pivotdf(), policy$categories, assign$table) 
+        } 
+    })
+    output$all_grades_table <- renderDataTable({
+        datatable(
+            allgradestable(),
+            options = list(scrollX = TRUE))
+    })
+    
+    ### Step2: GradesPerCategory calculations.
+    gradespercategory <- reactive({
+        if (!is.null(policy$categories) && length(policy$categories) > 0) {
+            AllGradesTable(pivotdf(), policy$categories) %>%
+                GradesPerCategory()
+        } else {
+            NULL
+        }
+    })
+    output$grades_per_category <- renderDataTable({
+        datatable(
+        gradespercategory(),
+        options = list(scrollX = TRUE))
+    })
+    
+    
+    
+    
     
     #### -------------------------- JSON ----------------------------####
     path <- "../../gradebook-data"
@@ -398,4 +444,6 @@ shinyServer(function(input, output, session) {
     
     
     
+ 
+
 })

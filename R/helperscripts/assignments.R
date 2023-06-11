@@ -49,9 +49,11 @@ updateAssigns <- function(assigns_table, assignments, original_cat, new_cat){
 
 #resets all assignments of a category to "Unassigned"
 resetAssigns <- function(assigns_table, original_category){
+    if (!is.null(original_category)){
     selected <- assigns_table %>%
         filter(category == original_category) %>%
         mutate(category = "Unassigned")
     assigns_table <- rbind(selected, anti_join(assigns_table, selected, "colnames"))
+    }
     return (assigns_table)
 }
