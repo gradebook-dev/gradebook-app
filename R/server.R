@@ -107,7 +107,7 @@ shinyServer(function(input, output, session) {
         }
         # Preload selected values
         preloaded_values <- policy$categories[[i]]$assigns
-        if ((preloaded_values) != "None"){
+        if (any(preloaded_values != "None")){
             preloaded_values <- unlist(strsplit(preloaded_values, ", ")) # Split the string and unlist the result
             choices = c(choices, preloaded_values)
         }
@@ -119,8 +119,8 @@ shinyServer(function(input, output, session) {
     
     observeEvent(input$save, {
         i <- getCatIndex(policy$categories, editing$nr)
-        original_name <- input$change_cat_name #if this is a new cateogyr 
-        if (i < length(policy$categories)){ #if it's not a new category
+        original_name <- input$change_cat_name #if this is a new category
+        if (i <= length(policy$categories)){ #if it's not a new category
             original_name <- policy$categories[[i]]$name 
         }
         policy$categories <- updateCategory(policy$categories, input, editing$nr)
@@ -274,9 +274,6 @@ shinyServer(function(input, output, session) {
             as.data.frame(t(unlist(item)))
         })
     })
-    
-    
-    print(categories_df)
 
     pivotdf <- reactive({
         processed_sids <- processed_sids()$unique_sids
