@@ -47,14 +47,13 @@ AllGradesTable <- function(pivotdf, policy_categories_list, assigns_table){
     
     df_with_lateness <- df_assigned_assignments %>%
         mutate(score_after_lateness = case_when(
-            #not late
-            lateness_mins<= late_time1_min ~ raw_points*1,
             #late1
             lateness_min > 0 & lateness_min <= late_time1_min ~ raw_points*as.numeric(late_scale1),
             #between late1 and late2
             lateness_min > late_time1_min & lateness_min <= late_time2_min ~ raw_points*as.numeric(late_scale2),
             #past late2
             lateness_min > late_time2_min ~ raw_points*0,
+            #not late
             TRUE ~ raw_points
         ))
     
