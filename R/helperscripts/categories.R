@@ -2,8 +2,7 @@ edit_category_modal <- modalDialog(
     
     tags$head(
         tags$style(
-            HTML("
-                            .spacing > * + * {
+            HTML(".spacing > * + * {
                                 margin-left: 10px;
                             }
                             .custom-flex-container {
@@ -11,37 +10,23 @@ edit_category_modal <- modalDialog(
                                 align-items: center;
                                 margin-right: 5px;
                             }
-
-                        ")
-        )
-    ),
+                 "))),
     h4("Edit this Category"),
-    fluidRow(
-        column(6,
-               textInput("change_cat_name", "Category Name", value = "", width = "100%")
-        ),
-        column(6,
-               
-               tags$label(""),
-               
-        )
-    ),
-    fluidRow(column(6,
-                    div(
+    fluidRow(column(6,textInput("change_cat_name", "Category Name", value = "", width = "100%")
+            ),
+            column(6,tags$label(""),
+            )),
+    fluidRow(column(6,div(
                         style = "display: flex; flex-direction: column;",
                         h4("Lateness"),
-                        div(
-                            style = "display: flex; align-items: center;",
+                        div(style = "display: flex; align-items: center;",
                             class = "spacing",
                             tags$label("Slip Days"),
-                            div(
-                                style = "display: flex; align-items: center;",
+                            div(style = "display: flex; align-items: center;",
                                 class = "custom-flex-container",
-                                autonumericInput("slip", label = "", value = 0, width = "50px", decimalPlaces = 0)
-                            )
+                                autonumericInput("slip", label = "", value = 0, width = "50px", decimalPlaces = 0))
                         ),
-                        div(
-                            style = "display: flex; align-items: center;",
+                        div(style = "display: flex; align-items: center;",
                             class = "spacing",
                             tags$label("After"),
                             textInput("late_allowed1", "", value = "00:00:00", placeholder = "HH:MM:SS", width = "100px"),
@@ -49,64 +34,48 @@ edit_category_modal <- modalDialog(
                             autonumericInput("late_penalty1", "", value = 0,
                                              currencySymbolPlacement = "s", width = "50px")
                         ),
-                        div(
-                            style = "display: flex; align-items: center;",
+                        div(style = "display: flex; align-items: center;",
                             class = "spacing",
                             tags$label("After"),
                             textInput("late_allowed2", "", value = "00:00:00", placeholder = "HH:MM:SS", width = "100px"),
                             tags$label("scale by:"),
                             autonumericInput("late_penalty2", "", value = 0,
                                              currencySymbolPlacement = "s", width = "50px")
-                        )
-                    )
-    ),
-    column(6,
-           div(style = "display: flex; flex-direction: column;",
-               h4("Additional Categories"),
-               div(
-                   style = "display: flex; align-items: center;",
-                   class = "spacing",
-                   tags$label("Weight"),
-                   shinyWidgets::autonumericInput("weight", "", value = 0, currencySymbol = "%",
-                                                  currencySymbolPlacement = "s", width = "100px"),
-                   tags$label("Drops?"),
-                   autonumericInput("num_drops", "", value = 0, currencySymbol = " drops",
-                                    currencySymbolPlacement = "s", decimalPlaces = 0,width = "100px")
-               ),
-               div(
-                   style = "display: flex; align-items: center; margin-top: -5px;",
-                   class = "spacing",
-                   tags$label("Aggregation"),
-                   selectInput("grading_policy", strong(""), selected = "Equally Weighted",
-                               choices = c("Equally Weighted", "Weighted by Points"))
-               ),
-               div(
-                   style = "display: flex; align-items: stretch; align-items: center; margin-top: -15px;",
-                   class = "spacing",
-                   tags$label("Clobber with..."),
-                   selectInput("clobber_with", "", selected = "None", choices = c("None"))
-               )
-           )
-    )),
-    selectizeInput("assign", "Select Assignments:",
-                   choices = "",
-                   multiple = TRUE,
-                   options = list(delimiter = ','),
-                   width = "100%"),
-    fluidRow(
-        column(6,
-               checkboxInput("as_assign", strong("Save as Aggregated Assignments"), value = FALSE)
-        ),
-        column(6,
-               
-        )
-    ),
+                        ))),
+            column(6,div(style = "display: flex; flex-direction: column;",
+                       h4("Additional Categories"),
+                       div(style = "display: flex; align-items: center;",
+                           class = "spacing",
+                           tags$label("Weight"),
+                           shinyWidgets::autonumericInput("weight", "", value = 0, currencySymbol = "%",
+                                                          currencySymbolPlacement = "s", width = "100px"),
+                           tags$label("Drops?"),
+                           autonumericInput("num_drops", "", value = 0, currencySymbol = " drops",
+                                            currencySymbolPlacement = "s", decimalPlaces = 0,width = "100px")
+                       ),
+                       div(style = "display: flex; align-items: center; margin-top: -5px;",
+                           class = "spacing",
+                           tags$label("Aggregation"),
+                           selectInput("grading_policy", strong(""), selected = "Equally Weighted",
+                                       choices = c("Equally Weighted", "Weighted by Points"))
+                       ),
+                       div(style = "display: flex; align-items: stretch; align-items: center; margin-top: -15px;",
+                           class = "spacing",
+                           tags$label("Clobber with..."),
+                           selectInput("clobber_with", "", selected = "None", choices = c("None"))
+                       )))),
+            selectizeInput("assign", "Select Assignments:",
+                           choices = "",
+                           multiple = TRUE,
+                           options = list(delimiter = ','),
+                           width = "100%"),
+    fluidRow(column(6,
+               checkboxInput("as_assign", strong("Save as Aggregated Assignments"), value = FALSE)),
+            column(6,)),
     footer = tagList(
-        actionButton("cancel", "Cancel"),
-        actionButton("save", "Save")
+            actionButton("cancel", "Cancel"),
+            actionButton("save", "Save"))
     )
-    
-)
 
 getCatIndex <- function(cat_list, edit_nr){
     nrs <- purrr::map(cat_list, "nr") |>
@@ -150,31 +119,12 @@ updateCategory <- function(cat_list, input, edit_nr){
     return (cat_list)
 }
 
-
 update_ui_categories <- function(cat_list, nr) {
     i <- getCatIndex(cat_list, nr)
+    
     assignments <- stringr::str_c(cat_list[[i]]$assigns, collapse = ", ") 
     tagList(
-        div(
-            # style = "padding: 0px 20px 20px 20px;",
-            # tags$div(
-            #     style = "justify-content: left; align-items: center;",
-            #     tags$div(
-            #         div(
-            #             style = "display: flex; align-items: center;",
-            #             paste("Slip Days: ", cat_list[[i]]$slip_days),
-            #             paste("Weight: ", cat_list[[i]]$weight),
-            #             paste("Drops: ", cat_list[[i]]$drops),
-            #             paste("Clobber Policy: ", cat_list[[i]]$clobber),
-            #             paste("Assignments Included: ", cat_list[[i]]$assigns)
-            #         ),
-            #         div(
-            #             
-            #         )
-            #     )
-            # )
-            
-            style = "border-left: 1px solid #ddd; padding-left: 10px; display: flex;",
+        div(style = "border-left: 1px solid #ddd; padding-left: 10px; display: flex;",
             div(
                 style = "flex: 1; display: flex; flex-direction: column; margin-right: 10px;",
                 p(strong("Weight:"), style = "margin-bottom: 5px;"),
@@ -184,15 +134,12 @@ update_ui_categories <- function(cat_list, nr) {
                 p(strong("Slip Days:"), style = "margin-bottom: 5px;"),
                 p(strong("Assignments Included:"), style = "margin-bottom: 5px;")
             ),
-            div(
-                style = "flex: 1; display: flex; flex-direction: column;",
+            div(style = "flex: 1; display: flex; flex-direction: column;",
                 p(paste(cat_list[[i]]$weight), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$drops), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$aggregation), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$clobber), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$slip_days), style = "margin-bottom: 5px;"),
                 p(paste(assignments), style = "margin-bottom: 5px;")
-            )
-        )
-        )
+    )))
 }
