@@ -33,7 +33,7 @@ shinyServer(function(input, output, session) {
         else{
             datatable(
                 read.table(input$upload$datapath, sep = ",", header = TRUE, fill=TRUE),
-                options = list(scrollX = TRUE)
+                options = list(scrollX = TRUE, scrollY = "500px")
             )
             
         }
@@ -258,7 +258,7 @@ shinyServer(function(input, output, session) {
     
     output$new_data <- renderDataTable({
         datatable(new_data(),
-        options = list(scrollX = TRUE))
+        options = list(scrollX = TRUE, scrollY = "500px"))
     })
     
     processed_sids <- reactive({
@@ -283,7 +283,7 @@ shinyServer(function(input, output, session) {
     output$pivotdf <- renderDataTable({
         datatable(
             pivotdf(),
-            options = list(scrollX = TRUE))
+            options = list(scrollX = TRUE, scrollY = "500px"))
         })
     
     
@@ -299,7 +299,7 @@ shinyServer(function(input, output, session) {
     output$all_grades_table <- renderDataTable({
         datatable(
             allgradestable(),
-            options = list(scrollX = TRUE))
+            options = list(scrollX = TRUE, scrollY = "500px"))
     })
     
     ### Step2: GradesPerCategory calculations.
@@ -314,7 +314,7 @@ shinyServer(function(input, output, session) {
     output$grades_per_category <- renderDataTable({
         datatable(
         gradespercategory(),
-        options = list(scrollX = TRUE))
+        options = list(scrollX = TRUE, scrollY = "500px"))
     })
     
     
