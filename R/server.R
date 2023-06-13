@@ -159,7 +159,7 @@ shinyServer(function(input, output, session) {
                 showModal(edit_category_modal) #opens edit modal
                 editing$nr <- nr
                 updateModalValues(nr)
-            })
+            }, ignoreInit = TRUE)
             
             observeEvent(input[[paste0('delete',nr)]],{
                 i <- getCatIndex(policy$categories, nr)
