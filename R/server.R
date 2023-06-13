@@ -48,10 +48,9 @@ shinyServer(function(input, output, session) {
     
     #shows policy$categories in Scratchpad under policy_list tab
     output$policy_list <- renderPrint({
-        # Hmisc::list.tree(policy)
         Hmisc::list.tree(list(coursewide = policy$coursewide, categories = policy$categories))
         })
-    
+
     observeEvent(input$edit_policy_name, {
         showModal(modalDialog(
             title = "Edit Policy",
@@ -63,6 +62,22 @@ shinyServer(function(input, output, session) {
             )
         ))
     })
+    
+    # When save_changes is clicked, update the reactive values and close modal
+    observeEvent(input$save_changes_course, {
+        policy$coursewide$course_name <- isolate(input$course_name_input)
+        policy$coursewide$description <- isolate(input$course_desc_input)
+        removeModal()
+    })
+    # Update course_name in policy tab
+    output$course_name_display <- renderText({
+        policy$coursewide$course_name
+    })
+    # Update course description in policy tab
+    output$course_description_display <- renderText({
+        policy$coursewide$description
+    })
+    
 #### -------------------------- NEW CATEGORY MODAL ----------------------------####
     
     #Note: addCategory and deleteCategory functions are in categories.R
@@ -81,7 +96,7 @@ shinyServer(function(input, output, session) {
             updateSelectInput(session, "clobber_with", choices = c("None", select(assign$table, colnames)))
         }
         
-    })
+    }) 
     
     observeEvent(input$cancel, {
         removeModal()
@@ -123,8 +138,11 @@ shinyServer(function(input, output, session) {
         if (i <= length(policy$categories)){ #if it's not a new category
             original_name <- policy$categories[[i]]$name 
         }
+        
         policy$categories <- updateCategory(policy$categories, input, editing$nr)
-        assign$table <- updateAssigns(assign$table, input$assign, original_name, input$change_cat_name)
+        if (!is.null(assign$table)){
+         assign$table <- updateAssigns(assign$table, input$assign, original_name, input$change_cat_name)
+        }
         removeModal()
         editing$num <- editing$num + 1
             
@@ -172,37 +190,10 @@ shinyServer(function(input, output, session) {
         }
         purrr::walk(policy$categories, rerender_ui)
     })
-    
-    
-#### -------------------------- POLICY-COURSE NAME  ----------------------------####
-    # When save_changes is clicked, update the reactive values and close modal
-    observeEvent(input$save_changes_course, {
-        policy$coursewide$course_name <- isolate(input$course_name_input)
-        policy$coursewide$description <- isolate(input$course_desc_input)
-        removeModal()
-    })
-    # Update course_name in policy tab
-    output$course_name_display <- renderText({
-        policy$coursewide$course_name
-    })
-    # Update course description in policy tab
-    output$course_description_display <- renderText({
-        policy$coursewide$description
-    })
-    
+
 #### -------------------------- ASSIGNMENTS  ----------------------------####  
     #reactive unassigned assignments table
     assign <- reactiveValues(table = NULL)
-    
-    observe({
-        # if (length(policy$categories) != 0){
-        #     for (i in 1:length(policy$categories)){
-        #         name <- policy$categories[[i]]$name
-        #         assign <- policy$categories[[i]]$assigns
-        #         assigns$table <- updateCategory(assigns$table, assign, name)
-        #     }   
-        # }
-    })
     
     #takes reactive data output and creates a reactive assignment table
     #contains all the columns from the original dataframe(names, emails, all columns from assignments, etc)
@@ -386,6 +377,7 @@ shinyServer(function(input, output, session) {
             
             policy$coursewide <- df[[1]]
             policy$categories <- df[[2]]
+            
         } else {
             print("File not found")
         }
