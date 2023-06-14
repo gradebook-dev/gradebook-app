@@ -145,51 +145,52 @@ shinyServer(function(input, output, session) {
         }
         removeModal()
         editing$num <- editing$num + 1
-            
-        rerender_ui <- function(x) {
-            nr <- x$nr
+        rerender_ui(policy$categories[[i]])
+        #purrr::walk(policy$categories, rerender_ui)
+    })
+    
+    rerender_ui <- function(x) { #render category UI for policy page
+        nr <- x$nr
+        removeUI(
+            selector = paste0("#cat",nr) #this removes the UI for this category
+        )
+        insertUI( #creates UI for this category
+            selector = '#inputList',
+            ui=div(
+                id = paste0("cat",nr),
+                div(
+                    style = "border: 1px solid #000; padding: 10px; border-radius: 5px; margin-top: 20px;",
+                    tags$div(
+                        style = "display: flex; justify-content: left; align-items: center;",
+                        
+                        tags$div(
+                            h4(x$name),
+                            style = "margin-right: 10px;"),
+                        #rest of information about this category will be here
+                        actionButton(paste0('delete',nr), label = NULL, icon = icon("trash-can"),  style = "background-color: transparent; margin-right: 10px;"), #remove button for this category
+                        #edit button
+                        actionButton(paste0('edit',nr), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; ")
+                    ),
+                    update_ui_categories(policy$categories, nr)
+                )
+            )
+        )
+        
+        observeEvent(input[[paste0('edit',nr)]],{
+            showModal(edit_category_modal) #opens edit modal
+            editing$nr <- nr
+            updateModalValues(nr)
+        }, ignoreInit = TRUE)
+        
+        observeEvent(input[[paste0('delete',nr)]],{
+            i <- getCatIndex(policy$categories, nr)
+            assign$table <- resetAssigns(assign$table, x$name)
+            policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
             removeUI(
                 selector = paste0("#cat",nr) #this removes the UI for this category
             )
-            insertUI( #creates UI for this category
-                selector = '#inputList',
-                ui=div(
-                    id = paste0("cat",nr),
-                    div(
-                        style = "border: 1px solid #000; padding: 10px; border-radius: 5px; margin-top: 20px;",
-                        tags$div(
-                            style = "display: flex; justify-content: left; align-items: center;",
-                            
-                            tags$div(
-                                h4(x$name),
-                                style = "margin-right: 10px;"),
-                            #rest of information about this category will be here
-                            actionButton(paste0('delete',nr), label = NULL, icon = icon("trash-can"),  style = "background-color: transparent; margin-right: 10px;"), #remove button for this category
-                            #edit button
-                            actionButton(paste0('edit',nr), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; ")
-                        ),
-                        update_ui_categories(policy$categories, nr)
-                    )
-                )
-            )
-            
-            observeEvent(input[[paste0('edit',nr)]],{
-                showModal(edit_category_modal) #opens edit modal
-                editing$nr <- nr
-                updateModalValues(nr)
-            }, ignoreInit = TRUE)
-            
-            observeEvent(input[[paste0('delete',nr)]],{
-                i <- getCatIndex(policy$categories, nr)
-                assign$table <- resetAssigns(assign$table, x$name)
-                policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
-                removeUI(
-                    selector = paste0("#cat",nr) #this removes the UI for this category
-                )
-            })
-        }
-        purrr::walk(policy$categories, rerender_ui)
-    })
+        })
+    }
 
 #### -------------------------- ASSIGNMENTS  ----------------------------####  
     #reactive unassigned assignments table
@@ -334,7 +335,7 @@ shinyServer(function(input, output, session) {
         #the data to be saved
         p_coursewide <- policy$coursewide
         p_categories <- policy$categories
-        list <- list(p_coursewide, p_categories)
+        list <- list(p_coursewide, p_categories, editing$num)
         jsonlite::write_json(list, path_json, auto_unbox = TRUE, pretty = TRUE)
         
         #current number of JSON files
@@ -377,6 +378,8 @@ shinyServer(function(input, output, session) {
             
             policy$coursewide <- df[[1]]
             policy$categories <- df[[2]]
+            editing$num <- df[[3]]
+            purrr::walk(policy$categories, rerender_ui)
             
         } else {
             print("File not found")
