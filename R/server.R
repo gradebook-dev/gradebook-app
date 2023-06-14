@@ -145,8 +145,7 @@ shinyServer(function(input, output, session) {
         }
         removeModal()
         editing$num <- editing$num + 1
-        rerender_ui(policy$categories[[i]])
-        #purrr::walk(policy$categories, rerender_ui)
+        purrr::walk(policy$categories, rerender_ui)
     })
     
     rerender_ui <- function(x) { #render category UI for policy page
