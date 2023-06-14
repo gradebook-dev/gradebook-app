@@ -194,6 +194,10 @@ shinyServer(function(input, output, session) {
 #### -------------------------- ASSIGNMENTS  ----------------------------####  
     #reactive unassigned assignments table
     assign <- reactiveValues(table = NULL)
+    #update assignment with category x
+    updateAssignTable <- function(x){
+        assign$table <- updateAssigns(assign$table, x$assigns, x$name, x$name)
+    }
     
     #takes reactive data output and creates a reactive assignment table
     #contains all the columns from the original dataframe(names, emails, all columns from assignments, etc)
@@ -380,15 +384,7 @@ shinyServer(function(input, output, session) {
             editing$num <- df[[3]]
             purrr::walk(policy$categories, rerender_ui)
             if (!is.null(assign$table)){
-                for (i in 1:length(policy$categories)){
-                    assignments <- policy$categories[[i]]$assigns
-                    name <- policy$categories[[i]]$name
-                    assign$table <- updateAssigns(assign$table, assignments, name, name)
-                }
-                # updateAssignTable <- function(x){
-                #     return (updateAssigns(assign$table, x$assigns, x$name, x$name))
-                # }
-                # assign$table <- purrr::map(policy$categories, updateAssignTable)
+                purrr::walk(policy$categories, updateAssignTable)
             }
             
         } else {
