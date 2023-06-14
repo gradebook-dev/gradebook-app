@@ -379,6 +379,17 @@ shinyServer(function(input, output, session) {
             policy$categories <- df[[2]]
             editing$num <- df[[3]]
             purrr::walk(policy$categories, rerender_ui)
+            if (!is.null(assign$table)){
+                for (i in 1:length(policy$categories)){
+                    assignments <- policy$categories[[i]]$assigns
+                    name <- policy$categories[[i]]$name
+                    assign$table <- updateAssigns(assign$table, assignments, name, name)
+                }
+                # updateAssignTable <- function(x){
+                #     return (updateAssigns(assign$table, x$assigns, x$name, x$name))
+                # }
+                # assign$table <- purrr::map(policy$categories, updateAssignTable)
+            }
             
         } else {
             print("File not found")
