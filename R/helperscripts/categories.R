@@ -122,6 +122,8 @@ updateCategory <- function(cat_list, input, edit_nr){
 
 update_ui_categories <- function(cat_list, nr) {
     i <- getCatIndex(cat_list, nr)
+    #lateness_time_hms1 <- lubridate::hms(cat_list[[i]]$late_time1)
+    #lateness_time_hms2 <- lubridate::hms(cat_list[[i]]$late_time2)
     
     assignments <- stringr::str_c(cat_list[[i]]$assigns, collapse = ", ") 
     tagList(
@@ -133,6 +135,8 @@ update_ui_categories <- function(cat_list, nr) {
                 p(strong("Grading Policy:"), style = "margin-bottom: 5px;"),
                 p(strong("Clobber Policy:"), style = "margin-bottom: 5px;"),
                 p(strong("Slip Days:"), style = "margin-bottom: 5px;"),
+                p(strong("Lateness Policy 1:"), style = "margin-bottom: 5px;"),
+                p(strong("Lateness Policy 2:"), style = "margin-bottom: 5px;"),
                 p(strong("Assignments Included:"), style = "margin-bottom: 5px;")
             ),
             div(style = "flex: 1; display: flex; flex-direction: column;",
@@ -141,6 +145,8 @@ update_ui_categories <- function(cat_list, nr) {
                 p(paste(cat_list[[i]]$aggregation), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$clobber), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$slip_days), style = "margin-bottom: 5px;"),
+                p(paste("Until ", cat_list[[i]]$late_time1, ", scale by ", cat_list[[i]]$late_scale1), style = "margin-bottom: 5px;"),
+                p(paste("Until ", cat_list[[i]]$late_time2, ", scale by ", cat_list[[i]]$late_scale2), style = "margin-bottom: 5px;"),
                 p(paste(assignments), style = "margin-bottom: 5px;")
     )))
 }
