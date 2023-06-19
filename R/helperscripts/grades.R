@@ -15,58 +15,52 @@
 #                   determine percentage grade per category
 
 
-AllGradesTable <- function(pivotdf, policy_categories_list, assigns_table){
+CategoryGrades <- function(pivotdf){
     
-    #1 filter out unnasigned assignments
+    #1 filter out unassigned assignments
     df_assigned_assignments <- pivotdf %>%
         filter(category != "Unassigned")
 
-    #2 count assignments per category for calculating weights
-    category_counts <- assigns_table %>%
-        group_by(category) %>%
-        summarise(count = n())%>%
-        ungroup()%>%
-        filter(category != "Unassigned")
+    #2 use (number of assignments - number of drops) to determine how many relevant
+    #  assignments in each category --> will be used when weighting assignments equally
+    num_relevant_assigns <- df_assigned_assignments %>%
+        mutate(relevant_assigns = as.numeric(num_assigns) - as.numeric(drops)) %>%
     
-    print(category_counts)
-        
-    # Add the counts back to the main dataframe
-    df_assigned_assignments <- df_assigned_assignments %>%
-        left_join(category_counts, by = "category")
+    return (df_assigned_assignments)
 
-
-    #3 add a column for calculating score after lateness if applied
-    
-    # convert late_time1, late_time2 to minutes
-    df_assigned_assignments <- df_assigned_assignments %>%
-        mutate(
-            late_time1_min = hour(hms(late_time1))*60 + minute(hms(late_time1)),
-            late_time2_min = hour(hms(late_time2))*60 + minute(hms(late_time2))
-        )
-    print(df_assigned_assignments)
-    
-    df_with_lateness <- df_assigned_assignments %>%
-        mutate(score_after_lateness = case_when(
-            #late1
-            lateness_min > 0 & lateness_min <= late_time1_min ~ raw_points*as.numeric(late_scale1),
-            #between late1 and late2
-            lateness_min > late_time1_min & lateness_min <= late_time2_min ~ raw_points*as.numeric(late_scale2),
-            #past late2
-            lateness_min > late_time2_min ~ raw_points*0,
-            #not late
-            TRUE ~ raw_points
-        ))
-    
-     #count max points per category
-     count_max_points_per_category <- df_assigned_assignments%>%
-       group_by(sid,category) %>%
-       summarise(total_max_points_per_cat = sum(as.numeric(max_points)))
-
-    print(count_max_points_per_category)
-
-    #join total count of points with main pivot table
-    df_with_lateness_and_max_points_per_cat <- df_with_lateness%>%
-    left_join(count_max_points_per_category, by = c("sid", "category"))
+    # 
+    # #3 add a column for calculating score after lateness if applied
+    # 
+    # # convert late_time1, late_time2 to minutes
+    # df_assigned_assignments <- df_assigned_assignments %>%
+    #     mutate(
+    #         late_time1_min = hour(hms(late_time1))*60 + minute(hms(late_time1)),
+    #         late_time2_min = hour(hms(late_time2))*60 + minute(hms(late_time2))
+    #     )
+    # print(df_assigned_assignments)
+    # 
+    # df_with_lateness <- df_assigned_assignments %>%
+    #     mutate(score_after_lateness = case_when(
+    #         #late1
+    #         lateness_min > 0 & lateness_min <= late_time1_min ~ raw_points*as.numeric(late_scale1),
+    #         #between late1 and late2
+    #         lateness_min > late_time1_min & lateness_min <= late_time2_min ~ raw_points*as.numeric(late_scale2),
+    #         #past late2
+    #         lateness_min > late_time2_min ~ raw_points*0,
+    #         #not late
+    #         TRUE ~ raw_points
+    #     ))
+    # 
+    #  #count max points per category
+    #  count_max_points_per_category <- df_assigned_assignments%>%
+    #    group_by(sid,category) %>%
+    #    summarise(total_max_points_per_cat = sum(as.numeric(max_points)))
+    # 
+    # print(count_max_points_per_category)
+    # 
+    # #join total count of points with main pivot table
+    # df_with_lateness_and_max_points_per_cat <- df_with_lateness%>%
+    # left_join(count_max_points_per_category, by = c("sid", "category"))
 
     
     #calculating score based on weights EQUALLY WEIGHTED
@@ -86,7 +80,7 @@ AllGradesTable <- function(pivotdf, policy_categories_list, assigns_table){
     #merge dataframes - equally weighted and by points
     # combined_data <- bind_rows(equally_weighted, weighted_by_points)
 
-    return(df_with_lateness_and_max_points_per_cat)
+    # return(df_with_lateness_and_max_points_per_cat)
 }
 
 # 

@@ -286,31 +286,31 @@ shinyServer(function(input, output, session) {
     #### -------------------------- GRADING ----------------------------####
     
     ### Step1: AllGradesTable calculations 
-    allgradestable <- reactive({
+    category_grades <- reactive({
         if (!is.null(pivotdf()) && length(pivotdf()) > 0 && length(assign$table) > 0) {
-            AllGradesTable(pivotdf(), policy$categories, assign$table) 
+            CategoryGrades(pivotdf()) 
         } 
     })
     output$all_grades_table <- renderDataTable({
         datatable(
-            allgradestable(),
+            category_grades(),
             options = list(scrollX = TRUE, scrollY = "500px"))
     })
     
-    ### Step2: GradesPerCategory calculations.
-    gradespercategory <- reactive({
-        if (!is.null(policy$categories) && length(policy$categories) > 0) {
-            AllGradesTable(pivotdf(), policy$categories) %>%
-                GradesPerCategory()
-        } else {
-            NULL
-        }
-    })
-    output$grades_per_category <- renderDataTable({
-        datatable(
-        gradespercategory(),
-        options = list(scrollX = TRUE, scrollY = "500px"))
-    })
+    # ### Step2: GradesPerCategory calculations.
+    # gradespercategory <- reactive({
+    #     if (!is.null(policy$categories) && length(policy$categories) > 0) {
+    #         AllGradesTable(pivotdf(), policy$categories) %>%
+    #             GradesPerCategory()
+    #     } else {
+    #         NULL
+    #     }
+    # })
+    # output$grades_per_category <- renderDataTable({
+    #     datatable(
+    #     gradespercategory(),
+    #     options = list(scrollX = TRUE, scrollY = "500px"))
+    # })
     
     
     

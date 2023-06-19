@@ -108,6 +108,7 @@ updateCategory <- function(cat_list, input, edit_nr){
                          aggregation = ifelse(length(input$grading_policy) == 0, "Equally Weighted", input$grading_policy),
                          clobber = ifelse(length(input$clobber_with) == 0, "None", input$clobber_with),
                          assigns = input$assign,
+                         num_assigns = length(input$assign),
                          #assigns = ifelse(length(input$assign) == 0, "None", as.vector(input$assign)),
                          nr = edit_nr
     )
