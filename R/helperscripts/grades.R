@@ -75,21 +75,20 @@ CategoryGrades <- function(pivotdf){
             
         df_with_drops <- rbind(kept_assignments, dropped_assignments) %>%
             arrange(sid)
-        
-        return (df_drops)
                 
-    
-    #  #count max points per category
-    #  count_max_points_per_category <- df_assigned_assignments%>%
-    #    group_by(sid,category) %>%
-    #    summarise(total_max_points_per_cat = sum(as.numeric(max_points)))
-    # 
-    # print(count_max_points_per_category)
-    # 
-    # #join total count of points with main pivot table
-    # df_with_lateness_and_max_points_per_cat <- df_with_lateness%>%
-    # left_join(count_max_points_per_category, by = c("sid", "category"))
+    #5 sum up all max points (discluding dropped assignment)
+     #count max points per category
+     count_max_points_per_category <- df_with_drops %>%
+         filter(dropped == FALSE) %>%
+         group_by(sid,category) %>%
+         summarise(total_max_points_per_cat = sum(as.numeric(max_points)))
 
+
+    #join total count of points with main pivot table
+    df_with_max_points <- df_with_drops%>%
+    left_join(count_max_points_per_category, by = c("sid", "category"))
+    
+    return(df_with_max_points)
     
     #calculating score based on weights EQUALLY WEIGHTED
     #these need be to averaged
