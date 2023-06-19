@@ -37,7 +37,7 @@ CategoryGrades <- function(pivotdf){
 
     #until
     df_with_lateness <- df_assigned_assignments %>%
-        mutate(score_after_lateness = case_when(
+        mutate(points_after_lateness = case_when(
             #late1
             #lateness_min > 0 & lateness_min <= late_time1_min ~ raw_points*as.numeric(late_scale1),
             #data 100 specific
@@ -48,7 +48,8 @@ CategoryGrades <- function(pivotdf){
             lateness_min > late_time2_min ~ raw_points*0,
             #not late
             TRUE ~ raw_points
-        ))
+        )) %>%
+         mutate(score_after_lateness = points_after_lateness/max_points)
     
     # #after
     # df_with_lateness <- df_assigned_assignments %>%
