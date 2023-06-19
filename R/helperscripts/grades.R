@@ -24,25 +24,23 @@ CategoryGrades <- function(pivotdf){
     #2 use (number of assignments - number of drops) to determine how many relevant
     #  assignments in each category --> will be used when weighting assignments equally
     num_relevant_assigns <- df_assigned_assignments %>%
-        mutate(relevant_assigns = as.numeric(num_assigns) - as.numeric(drops)) %>%
-    
-    return (df_assigned_assignments)
+        mutate(relevant_assigns = as.numeric(num_assigns) - as.numeric(drops))
 
-    # 
-    # #3 add a column for calculating score after lateness if applied
-    # 
-    # # convert late_time1, late_time2 to minutes
-    # df_assigned_assignments <- df_assigned_assignments %>%
-    #     mutate(
-    #         late_time1_min = hour(hms(late_time1))*60 + minute(hms(late_time1)),
-    #         late_time2_min = hour(hms(late_time2))*60 + minute(hms(late_time2))
-    #     )
-    # print(df_assigned_assignments)
-    # 
+
+    #3 add a column for calculating score after lateness if applied
+
+    # convert late_time1, late_time2 to minutes
+    df_assigned_assignments <- df_assigned_assignments %>%
+        mutate(
+            late_time1_min = convert_to_min(late_time1),
+            late_time2_min = convert_to_min(late_time2),
+        )
+
+    # #until
     # df_with_lateness <- df_assigned_assignments %>%
     #     mutate(score_after_lateness = case_when(
     #         #late1
-    #         lateness_min > 0 & lateness_min <= late_time1_min ~ raw_points*as.numeric(late_scale1),
+    #         lateness_min <= late_time1_min ~ raw_points*as.numeric(late_scale1),
     #         #between late1 and late2
     #         lateness_min > late_time1_min & lateness_min <= late_time2_min ~ raw_points*as.numeric(late_scale2),
     #         #past late2
@@ -50,7 +48,20 @@ CategoryGrades <- function(pivotdf){
     #         #not late
     #         TRUE ~ raw_points
     #     ))
-    # 
+    
+    #after
+    df_with_lateness <- df_assigned_assignments %>%
+        mutate(score_after_lateness = case_when(
+            #if lateness is after late1 but before late2, scale by late1_scale
+            lateness_min > late_time1_min & lateness_min <= late_time2_min ~ raw_points*as.numeric(late_scale1),
+            #if lateness is after late2, scale by late2_scale
+            lateness_min > late_time2_min ~ raw_points*as.numeric(late_scale2),
+            #default/ before late1, scale by 1
+            TRUE ~ raw_points
+        ))
+    
+    return (df_with_lateness)
+    
     #  #count max points per category
     #  count_max_points_per_category <- df_assigned_assignments%>%
     #    group_by(sid,category) %>%

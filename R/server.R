@@ -239,17 +239,10 @@ shinyServer(function(input, output, session) {
         #fix dates
         new_time <- data_new_colnames%>%
             mutate(across(contains("submission_time"), lubridate::mdy_hm), #convert to datetimes , previous format: lubridate::ymd_hms
-                   across(contains("lateness"), convert_to_min),
+                   across(contains("lateness"), convert_to_min), #function in process-sid
                    across(contains("lateness"), as.character))
         return(new_time)
     })
-    # this allows lubridate values to be saved in the dataframe
-    convert_to_min <- function(hms){
-        save <- lubridate::hms(hms)
-        save <- period_to_seconds(save)
-        save <- save/60
-        return (save)
-    }
     
     output$new_data <- renderDataTable({
         datatable(new_data(),

@@ -77,3 +77,12 @@ pivot <- function(new_data, assignments_dataframe, cat_table){
     }
     return(add_categories_to_pivot)
 }
+
+
+# this allows lubridate values to be saved in the dataframe
+convert_to_min <- function(hms){
+    save <- lubridate::hms(hms)
+    save <- period_to_seconds(save)
+    save <- save/60
+    return (save)
+}
