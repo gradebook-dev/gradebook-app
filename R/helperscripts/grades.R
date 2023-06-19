@@ -64,20 +64,26 @@ CategoryGrades <- function(pivotdf){
     #     mutate(score_after_lateness = points_after_lateness/max_points)
     
     #4 drops lowest n score after lateness
+    num_drops_in_class <- df_with_lateness %>%
+        summarize(sum_drops = sum(as.numeric(drops)))
+        df_with_drops <- df_with_lateness %>%#default if no drops in class
+            mutate(dropped = FALSE)
+    if (num_drops_in_class > 0){
         kept_assignments <- df_with_lateness %>%
             group_by(sid, category) %>%
             arrange(score_after_lateness) %>% #arrange in ascending order based on group_by
             slice( (as.numeric(drops) + 1) :n() ) %>% #drop the number of drops and keep the rest assignments
             mutate(dropped = FALSE)
         dropped_assignments <- df_with_lateness %>%
-            filter(drops > 0) %>%
+            filter(as.numeric(drops) > 0) %>%
             group_by(sid, category) %>%
             arrange(score_after_lateness) %>% #arrange in ascending order based on group_by
             slice(1: as.numeric(drops)) %>% #drop the number of drops and keep the rest assignments
             mutate(dropped = TRUE)
-            
+        
         df_with_drops <- rbind(kept_assignments, dropped_assignments) %>%
-            arrange(sid)
+            arrange(sid)   
+    }
                 
     #5 sum up all max points (discluding dropped assignment)
      #count max points per category
@@ -93,6 +99,7 @@ CategoryGrades <- function(pivotdf){
     
     return(df_with_max_points)
     
+    #6 Calculate grade based on agggregation method
     #calculating score based on weights EQUALLY WEIGHTED
     #these need be to averaged
     # equally_weighted <- pivotdf_assigned_assignments%>%
