@@ -28,7 +28,6 @@ CategoryGrades <- function(pivotdf){
 
 
     #3 add a column for calculating score after lateness if applied
-
     # convert late_time1, late_time2 to minutes
     df_assigned_assignments <- df_assigned_assignments %>%
         mutate(
@@ -51,16 +50,34 @@ CategoryGrades <- function(pivotdf){
     
     #after
     df_with_lateness <- df_assigned_assignments %>%
-        mutate(score_after_lateness = case_when(
+        mutate(points_after_lateness = case_when(
             #if lateness is after late1 but before late2, scale by late1_scale
             lateness_min > late_time1_min & lateness_min <= late_time2_min ~ raw_points*as.numeric(late_scale1),
             #if lateness is after late2, scale by late2_scale
             lateness_min > late_time2_min ~ raw_points*as.numeric(late_scale2),
             #default/ before late1, scale by 1
             TRUE ~ raw_points
-        ))
+        )) %>%
+        mutate(score_after_lateness = points_after_lateness/max_points)
     
-    return (df_with_lateness)
+    #4 drops lowest score
+        df_with_drops <- df_with_lateness %>%
+            group_by(sid, category) %>%
+            arrange(score_after_lateness) %>% #arrange in ascending order based on group_by
+            slice( (as.numeric(drops) + 1) :n() ) %>% #drop the number of drops and keep the rest assignments
+            mutate(dropped = FALSE)
+        dropped_assignments <- df_with_lateness %>%
+            filter(drops > 0) %>%
+            group_by(sid, category) %>%
+            arrange(score_after_lateness) %>% #arrange in ascending order based on group_by
+            slice(1: as.numeric(drops)) %>% #drop the number of drops and keep the rest assignments
+            mutate(dropped = TRUE)
+            
+        df_drops <- rbind(df_with_drops, dropped_assignments) %>%
+            arrange(sid)
+        
+        return (df_drops)
+                
     
     #  #count max points per category
     #  count_max_points_per_category <- df_assigned_assignments%>%
