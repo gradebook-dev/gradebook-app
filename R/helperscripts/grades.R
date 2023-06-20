@@ -23,7 +23,7 @@ CategoryGrades <- function(pivotdf){
 
     #2 use (number of assignments - number of drops) to determine how many relevant
     #  assignments in each category --> will be used when weighting assignments equally
-    num_relevant_assigns <- df_assigned_assignments %>%
+    df_assigned_assignments <- df_assigned_assignments %>%
         mutate(relevant_assigns = as.numeric(num_assigns) - as.numeric(drops))
 
 
@@ -97,22 +97,21 @@ CategoryGrades <- function(pivotdf){
     df_with_max_points <- df_with_drops%>%
     left_join(count_max_points_per_category, by = c("sid", "category"))
     
-    return(df_with_max_points)
-    
     #6 Calculate grade based on agggregation method
     #calculating score based on weights EQUALLY WEIGHTED
     #these need be to averaged
-    # equally_weighted <- pivotdf_assigned_assignments%>%
-    #     filter(Grading_Policy == "Equally Weighted")%>%
-    #     #this should yield the raw final percentage earned per assignment
-    #     mutate(grade_after_weight = round(((score_after_lateness/max_points)/count_assignments), 2))
-
+    equally_weighted <- df_with_max_points%>%
+        filter(aggregation == "Equally Weighted")%>%
+        #this should yield the raw final percentage earned per assignment
+        mutate(grade_after_weight = round(((score_after_lateness/max_points)/relevant_assigns), 2))
+    
+    return (equally_weighted)
     #calculating score based on weights WEIGHTED BY POINTS
     #these need to be summed
-    # weighted_by_points <- pivotdf_assigned_assignments%>%
-    #     filter(Grading_Policy == "Weighted by Points")%>%
+    # weighted_by_points <- df_with_max_points%>%
+    #     filter(aggregation == "Weighted by Points")%>%
     #     #this should yield the raw final percentage earned per assignment
-    #     mutate(grade_after_weight = round(((score_after_lateness/count_assignments) * as.numeric(Weights)), 2))
+    #     mutate(grade_after_weight = round(((score_after_lateness/relevant_assigns) * as.numeric(Weights)), 2))
 
     #merge dataframes - equally weighted and by points
     # combined_data <- bind_rows(equally_weighted, weighted_by_points)
