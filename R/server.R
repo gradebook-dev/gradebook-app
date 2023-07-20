@@ -290,20 +290,20 @@ shinyServer(function(input, output, session) {
             options = list(scrollX = TRUE, scrollY = "500px"))
     })
     
-    # ### Step2: GradesPerCategory calculations.
-    # gradespercategory <- reactive({
-    #     if (!is.null(policy$categories) && length(policy$categories) > 0) {
-    #         AllGradesTable(pivotdf(), policy$categories) %>%
-    #             GradesPerCategory()
-    #     } else {
-    #         NULL
-    #     }
-    # })
-    # output$grades_per_category <- renderDataTable({
-    #     datatable(
-    #     gradespercategory(),
-    #     options = list(scrollX = TRUE, scrollY = "500px"))
-    # })
+    ### Step2: GradesPerCategory calculations.
+    gradespercategory <- reactive({
+        if (!is.null(policy$categories) && length(category_grades()) > 0) {
+            allgradestable <- category_grades()
+            GradesPerCategory(allgradestable)
+        } else {
+            NULL
+        }
+    })
+    output$grades_per_category <- renderDataTable({
+        datatable(
+        gradespercategory(),
+        options = list(scrollX = TRUE, scrollY = "500px"))
+    })
     
     
     

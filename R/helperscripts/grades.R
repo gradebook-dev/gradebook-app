@@ -1,18 +1,33 @@
 # The idea for all_grades is the following:
 # Note: policy$categories and pivot are already merged at this point
 #
-# 1) add columns for each grading policy from syllabus
-# 2) add columns: i) counts of number of assignments per category
-#                 ii)calculating score after lateness if applied
-#                iii)add count of total max points per a whole category (i.e. 2labs 10points each = 20 total points)
+# CategoryGrades():
+#       1) filter out unassigned assignments
+#       2) use (number of assignments - number of drops) to determine how many relevant
+#           assignments in each category --> will be used when weighting assignments equally
+#       3) add a column for calculating score after lateness if applied
+#           convert late_time1, late_time2 to minutes
+#
+# ### DATA 100 SPECIFIC lateness !!
 #
 #
-# Create another table GradesPerCategory:
-# 3) start merging: 
-#                   drop lowest graded assignments per drop policy
-#                   group by category and student (still have several rows per student 
-#                   but just 1 row per category)
-#                   determine percentage grade per category
+#       4) drops lowest n score after lateness
+#       5) sum up all max points (discluding dropped assignment)
+#       count max points per category
+#       6) Calculate grade based on agggregation method
+#       calculating score based on weights EQUALLY WEIGHTED
+#       these need be to averaged
+#       7)  #calculating score based on weights 
+#       8)  #merge dataframes - equally weighted and by points
+
+
+# GradesPerCategory:
+#       9) sum the grades after weight for each assignment and divide by the % weight
+#        to get the total score per category for each student
+#       10) pivot wider to make 1 row per student with their respective scores per category              
+#       11) adding final grade score column
+#
+#
 
 
 CategoryGrades <- function(pivotdf){
@@ -103,6 +118,7 @@ CategoryGrades <- function(pivotdf){
     equally_weighted <- df_with_max_points%>%
         filter(aggregation == "Equally Weighted")%>%
         #this should yield the raw final percentage earned per assignment
+    
         mutate(grade_after_weight = round(score_after_lateness*((as.numeric(weight)/100)/relevant_assigns), 2))
     
     #calculating score based on weights WEIGHTED BY POINTS
@@ -119,19 +135,30 @@ CategoryGrades <- function(pivotdf){
     return (equally_weighted)
 }
 
-# 
-# GradesPerCategory <- function(allgradestable){
-#     grades_per_category <- allgradestable %>%
-#         group_by(sid, category) %>%
-#         arrange(raw_pts_after_lateness) %>% #arrange in ascending order based on group_by
-#         slice(((as.numeric(Drops) + 1):n())) %>% #drop the number of drops and keep the rest assignments
-#         #   summarise(percentage_grade = round((sum(grade_after_weight) / sum(max_points)), 2))%>%
-#         mutate(percentage_grade = round((sum(grade_after_weight) / sum(max_points)), 2)) %>%
-#         select(names, sid, category, Grading_Policy, percentage_grade)
-#     
-#     # equally_weighted <- grades_per_category%>%
-#     #   group_by(sid, category)
-#     
-#     
-#     return(grades_per_category)
-# }
+
+GradesPerCategory <- function(allgradestable){
+    
+    #9
+    grades_per_category <- allgradestable %>%
+        #keep all NOT dropped assignments
+        filter(dropped == FALSE) %>%
+        #grouping by student id and category
+        group_by(sid, category) %>%
+        summarise(
+            #keep the name of the student as well
+            names = first(names),
+            #sum the grades after weight for each assignment and divide by the % weight
+            #to get the total score per category for each student
+            percent_grade_per_category = round((sum(grade_after_weight) / (first(as.numeric(weight))/100)), 2),
+            .groups = 'drop'
+        )
+    
+    #10 pivot wider to make 1 row per student with their respective scores per category
+    grades_per_category_wider <- grades_per_category %>%
+        pivot_wider(names_from = category, values_from = percent_grade_per_category)
+   
+    #11 adding final grade score column
+    grades_per_category_wider$final_grade_score <- round(apply(grades_per_category_wider[, -c(1, 2)], 1, mean, na.rm = TRUE), 2)
+    
+    return(grades_per_category_wider)
+}
