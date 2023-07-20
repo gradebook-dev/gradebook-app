@@ -31,8 +31,8 @@ CategoryGrades <- function(pivotdf){
     # convert late_time1, late_time2 to minutes
     df_assigned_assignments <- df_assigned_assignments %>%
         mutate(
-            late_time1_min = convert_to_min(late_time1),
-            late_time2_min = convert_to_min(late_time2),
+            late_time1_min = round(convert_to_min(late_time1), 3),
+            late_time2_min = round(convert_to_min(late_time2), 3),
         )
 
     #until
@@ -103,20 +103,20 @@ CategoryGrades <- function(pivotdf){
     equally_weighted <- df_with_max_points%>%
         filter(aggregation == "Equally Weighted")%>%
         #this should yield the raw final percentage earned per assignment
-        mutate(grade_after_weight = round(((score_after_lateness/max_points)/relevant_assigns), 2))
+        mutate(grade_after_weight = round(score_after_lateness*((as.numeric(weight)/100)/relevant_assigns), 2))
     
-    return (equally_weighted)
     #calculating score based on weights WEIGHTED BY POINTS
     #these need to be summed
-    # weighted_by_points <- df_with_max_points%>%
-    #     filter(aggregation == "Weighted by Points")%>%
-    #     #this should yield the raw final percentage earned per assignment
-    #     mutate(grade_after_weight = round(((score_after_lateness/relevant_assigns) * as.numeric(Weights)), 2))
+     weighted_by_points <- df_with_max_points%>%
+        filter(aggregation == "Weighted by Points")%>%
+        #this should yield the raw final percentage earned per assignment
+        mutate(grade_after_weight = round(((points_after_lateness/total_max_points_per_cat)*(as.numeric(weight)/100)), 2))
 
     #merge dataframes - equally weighted and by points
-    # combined_data <- bind_rows(equally_weighted, weighted_by_points)
+     combined_data <- bind_rows(equally_weighted, weighted_by_points)
 
     # return(df_with_lateness_and_max_points_per_cat)
+    return (equally_weighted)
 }
 
 # 
