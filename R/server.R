@@ -44,11 +44,12 @@ shinyServer(function(input, output, session) {
     policy <- reactiveValues(coursewide = list(course_name = "Your Course Name",
                                                description = "This is the description of what the policy file is for and author/date info. 
                                               Any course-wide policies could go here (total slip days, total drops, letter grade cutoffs)"),
-                             categories = list())
-    
+                             categories = list(),
+                             cutoff = list(A = 90, B = 80, C = 70, D = 60, F = 0)
+                             )
     #shows policy$categories in Scratchpad under policy_list tab
     output$policy_list <- renderPrint({
-        Hmisc::list.tree(list(coursewide = policy$coursewide, categories = policy$categories))
+        Hmisc::list.tree(list(coursewide = policy$coursewide, categories = policy$categories, cutoff = policy$cutoff))
         })
 
     observeEvent(input$edit_policy_name, {
@@ -276,10 +277,6 @@ shinyServer(function(input, output, session) {
 
     #### -------------------------- GRADING ----------------------------####
     
-    grades <- reactiveValues(bins = data.frame(Grades = c("A", "B", "C", "D", "F"),
-                                               CutOff = c(90, 80, 70, 60, 0))
-    )
-    
     ### Step1: AllGradesTable calculations 
     category_grades <- reactive({
         if (!is.null(pivotdf()) && length(pivotdf()) > 0 && length(assign$table) > 0) {
@@ -296,7 +293,7 @@ shinyServer(function(input, output, session) {
     gradespercategory <- reactive({
         if (!is.null(policy$categories) && length(category_grades()) > 0) {
             allgradestable <- category_grades()
-            GradesPerCategory(allgradestable, grades$bins)
+            GradesPerCategory(allgradestable, policy$cutoff)
         } else {
             NULL
         }
@@ -310,9 +307,9 @@ shinyServer(function(input, output, session) {
     ## GGPLOT in Coursewide - a plot about the GRADE BINS - A,B,C,D,F
     output$letter_dist <- renderPlot({
         if (!is.null(policy$categories) && length(gradespercategory()) > 0){
-        plot <-gradespercategory() %>% ggplot(aes(x = as.integer(course_grade*100))) +geom_histogram() +
+        plot <-gradespercategory() %>% ggplot(aes(x = as.integer(course_grade))) +geom_histogram() +
             geom_rug(alpha = .35) + labs(x = "Grade (out of 100)") + xlim(0, 110) +
-            geom_vline(xintercept = grades$bins$CutOff, color = "goldenrod", lwd = 1.5) +
+            geom_vline(xintercept = as.numeric(policy$cutoff), color = "goldenrod", lwd = 1.5) +
             theme_minimal()
         return (plot)
         }
@@ -347,7 +344,7 @@ shinyServer(function(input, output, session) {
     })
     #reactively updates grade bins
     observe({
-        grades$bins <- updateBins(grades$bins, input$A, input$B, input$C, input$D, input$F)
+        policy$cutoff <- updateBins(policy$cutoff, input$A, input$B, input$C, input$D, input$F)
     })
     
     #### -------------------------- JSON ----------------------------####
@@ -372,7 +369,8 @@ shinyServer(function(input, output, session) {
         #the data to be saved
         p_coursewide <- policy$coursewide
         p_categories <- policy$categories
-        list <- list(p_coursewide, p_categories, editing$num)
+        p_cutoffs <- policy$cutoff
+        list <- list(p_coursewide, p_categories, editing$num, p_cutoffs)
         jsonlite::write_json(list, path_json, auto_unbox = TRUE, pretty = TRUE)
         
         #current number of JSON files
@@ -416,7 +414,13 @@ shinyServer(function(input, output, session) {
             policy$coursewide <- df[[1]]
             policy$categories <- df[[2]]
             editing$num <- df[[3]]
+            policy$cutoff <- df[[4]]
             purrr::walk(policy$categories, rerender_ui)
+            updateNumericInput(session, "A", value = policy$cutoff$A)
+            updateNumericInput(session, "B", value = policy$cutoff$B)
+            updateNumericInput(session, "C", value = policy$cutoff$C)
+            updateNumericInput(session, "D", value = policy$cutoff$D)
+            updateNumericInput(session, "F", value = policy$cutoff$F)
             if (!is.null(assign$table)){
                 purrr::walk(policy$categories, updateAssignTable)
             }

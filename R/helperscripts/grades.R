@@ -136,7 +136,7 @@ CategoryGrades <- function(pivotdf){
 }
 
 
-GradesPerCategory <- function(allgradestable, bins){
+GradesPerCategory <- function(allgradestable, cutoff){
     
     #9
     grades_per_category <- allgradestable %>%
@@ -158,27 +158,27 @@ GradesPerCategory <- function(allgradestable, bins){
         pivot_wider(names_from = category, values_from = percent_grade_per_category)
    
     #11 adding final grade score column
-    grades_per_category_wider$course_grade <- round(apply(grades_per_category_wider[, -c(1, 2)], 1, mean, na.rm = TRUE), 2)
+    grades_per_category_wider$course_grade <- round(apply(grades_per_category_wider[, -c(1, 2)], 1, mean, na.rm = TRUE)*100, 2)
     
     #12 adding letter grade based on grade bins
     grades_per_category_wider <- grades_per_category_wider %>%
         mutate(course_letter_grade = case_when(
-            course_grade*100 >= bins$CutOff[1] ~ "A",
-            course_grade*100 < bins$CutOff[1] & course_grade*100 >= bins$CutOff[2] ~ "B",
-            course_grade*100 < bins$CutOff[2] & course_grade*100 >= bins$CutOff[3] ~ "C",
-            course_grade*100 < bins$CutOff[3] & course_grade*100 >= bins$CutOff[4] ~ "D",
-            course_grade*100 < bins$CutOff[4] ~ "F",
+            course_grade >= cutoff$A ~ "A",
+            course_grade < cutoff$A & course_grade >= cutoff$B ~ "B",
+            course_grade < cutoff$B & course_grade >= cutoff$C ~ "C",
+            course_grade < cutoff$C & course_grade >= cutoff$D ~ "D",
+            course_grade < cutoff$D ~ "F",
             TRUE ~ "NA"
         ))
     return(grades_per_category_wider)
 }
 
 #updating the bins after changing inputs in the UI
-updateBins <- function(bins_table, input_A, input_B, input_C, input_D, input_F){
-    bins_table$CutOff[1] <- as.numeric(input_A)
-    bins_table$CutOff[2] <- as.numeric(input_B)
-    bins_table$CutOff[3] <- as.numeric(input_C)
-    bins_table$CutOff[4] <- as.numeric(input_D)
-    bins_table$CutOff[5] <- as.numeric(input_F)
-    return (bins_table)
+updateBins <- function(cutoff, input_A, input_B, input_C, input_D, input_F){
+    cutoff$A <- as.numeric(input_A)
+    cutoff$B <- as.numeric(input_B)
+    cutoff$C <- as.numeric(input_C)
+    cutoff$D <- as.numeric(input_D)
+    cutoff$F <- as.numeric(input_F)
+    return (cutoff)
 }
