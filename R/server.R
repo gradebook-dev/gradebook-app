@@ -350,7 +350,6 @@ shinyServer(function(input, output, session) {
         grades$bins <- updateBins(grades$bins, input$A, input$B, input$C, input$D, input$F)
     })
     
-    
     #### -------------------------- JSON ----------------------------####
     path <- "../../gradebook-data"
     dir.create(path, showWarnings = FALSE)
