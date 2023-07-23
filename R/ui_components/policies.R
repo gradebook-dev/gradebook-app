@@ -4,7 +4,7 @@ Policies <- tabItem(tabName = "policies",
                     ### COURSE NAME ###
                     fluidRow(
                         tagList(
-                            div(style = "padding: 0px 20px 20px 20px;",
+                            div(style = "padding: 0px 20px 20px 20px;  background-color: white;",
                                 div(
                                     
                                     style = "border: 1px solid #000; padding: 10px; border-radius: 5px; margin-top: 20px;",
@@ -29,26 +29,55 @@ Policies <- tabItem(tabName = "policies",
                     ),
                     
                     ### CATEGORIES ###
-                    fluidRow(
-                        div(style = "padding: 0px 20px;",
-                            tags$div(
-                                style = "display: flex; justify-content: left; align-items: center;",
-                                tags$div(
-                                    tags$label("Categories", style = "font-weight: 400; font-size: 20px;"),
-                                    style = "margin-right: 10px;"
-                                ), 
-                                verbatimTextOutput("editing"),
-                                actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
-                                br()
-                            ))
-                    ),
-                    fluidRow(
-                        column(8,
-                               tags$div(id='inputList') #this is all the dynamic UI for categories
-                               ),
-                        column(4,
-                               h4("New Assignments:"),
-                               uiOutput("unassigned")
-                               )
-                    )
+                    tabsetPanel(
+                        tabPanel("Assignment View",
+                            br(),
+                            fluidRow(
+                                    div(style = "padding: 0px 20px;",
+                                        tags$div(
+                                            style = "display: flex; justify-content: left; align-items: center;",
+                                            tags$div(
+                                                tags$label("Categories", style = "font-weight: 400; font-size: 20px;"),
+                                                            style = "margin-right: 10px;"
+                                                ), 
+                                                verbatimTextOutput("editing"),
+                                                actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
+                                                br()
+                                            ))
+                            ),
+                            fluidRow(
+                                    column(8,
+                                        tags$div(id='inputList') #this is all the dynamic UI for categories
+                                        ),
+                                    column(4,
+                                        h4("New Assignments:"),
+                                        uiOutput("unassigned")
+                                        )
+                                    )
+                            ),
+                        tabPanel("Coursewide", 
+                                 fluidRow(
+                                     plotOutput("letter_dist"),
+                                     helpText("Toggling these values below change the lower-bound cutoff for each letter grade.",
+                                              "Below each is the percentage of students with that respective letter grade."),
+                                     column(2,
+                                            numericInput("F", "F", min = 0, max = 100, value = 0), 
+                                     ),
+                                     column(2,
+                                            numericInput("D", "D", min = 0, max = 100, value = 60),
+                                     ),
+                                     column(2,
+                                            numericInput("C", "C", min = 0, max = 100, value = 70),
+                                     ),
+                                     column(2,
+                                            numericInput("B", "B", min = 0, max = 100, value = 80),
+                                     ),
+                                     column(2,
+                                            numericInput("A", "A", min = 0, max = 100, value = 90), 
+                                     ),
+                                 ),
+                                 uiOutput("grade_bin_percent")
+                        )
+                                    
+)
 )

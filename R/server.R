@@ -273,10 +273,12 @@ shinyServer(function(input, output, session) {
             pivotdf(),
             options = list(scrollX = TRUE, scrollY = "500px"))
         })
-    
-    
-    
+
     #### -------------------------- GRADING ----------------------------####
+    
+    grades <- reactiveValues(bins = data.frame(Grades = c("A", "B", "C", "D", "F"),
+                                               CutOff = c(90, 80, 70, 60, 0))
+    )
     
     ### Step1: AllGradesTable calculations 
     category_grades <- reactive({
@@ -294,7 +296,7 @@ shinyServer(function(input, output, session) {
     gradespercategory <- reactive({
         if (!is.null(policy$categories) && length(category_grades()) > 0) {
             allgradestable <- category_grades()
-            GradesPerCategory(allgradestable)
+            GradesPerCategory(allgradestable, grades$bins)
         } else {
             NULL
         }
@@ -305,8 +307,48 @@ shinyServer(function(input, output, session) {
         options = list(scrollX = TRUE, scrollY = "500px"))
     })
     
+    ## GGPLOT in Coursewide - a plot about the GRADE BINS - A,B,C,D,F
+    output$letter_dist <- renderPlot({
+        if (!is.null(policy$categories) && length(gradespercategory()) > 0){
+        plot <-gradespercategory() %>% ggplot(aes(x = as.integer(course_grade*100))) +geom_histogram() +
+            geom_rug(alpha = .35) + labs(x = "Grade (out of 100)") + xlim(0, 110) +
+            geom_vline(xintercept = grades$bins$CutOff, color = "goldenrod", lwd = 1.5) +
+            theme_minimal()
+        return (plot)
+        }
+    })
+
+    #renders grade bin UI
+    output$grade_bin_percent <- renderUI({ grade_bin_pct()})
     
-    
+    #reactive grade bin text for percentages per letter grade
+    grade_bin_pct <- reactive({
+        if (!is.null(gradespercategory()) && ncol(gradespercategory()) > 3){
+            tagList(
+                fluidRow(
+                    column(2,
+                           h6(paste0(round(mean(gradespercategory()$course_letter_grade == "F")*100,2), " %"))
+                    ),
+                    column(2,
+                           h6(paste0(round(mean(gradespercategory()$course_letter_grade == "D")*100,2), " %"))
+                    ),
+                    column(2,
+                           h6(paste0(round(mean(gradespercategory()$course_letter_grade == "C")*100,2), " %"))
+                    ),
+                    column(2,
+                           h6(paste0(round(mean(gradespercategory()$course_letter_grade == "B")*100,2), " %"))
+                    ),
+                    column(2,
+                           h6(paste0(round(mean(gradespercategory()$course_letter_grade == "A")*100,2), " %"))
+                    ),
+                )
+            )
+        }
+    })
+    #reactively updates grade bins
+    observe({
+        grades$bins <- updateBins(grades$bins, input$A, input$B, input$C, input$D, input$F)
+    })
     
     
     #### -------------------------- JSON ----------------------------####

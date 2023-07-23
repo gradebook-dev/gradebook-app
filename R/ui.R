@@ -103,9 +103,10 @@ shinyUI(
 
                                 /* body */
                                 .content-wrapper, .right-side {
-                                background-color: #ffffff;
+                                background-color: #ffffff; 
+                            
                                 }
-                                
+                                 
                                 '))),
             tabItems(
                 Dashboard,

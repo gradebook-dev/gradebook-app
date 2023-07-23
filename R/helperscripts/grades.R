@@ -136,7 +136,7 @@ CategoryGrades <- function(pivotdf){
 }
 
 
-GradesPerCategory <- function(allgradestable){
+GradesPerCategory <- function(allgradestable, bins){
     
     #9
     grades_per_category <- allgradestable %>%
@@ -158,7 +158,31 @@ GradesPerCategory <- function(allgradestable){
         pivot_wider(names_from = category, values_from = percent_grade_per_category)
    
     #11 adding final grade score column
-    grades_per_category_wider$final_grade_score <- round(apply(grades_per_category_wider[, -c(1, 2)], 1, mean, na.rm = TRUE), 2)
+    grades_per_category_wider$course_grade <- round(apply(grades_per_category_wider[, -c(1, 2)], 1, mean, na.rm = TRUE), 2)
+    
+    #12 adding letter grade
+    
+  
+    
+    grades_per_category_wider <- grades_per_category_wider %>%
+        mutate(course_letter_grade = case_when(
+            course_grade*100 >= bins$CutOff[1] ~ "A",
+            course_grade*100 < bins$CutOff[1] & course_grade*100 >= bins$CutOff[2] ~ "B",
+            course_grade*100 < bins$CutOff[2] & course_grade*100 >= bins$CutOff[3] ~ "C",
+            course_grade*100 < bins$CutOff[3] & course_grade*100 >= bins$CutOff[4] ~ "D",
+            course_grade*100 < bins$CutOff[4] ~ "F",
+            TRUE ~ "NA" # or any other value you wish
+        ))
     
     return(grades_per_category_wider)
+}
+
+
+updateBins <- function(bins_table, input_A, input_B, input_C, input_D, input_F){
+    bins_table$CutOff[1] <- as.numeric(input_A)
+    bins_table$CutOff[2] <- as.numeric(input_B)
+    bins_table$CutOff[3] <- as.numeric(input_C)
+    bins_table$CutOff[4] <- as.numeric(input_D)
+    bins_table$CutOff[5] <- as.numeric(input_F)
+    return (bins_table)
 }
