@@ -14,7 +14,8 @@ scratchpad <- tabItem(tabName = "scratchpad",
                               tabPanel("allgradestable()",
                                        dataTableOutput("all_grades_table")),
                               tabPanel("gradespercategory()",
-                                       dataTableOutput("grades_per_category"))
+                                      # dataTableOutput("grades_per_category")
+                                      )
                           )
                       )
 )

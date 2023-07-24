@@ -347,6 +347,141 @@ shinyServer(function(input, output, session) {
         policy$cutoff <- updateBins(policy$cutoff, input$A, input$B, input$C, input$D, input$F)
     })
     
+    #### -------------------------- DASHBOARD ----------------------------####
+    
+    output$dashboard <- renderUI({
+        if (length(policy$categories) > 0){     #if there are some categories
+           tagList(
+               fluidRow(
+                   column(4,
+                          h3("Course Summary Statistics"),
+                          HTML(course_stats_html()),
+                          HTML(student_concerns_html()),
+                          br()
+                          ),
+                   column(8,
+                          mainPanel(
+                              tabsetPanel(
+                                  tabPanel("All Grades Distributions",
+                                           br(),       #graph scores for overall final grades
+                                           br(),
+                                           plotOutput("grade_dist")
+                                           ),
+                                  tabPanel("Per Category",
+                                           br(),       #graph scores for individual categories
+                                           selectInput("which_cat", "Pick a Category", choices = unlist(purrr::map(policy$categories, "name"))),
+                                           plotOutput("cat_dist")
+                                           ),
+                                  tabPanel("Per Assignment",
+                                           br(),       #graph scores for individual assignments
+                                           selectInput("which_assign", "Pick an Assignment", choices = assign$table$colnames),
+                                           plotOutput("assign_dist")
+                                  ),
+                                  tabPanel("Grades Table",       #shows category and final grades
+                                           br(),
+                                           h6("If you would like to download your course grades, click the download button below."),
+                                           downloadButton("download_grades_data"),
+                                           br(),
+                                           br(),
+                                           h4("Overall Grades Table"),
+                                           dataTableOutput("grades_per_category")
+                                  )
+                              )
+                          )
+                          )
+               )
+           )
+        } else if (!is.null(assign$table)){     #if some data is uploaded
+            tagList(
+                #doesn't work
+               # h3(paste0("Thank you! You have uploaded a dataset with ", nrow(assign$table), " assignments and ", nrow(grades), " students.")),
+                h3("Go into the 'Policies' tab above and fill in the grading criteria for each category"),
+                h3("or upload one of your courses from the left."),
+                h3("Once you're done, return to this 'Dashboard' page to see your course statistics.")
+            )
+        } else {    #default message
+            h3("Welcome to GradeBook! To begin, upload your Gradescope csv by clicking the 'Browse' button to the left")
+        }
+    })
+    
+    ### GGPLOT on a overall grades 
+    output$grade_dist <- renderPlot({
+        plot <- gradespercategory() %>% 
+            mutate(Overall_Grade = as.integer(course_grade)) %>%
+            ggplot(aes(x = Overall_Grade)) + geom_histogram( color = "grey", fill = "lightgrey") +
+            ggtitle("Distribution of Overall Grades") + xlab("Individual Grades") +
+            theme_bw()
+        plot
+    })
+    
+    ### GGPLOT on a distribution of a category of choice
+    output$cat_dist <- renderPlot({
+            plot <-gradespercategory() %>% ggplot(aes_string(x = input$which_cat)) +
+                geom_histogram() + theme_bw() +
+                ggtitle(paste0("Distribution of ", input$which_cat))
+            return (plot)
+    })
+    
+    ### GGPLOT on a distribution of an Assignment of choice
+    output$assign_dist <- renderPlot({
+        plot <-pivotdf() %>% 
+            filter(colnames == input$which_assign)%>%
+            mutate(score = raw_points/max_points) %>%
+            ggplot(aes(x = score)) + geom_histogram() + theme_bw() +
+            ggtitle(paste0("Distribution of ", input$which_assign))
+        plot
+    })
+    
+    #download grades table with category and overall grades
+    output$download_grades_data <- downloadHandler(
+        filename = function() {
+            paste(policy$coursewide$course_name, Sys.Date(), ".csv", sep = "")
+        },
+        content = function(filename) {
+            write.csv(gradespercategory(), filename, row.names = FALSE)
+        })
+    
+    # Creates a reactive UI that shows the course statistics gives at least one category is added
+    course_stats_html <- reactive({
+        stats <- getGradeStats(gradespercategory())
+        category_stats <- ""
+        # for (i in 4:length(stats)) {
+        #     if (!is.na(stats[i])) {
+        #         category_stats <- paste0(category_stats, '<p class="card-text">',  names(stats)[i], stats[i], '</p>')
+        #     }
+        # }
+        paste0(
+            '<div class="card border-light mb-3">',
+            '<div class="card-header">Course Stats</div>',
+            '<div class="card-body">',
+            '<p class="card-text">',stats[1],'</p>',
+            '<p class="card-text">',stats[2],'</p>',
+            '<p class="card-text">',stats[3],'</p>',
+            category_stats,
+            '</div>',
+            '</div>'
+        )
+    })
+    
+    #returns a list of all failing students and their scores
+    student_concerns_html <- reactive({
+        student_concerns <- getStudentConcerns(gradespercategory())
+        paste0(
+            '<div class="card border-light mb-3">',
+            '<div class="card-header">Students with Low Scores:</div>',
+            '<div class="card-body">',
+            '<ul style="padding-left: 0;">',
+            '<ul>',
+            paste(sapply(student_concerns, function(concern) {
+                paste("<li>", concern, "</li>", sep = "")
+            }), collapse = ""),
+            '</ul>',
+            '</div>',
+            '</div>'
+        )
+    })
+  
+    
     #### -------------------------- JSON ----------------------------####
     path <- "../../gradebook-data"
     dir.create(path, showWarnings = FALSE)
