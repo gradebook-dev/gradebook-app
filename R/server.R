@@ -351,16 +351,16 @@ shinyServer(function(input, output, session) {
     
     output$dashboard <- renderUI({
         if (length(policy$categories) > 0){     #if there are some categories
-           tagList(
                fluidRow(
                    column(4,
+                         
                           h3("Course Summary Statistics"),
                           HTML(course_stats_html()),
                           HTML(student_concerns_html()),
                           br()
+                        
                           ),
                    column(8,
-                          mainPanel(
                               tabsetPanel(
                                   tabPanel("All Grades Distributions",
                                            br(),       #graph scores for overall final grades
@@ -388,19 +388,17 @@ shinyServer(function(input, output, session) {
                                   )
                               )
                           )
-                          )
-               )
-           )
+                    )
         } else if (!is.null(assign$table)){     #if some data is uploaded
             tagList(
                 #doesn't work
                # h3(paste0("Thank you! You have uploaded a dataset with ", nrow(assign$table), " assignments and ", nrow(grades), " students.")),
-                h3("Go into the 'Policies' tab above and fill in the grading criteria for each category"),
-                h3("or upload one of your courses from the left."),
-                h3("Once you're done, return to this 'Dashboard' page to see your course statistics.")
+                h4("Go into the 'Policies' tab above and fill in the grading criteria for each category"),
+                h4("or upload one of your courses from the left."),
+                h4("Once you're done, return to this 'Dashboard' page to see your course statistics.")
             )
         } else {    #default message
-            h3("Welcome to GradeBook! To begin, upload your Gradescope csv by clicking the 'Browse' button to the left")
+            h4("Welcome to GradeBook! To begin, upload your Gradescope csv by clicking the 'Browse' button to the left")
         }
     })
     

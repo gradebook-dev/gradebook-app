@@ -1,6 +1,9 @@
 Dashboard <- tabItem(tabName = "dashboard",
-                     fluidRow(
-                         h1("Gradebook Dashboard"),
-                         uiOutput("dashboard")
+                        fluidRow(
+                            tagList(
+                                div(style = "padding: 0px 20px 20px 20px;",
+                                     h2("Dashboard"),
+                                     uiOutput("dashboard")
+                                     ))
                      )
 )
