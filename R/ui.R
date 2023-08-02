@@ -1,10 +1,11 @@
-
 library(shinydashboard)
+library(shiny)
+library(shinyWidgets)
 #Create UI Comps
-UICompDirectory <- "UIComponents/"
+UICompDirectory <- "ui_components/"
 
-source(paste0(UICompDirectory, "Policies.R"), local = TRUE)
-source(paste0(UICompDirectory, "Dashboard.R"), local = TRUE)
+source(paste0(UICompDirectory, "policies.R"), local = TRUE)
+source(paste0(UICompDirectory, "dashboard.R"), local = TRUE)
 source(paste0(UICompDirectory, "scratchpad.R"), local = TRUE)
 
 shinyUI(
@@ -26,8 +27,22 @@ shinyUI(
                     "Upload Student Data"
                     
                 ),
-                fileInput("upload", label = NULL, accept = c(".csv"))
-                
+                fileInput("upload", label = NULL, accept = c(".csv")),
+                hr(),
+                div(class = "sidebar-text",
+                    style = "margin-left: 20px;",
+                    "Pick Course File:"
+                ),
+                div(style = "margin-top: -20px;",
+                    selectizeInput("pick_policy", "",
+                                   choices = '',
+                                   multiple = FALSE,
+                                   width = "100%"),
+                ),
+                div(style = "display: flex; align-items: center;",
+                    actionButton("upload_json", "Upload Your Course"),
+                    actionButton("delete_json", "", icon = icon("trash-can"))
+                )
                 
             )
             
@@ -88,9 +103,10 @@ shinyUI(
 
                                 /* body */
                                 .content-wrapper, .right-side {
-                                background-color: #ffffff;
+                                background-color: #ffffff; 
+                            
                                 }
-                                
+                                 
                                 '))),
             tabItems(
                 Dashboard,
