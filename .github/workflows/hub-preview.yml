@@ -1,0 +1,27 @@
+name: "Preview on Datahub"
+
+on:
+  pull_request:
+    types: [opened]
+    branches: main
+
+jobs:
+  comment:
+    permissions: write-all
+    environment: dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Provide link to app
+        uses: actions/github-script@v6
+        if: always()
+        with:
+          script: |
+            const url = 'https://shiny.datahub.berkeley.edu/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Fgradebook-dev%2Fgradebook-app&urlpath=shiny%2Fgradebook-app%2FR&branch=${{ github.head_ref }}';
+            const body = `Test the app by clicking the link below! 🚀\n\n${url}`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            })
