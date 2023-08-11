@@ -5,7 +5,10 @@ on:
     branches: main
 
 jobs:
-  deploy:
+  comment:
+    permissions: write-all
+    name: print-token
+    environment: dev
     runs-on: ubuntu-latest
     steps:
       - name: Add comment to PR
