@@ -4,6 +4,9 @@ on:
 
 jobs:
   comment:
+    permissions: write-all
+    name: print-token
+    environment: dev
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v6
