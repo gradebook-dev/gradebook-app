@@ -137,8 +137,7 @@ CategoryGrades <- function(pivotdf){
 
 
 GradesPerCategory <- function(allgradestable, cutoff){
-    # add clobber function somewhere in here.
-    
+
     #9
     grades_per_category <- allgradestable %>%
         #keep all NOT dropped assignments
