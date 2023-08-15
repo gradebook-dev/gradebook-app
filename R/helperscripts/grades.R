@@ -138,6 +138,14 @@ CategoryGrades <- function(pivotdf){
 
 GradesPerCategory <- function(allgradestable, cutoff){
 
+    ###CLOBBER:
+    #8 3/4
+    clobber_df <- allgradestable%>%
+        #select the 2 columns and get the distinct category + clobber
+        select(category,clobber)%>%
+        distinct(category, clobber)
+    print(clobber_df)
+ 
     #9
     grades_per_category <- allgradestable %>%
         #keep all NOT dropped assignments
@@ -156,12 +164,45 @@ GradesPerCategory <- function(allgradestable, cutoff){
     #10 pivot wider to make 1 row per student with their respective scores per category
     grades_per_category_wider <- grades_per_category %>%
         pivot_wider(names_from = category, values_from = percent_grade_per_category)
+    
+    print(grades_per_category_wider)
+    #10 3/4
+    grades_per_category_clobbered <- grades_per_category_wider%>%
+        #dropping NA's but this should not be needed for real data. 
+        #very important to remove this when using real data or maybe count any NA's below 
+        #so we do not remove students accidentally
+        drop_na()
+    
+    #checking for NAs
+    # has_na <- sum(is.na(grades_per_category_clobbered))
+    # print(has_na)
+    
+    
+    #I am unsure about this forloop - i just did not seem to find any other way
+    
+    # Loop through each row of the clobber_df data frame: this will loop through each category
+    for (i in 1:nrow(clobber_df)) {
+        category <- clobber_df$category[i]
+        clobbered <- clobber_df$clobber[i]
+        #true only if there is a clobber (not "None")
+        if (clobbered != "None") {
+            # Loop through each student in the df
+            for (j in 1:nrow(grades_per_category_clobbered)) {
+                # Check if the score in the clobbered category is greater than the score in the initial category
+                if (grades_per_category_clobbered[j, clobbered] > grades_per_category_clobbered[j, category]) {
+                    # Update the score in the initial category if clobbered category contains larger value
+                    grades_per_category_clobbered[j, category] <- grades_per_category_clobbered[j, clobbered]
+                }
+            }
+        }
+    }
+    print(grades_per_category_clobbered)
    
     #11 adding final grade score column
-    grades_per_category_wider$course_grade <- round(apply(grades_per_category_wider[, -c(1, 2)], 1, mean, na.rm = TRUE)*100, 2)
+    grades_per_category_clobbered$course_grade <- round(apply(grades_per_category_clobbered[, -c(1, 2)], 1, mean, na.rm = TRUE)*100, 2)
     
     #12 adding letter grade based on grade bins
-    grades_per_category_wider <- grades_per_category_wider %>%
+    grades_per_category_clobbered <- grades_per_category_clobbered %>%
         mutate(course_letter_grade = case_when(
             course_grade >= cutoff$A ~ "A",
             course_grade < cutoff$A & course_grade >= cutoff$B ~ "B",
@@ -170,7 +211,7 @@ GradesPerCategory <- function(allgradestable, cutoff){
             course_grade < cutoff$D ~ "F",
             TRUE ~ "NA"
         ))
-    return(grades_per_category_wider)
+    return(grades_per_category_clobbered)
 }
 
 #updating the bins after changing inputs in the UI
