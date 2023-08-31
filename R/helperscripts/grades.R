@@ -89,6 +89,7 @@ CategoryGrades <- function(pivotdf){
             arrange(score_after_lateness) %>% #arrange in ascending order based on group_by
             slice( (as.numeric(drops) + 1) :n() ) %>% #drop the number of drops and keep the rest assignments
             mutate(dropped = FALSE)
+        
         dropped_assignments <- df_with_lateness %>%
             filter(as.numeric(drops) > 0) %>%
             group_by(sid, category) %>%
@@ -119,20 +120,20 @@ CategoryGrades <- function(pivotdf){
         filter(aggregation == "Equally Weighted")%>%
         #this should yield the raw final percentage earned per assignment
     
-        mutate(grade_after_weight = round(score_after_lateness*((as.numeric(weight)/100)/relevant_assigns), 2))
+        mutate(grade_after_weight = score_after_lateness*((as.numeric(weight)/100)/relevant_assigns))
     
     #calculating score based on weights WEIGHTED BY POINTS
     #these need to be summed
      weighted_by_points <- df_with_max_points%>%
         filter(aggregation == "Weighted by Points")%>%
         #this should yield the raw final percentage earned per assignment
-        mutate(grade_after_weight = round(((points_after_lateness/total_max_points_per_cat)*(as.numeric(weight)/100)), 2))
+        mutate(grade_after_weight = ((points_after_lateness/total_max_points_per_cat)*(as.numeric(weight)/100)))
 
     #merge dataframes - equally weighted and by points
      combined_data <- bind_rows(equally_weighted, weighted_by_points)
 
     # return(df_with_lateness_and_max_points_per_cat)
-    return (equally_weighted)
+    return (combined_data)
 }
 
 
@@ -157,7 +158,7 @@ GradesPerCategory <- function(allgradestable, cutoff){
             names = first(names),
             #sum the grades after weight for each assignment and divide by the % weight
             #to get the total score per category for each student
-            percent_grade_per_category = round((sum(grade_after_weight) / (first(as.numeric(weight))/100)), 2),
+            percent_grade_per_category = (sum(grade_after_weight) / (first(as.numeric(weight))/100)),
             .groups = 'drop'
         )
     
@@ -199,7 +200,7 @@ GradesPerCategory <- function(allgradestable, cutoff){
     print(grades_per_category_clobbered)
    
     #11 adding final grade score column
-    grades_per_category_clobbered$course_grade <- round(apply(grades_per_category_clobbered[, -c(1, 2)], 1, mean, na.rm = TRUE)*100, 2)
+    grades_per_category_clobbered$course_grade <- apply(grades_per_category_clobbered[, -c(1, 2)], 1, mean, na.rm = TRUE)*100
     
     #12 adding letter grade based on grade bins
     grades_per_category_clobbered <- grades_per_category_clobbered %>%
