@@ -14,6 +14,7 @@ shinyServer(function(input, output, session) {
 
 #### -------------------------- UPLOAD A FILE ----------------------------####   
     
+    #testing
     data <- reactive({
         req(input$upload)
         
