@@ -60,7 +60,7 @@ CategoryGrades <- function(pivotdf){
             #between late1 and late2
             lateness_min > late_time1_min & lateness_min <= late_time2_min ~ raw_points*as.numeric(late_scale2),
             #past late2
-            lateness_min > late_time2_min ~ raw_points*0,
+            #lateness_min > late_time2_min ~ raw_points*0,
             #not late
             TRUE ~ raw_points
         )) %>%
