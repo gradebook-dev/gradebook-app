@@ -14,6 +14,7 @@ shinyServer(function(input, output, session) {
 
 #### -------------------------- UPLOAD A FILE ----------------------------####   
     
+    #testing
     data <- reactive({
         req(input$upload)
         
@@ -94,7 +95,10 @@ shinyServer(function(input, output, session) {
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
             choices <- assign$table %>% filter (category == "Unassigned") %>% select(colnames)
             updateSelectizeInput(session, "assign", choices = choices, selected = "")
-            updateSelectInput(session, "clobber_with", choices = c("None", select(assign$table, colnames)))
+            if (!is.null(categories_df())){
+            categories_df <- categories_df()
+            updateSelectInput(session, "clobber_with", choices = c("None", categories_df[['name']]))
+            }
         }
         
     }) 
@@ -119,7 +123,10 @@ shinyServer(function(input, output, session) {
         choices <- ""
         if (!is.null(assign$table)){
             choices <- assign$table %>% filter (category == "Unassigned") %>% select(colnames)
-            updateSelectInput(session, "clobber_with", choices = c("None", select(assign$table, colnames)))
+            if (!is.null(categories_df())){
+                categories_df <- categories_df()
+                updateSelectInput(session, "clobber_with", choices = c("None", categories_df[['name']]))
+            }
         }
         # Preload selected values
         preloaded_values <- policy$categories[[i]]$assigns
