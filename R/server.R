@@ -191,7 +191,9 @@ shinyServer(function(input, output, session) {
         
         observeEvent(input[[paste0('delete',nr)]],{
             i <- getCatIndex(policy$categories, nr)
-            assign$table <- resetAssigns(assign$table, x$name)
+            if (!is.null(assign$table)){
+                assign$table <- resetAssigns(assign$table, x$name)   
+            }
             policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
             removeUI(
                 selector = paste0("#cat",nr) #this removes the UI for this category
