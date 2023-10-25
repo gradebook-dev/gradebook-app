@@ -1,6 +1,7 @@
 library(shinydashboard)
 library(shiny)
 library(shinyWidgets)
+library(shinyjs)
 #Create UI Comps
 UICompDirectory <- "ui_components/"
 
@@ -50,6 +51,7 @@ shinyUI(
         ),
         ## Body content
         dashboardBody(
+            useShinyjs(),
             tags$head(tags$style(HTML('
                                 /* logo */
                                 .skin-blue .main-header .logo {

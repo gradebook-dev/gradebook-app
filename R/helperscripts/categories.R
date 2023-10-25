@@ -10,11 +10,22 @@ edit_category_modal <- modalDialog(
                                 align-items: center;
                                 margin-right: 5px;
                             }
-                 "))),
+                 ")),
+        ),
     h4("Edit this Category"),
+    fluidRow(
+        column(6, 
+               div(style = "display: flex; align-items: center;",
+                   
+                   tags$label("Make this a subcategory: ", style="margin-right: 10px;"),
+                   
+                   Toggle.shinyInput("subcat", value = FALSE, offText = "No", onText = "Sure :) " )),
+        ),
+        column(6, tags$label(""))
+    ),
     fluidRow(column(6,textInput("change_cat_name", "Category Name", value = "", width = "100%")
             ),
-            column(6,tags$label(""),
+            column(6,tags$label("")
             )),
     fluidRow(column(6,div(
                         style = "display: flex; flex-direction: column;",
@@ -63,19 +74,20 @@ edit_category_modal <- modalDialog(
                            class = "spacing",
                            tags$label("Clobber with..."),
                            selectInput("clobber_with", "", selected = "None", choices = c("None"))
-                       )))),
-            selectizeInput("assign", "Select Assignments:",
-                           choices = "",
-                           multiple = TRUE,
-                           options = list(delimiter = ','),
-                           width = "100%"),
-    fluidRow(column(6,
-               checkboxInput("as_assign", strong("Save as Aggregated Assignments"), value = FALSE)),
-            column(6,)),
+                       )))
+    ),
+                        selectizeInput("assign", 
+                                       label = "Select Assignments:",
+                                       choices = "",
+                                       multiple = TRUE,
+                                       options = list(delimiter = ','),
+                                       width = "100%"),
+
     footer = tagList(
             actionButton("cancel", "Cancel"),
             actionButton("save", "Save"))
-    )
+)
+
 
 getCatIndex <- function(cat_list, edit_nr){
     nrs <- purrr::map(cat_list, "nr") |>
@@ -110,7 +122,7 @@ updateCategory <- function(cat_list, input, edit_nr){
                          assigns = input$assign,
                          num_assigns = length(input$assign),
                          #assigns = ifelse(length(input$assign) == 0, "None", as.vector(input$assign)),
-                         nr = edit_nr
+                         nr = edit_nr,
     )
     if (length(input$assign) == 0){
         category$assigns <- "None"
