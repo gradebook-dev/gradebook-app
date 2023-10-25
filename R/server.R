@@ -2,6 +2,8 @@
 library(shinyWidgets)
 library(DT)
 library(tidyverse)
+library(shiny.fluent)
+library(shinyjs)
 
 #load helper scripts
 HSLocation <- "helperscripts/"
@@ -12,7 +14,9 @@ source(paste0(HSLocation, "grades.R"), local = TRUE)
 
 shinyServer(function(input, output, session) {
 
-#### -------------------------- UPLOAD A FILE ----------------------------####   
+#### -------------------------- UPLOAD A FILE ----------------------------#### 
+
+    
     
     #testing
     data <- reactive({
@@ -85,7 +89,7 @@ shinyServer(function(input, output, session) {
     #Note: addCategory and deleteCategory functions are in categories.R
     editing <- reactiveValues(num = 1,    #used to make unique ids for category card
                               nr = NULL) #used to differentiate editing with making new category
-     
+                            
     
     observeEvent(input$new_cat, {
         editing$nr <- paste0("cat", editing$num)
@@ -134,11 +138,38 @@ shinyServer(function(input, output, session) {
             preloaded_values <- unlist(strsplit(preloaded_values, ", ")) # Split the string and unlist the result
             choices = c(choices, preloaded_values)
         }
-        updateSelectizeInput(session, "assign", selected = strsplit(policy$categories[[i]]$assigns, ", ")[[1]])
-        updateSelectizeInput(session, "assign", choices = choices, selected = preloaded_values)
+        updateSelectizeInput(session,  inputId = "assign",  selected = strsplit(policy$categories[[i]]$assigns, ", ")[[1]])
+        updateSelectizeInput(session,  inputId = "assign",  choices = choices, selected = preloaded_values)
     }
+        
     
 #### -------------------------- CATEGORY CARDS  ----------------------------#### 
+
+    
+    ####### DISABLE?ENABLE ON SUBCATEGORY TOGGLE
+    
+    observeEvent(input$subcat, {
+        if (input$subcat) {
+            disable("slip")
+            disable("weight")
+            disable("late_allowed1")
+            disable("late_penalty1")
+            disable("late_allowed2")
+            disable("late_penalty2")
+            disable("num_drops")
+            disable("clobber_with")
+        } else {
+            enable("slip")
+            enable("weight")
+            enable("late_allowed1")
+            enable("late_penalty1")
+            enable("late_allowed2")
+            enable("late_penalty2")
+            enable("num_drops")
+            enable("clobber_with")
+        }
+    })
+    
     
     observeEvent(input$save, {
         i <- getCatIndex(policy$categories, editing$nr)
@@ -182,8 +213,8 @@ shinyServer(function(input, output, session) {
                 )
             )
         )
-        
-        observeEvent(input[[paste0('edit',nr)]],{
+       
+        observeEvent(input[[paste0('edit',nr)]], {
             showModal(edit_category_modal) #opens edit modal
             editing$nr <- nr
             updateModalValues(nr)

@@ -123,6 +123,8 @@ updateCategory <- function(cat_list, input, edit_nr){
                          num_assigns = length(input$assign),
                          #assigns = ifelse(length(input$assign) == 0, "None", as.vector(input$assign)),
                          nr = edit_nr,
+                     
+                     
     )
     if (length(input$assign) == 0){
         category$assigns <- "None"
