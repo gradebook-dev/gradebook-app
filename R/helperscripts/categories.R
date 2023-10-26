@@ -68,7 +68,7 @@ edit_category_modal <- modalDialog(
                            class = "spacing",
                            tags$label("Aggregation"),
                            selectInput("grading_policy", strong(""), selected = "Equally Weighted",
-                                       choices = c("Equally Weighted", "Weighted by Points"))
+                                       choices = c("Equally Weighted", "Weighted by Points", "Min", "Max"))
                        ),
                        div(style = "display: flex; align-items: stretch; align-items: center; margin-top: -15px;",
                            class = "spacing",
