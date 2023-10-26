@@ -56,6 +56,9 @@ shinyServer(function(input, output, session) {
     output$policy_list <- renderPrint({
         Hmisc::list.tree(list(coursewide = policy$coursewide, categories = policy$categories, cutoff = policy$cutoff))
         })
+    
+    
+   
 
     observeEvent(input$edit_policy_name, {
         showModal(modalDialog(
@@ -476,6 +479,33 @@ shinyServer(function(input, output, session) {
         content = function(filename) {
             write.csv(gradespercategory(), filename, row.names = FALSE)
         })
+    
+
+    # output$download_policy_file <- downloadHandler(
+    #     filename = function() {
+    #         paste(policy$coursewide$course_name, Sys.Date(), ".R", sep = "")
+    #     },
+    #     content = function(file) {
+    # 
+    #         cat("policy_file <- ", deparse(policy$categories), file = file)
+    #     },
+    #     contentType = "text/plain"
+    # 
+    # )
+    
+    ### DOWNLLOAD .R POLICY FILE
+    output$download_policy_file <- downloadHandler(
+        filename = function() {
+            paste(policy$coursewide$course_name, Sys.Date(), ".R", sep = "")
+        },
+        content = function(file) {
+            deparsed_list <- deparse(policy$categories)
+            formatted_list <- gsub(",", ",\n", deparsed_list)
+            cat("policy_file <-", formatted_list, file = file)
+        },
+        contentType = "text/plain"
+    )
+    
     
     # Creates a reactive UI that shows the course statistics gives at least one category is added
     course_stats_html <- reactive({

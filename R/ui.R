@@ -43,7 +43,12 @@ shinyUI(
                 div(style = "display: flex; align-items: center;",
                     actionButton("upload_json", "Upload Your Course"),
                     actionButton("delete_json", "", icon = icon("trash-can"))
+                ),
+                div(style = "display: flex; align-items: center;",
+                    downloadButton("download_policy_file", "Download Policy File")
+                    
                 )
+                
                 
             )
             
