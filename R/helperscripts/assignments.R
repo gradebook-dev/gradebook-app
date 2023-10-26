@@ -1,6 +1,10 @@
 #create assignment table from input data
-createAssignTable <- function(data) {
+createAssignTable <- function(data, subcat_table) {
     gs_cols <- names(data)
+    
+    #adding the new assignemtns from subcategories:
+    subcat_values <- subcat_table$subcat_colname
+    combined_cols <- c(gs_cols, subcat_values)
     
     #TEMPORARY SOLUTION FOR DIFFERING COLNAMES
     
@@ -11,7 +15,7 @@ createAssignTable <- function(data) {
     
     #stat 20 specific - TBD
     
-    assignments <- tibble(colnames = gs_cols) %>%
+    assignments <- tibble(colnames = combined_cols) %>%
         #General regex to rename assignments and add a column "category" in table
         mutate(new_colnames = str_replace_all(tolower(colnames), "[\\s:]+", "_"),
                #     category = substr(str_replace_all(tolower(colnames), "[\\s:]+", "_"), 1, regexpr("_", str_replace_all(tolower(colnames), "[\\s:-]+", "_")) - 1),

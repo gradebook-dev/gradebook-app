@@ -173,6 +173,7 @@ shinyServer(function(input, output, session) {
         }
     })
     
+
     
     observeEvent(input$save, {
         i <- getCatIndex(policy$categories, editing$nr)
@@ -188,6 +189,15 @@ shinyServer(function(input, output, session) {
         removeModal()
         editing$num <- editing$num + 1
         purrr::walk(policy$categories, rerender_ui)
+        
+        
+        #adding my new assignmetn from the subcategory to a tibble
+        if (input$subcat) {
+            new_row <- tibble(subcat_colname = original_name)
+            subcat_tibble$tibble <- bind_rows(subcat_tibble$tibble, new_row)
+            print(new_row)
+            print(subcat_tibble$tibble)
+        }
     })
     
     rerender_ui <- function(x) { #render category UI for policy page
@@ -232,6 +242,11 @@ shinyServer(function(input, output, session) {
             )
         })
     }
+    
+#### -------------------------- CREATE ASSIGNMENTS TABLE FROM SUBCATEGORIES  ----------------------------####  
+    subcat_tibble <- reactiveValues(tibble = tibble(subcat_colname = NULL))
+    
+    
 
 #### -------------------------- ASSIGNMENTS  ----------------------------####  
     #reactive unassigned assignments table
@@ -241,17 +256,19 @@ shinyServer(function(input, output, session) {
         assign$table <- updateAssigns(assign$table, x$assigns, x$name, x$name)
     }
     
+   
+    
     #takes reactive data output and creates a reactive assignment table
     #contains all the columns from the original dataframe(names, emails, all columns from assignments, etc)
     assignments <- reactive({
         data <- data()
-        createAssignTable(data)
+        createAssignTable(data, subcat_tibble$tibble)
     })
     
     #creates unassigned assignments table, excludes all names, sections, latenes, etc...
     observe({
         data <- data()
-        assign$table <- createAssignTable(data)%>%
+        assign$table <- createAssignTable(data, subcat_tibble$tibble)%>%
             filter(!str_detect(colnames, "Name|Sections|Max|Time|Late|Email|SID"))
     })
     
