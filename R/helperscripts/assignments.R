@@ -32,6 +32,7 @@ createAssignTable <- function(data, subcat_table) {
 }
 
 getUnassigned <- function(assign_table){
+    print(assign_table)
     left <-assign_table %>% 
         filter(category == "Unassigned")
     if (nrow(left) != 0){

@@ -19,7 +19,7 @@ edit_category_modal <- modalDialog(
                    
                    tags$label("Make this a subcategory: ", style="margin-right: 10px;"),
                    
-                   Toggle.shinyInput("subcat", value = FALSE, offText = "No", onText = "Sure :) " )),
+                   Toggle.shinyInput("subcat", value = FALSE, offText = "No", onText = "Yes" )),
         ),
         column(6, tags$label(""))
     ),
@@ -109,7 +109,8 @@ deleteCategory <- function(cat_list, edit_nr){
 updateCategory <- function(cat_list, input, edit_nr){
     #create default category
     edit_num <- unlist(strsplit(edit_nr, "cat"))[2]
-    category <- list(name = ifelse(input$change_cat_name == "", paste0("Category ", edit_num), input$change_cat_name),
+    category <- list(    is_subcat = ifelse(input$subcat == TRUE, 'Yes', 'No'),#if subcat is check, indicate as Yes, otherwise No
+                         name = ifelse(input$change_cat_name == "", paste0("Category ", edit_num), input$change_cat_name),
                          slip_days = ifelse(length(input$slip) == 0, 0, input$slip),
                          late_time1 = ifelse(input$late_allowed1 == "", "00:00:00", input$late_allowed1),
                          late_time2 = ifelse(input$late_allowed2 == "", "00:00:01", input$late_allowed2),
@@ -144,6 +145,7 @@ update_ui_categories <- function(cat_list, nr) {
         div(style = "border-left: 1px solid #ddd; padding-left: 10px; display: flex;",
             div(
                 style = "flex: 1; display: flex; flex-direction: column; margin-right: 10px;",
+                p(strong("Is Subcategory?:"), style = "margin-bottom: 5px;"),
                 p(strong("Weight:"), style = "margin-bottom: 5px;"),
                 p(strong("Drops:"), style = "margin-bottom: 5px;"),
                 p(strong("Grading Policy:"), style = "margin-bottom: 5px;"),
@@ -154,6 +156,7 @@ update_ui_categories <- function(cat_list, nr) {
                 p(strong("Assignments Included:"), style = "margin-bottom: 5px;")
             ),
             div(style = "flex: 1; display: flex; flex-direction: column;",
+                p(paste(cat_list[[i]]$is_subcat), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$weight), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$drops), style = "margin-bottom: 5px;"),
                 p(paste(cat_list[[i]]$aggregation), style = "margin-bottom: 5px;"),

@@ -117,6 +117,12 @@ shinyServer(function(input, output, session) {
     updateModalValues <- function(edit_nr){
         #updated edit_category_modal with info from category with nr edit_num
         i <- getCatIndex(policy$categories, edit_nr)
+        # passing a boolean value
+        is_subcat_selected <- policy$categories[[i]]$is_subcat == "Yes"
+        print(is_subcat_selected)
+########### Toggle subcat not working!
+        updateToggle.shinyInput(session, "subcat", value = is_subcat_selected)
+###########       
         updateTextInput(session, "change_cat_name", value = policy$categories[[i]]$name)
         updateAutonumericInput(session, "slip", value = policy$categories[[i]]$slip_days)
         updateTextInput(session, "late_allowed1", value = policy$categories[[i]]$late_time1)
@@ -149,7 +155,7 @@ shinyServer(function(input, output, session) {
 #### -------------------------- CATEGORY CARDS  ----------------------------#### 
 
     
-    ####### DISABLE?ENABLE ON SUBCATEGORY TOGGLE
+    ####### DISABLE/ENABLE ON SUBCATEGORY TOGGLE
     
     observeEvent(input$subcat, {
         if (input$subcat) {
@@ -172,10 +178,11 @@ shinyServer(function(input, output, session) {
             enable("clobber_with")
         }
     })
-    
+
 
     
     observeEvent(input$save, {
+
         i <- getCatIndex(policy$categories, editing$nr)
         original_name <- input$change_cat_name #if this is a new category
         if (i <= length(policy$categories)){ #if it's not a new category
@@ -186,20 +193,20 @@ shinyServer(function(input, output, session) {
         if (!is.null(assign$table)){
          assign$table <- updateAssigns(assign$table, input$assign, original_name, input$change_cat_name)
         }
-        removeModal()
-        editing$num <- editing$num + 1
-        purrr::walk(policy$categories, rerender_ui)
-        
-        
-        #adding my new assignmetn from the subcategory to a tibble
+
+        #adding my new assignment from the subcategory to a tibble
         if (input$subcat) {
             new_row <- tibble(subcat_colname = original_name)
             subcat_tibble$tibble <- bind_rows(subcat_tibble$tibble, new_row)
-            print(new_row)
-            print(subcat_tibble$tibble)
         }
+        
+        removeModal()
+        editing$num <- editing$num + 1
+        purrr::walk(policy$categories, rerender_ui)
     })
     
+    
+    #### -------------------------- #render category UI for policy page.  -------------------------- ######
     rerender_ui <- function(x) { #render category UI for policy page
         nr <- x$nr
         removeUI(
