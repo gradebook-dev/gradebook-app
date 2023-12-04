@@ -2,12 +2,12 @@
 library(shinyWidgets)
 library(DT)
 library(tidyverse)
+library(gradebook)
 
 #load helper scripts
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "categories.R"), local = TRUE)
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
-source(paste0(HSLocation, "process-sid.R"), local = TRUE)
 source(paste0(HSLocation, "grades.R"), local = TRUE)
 
 shinyServer(function(input, output, session) {
@@ -20,8 +20,8 @@ shinyServer(function(input, output, session) {
         
         ext <- tools::file_ext(input$upload$name)
         switch(ext,
-               csv = vroom::vroom(input$upload$datapath, delim = ",", na = c("", "NA")),
-               validate("Invalid file; Please upload a .csv or .tsv file")
+               csv = gradebook::read_gs(input$upload$datapath),
+               validate("Invalid file; Please upload a .csv")
         )
     })
     
@@ -36,9 +36,15 @@ shinyServer(function(input, output, session) {
                 read.table(input$upload$datapath, sep = ",", header = TRUE, fill=TRUE),
                 options = list(scrollX = TRUE, scrollY = "500px")
             )
-            
+
         }
     })
+    
+    observeEvent(input$upload,{
+        data <- data()
+        check_data_format(data, verbose = TRUE)
+    })
+    
     
 #### -------------------------- POLICY-COURSE NAME  ----------------------------####
     # initialize class_name and class_description as reactive values
@@ -191,7 +197,9 @@ shinyServer(function(input, output, session) {
         
         observeEvent(input[[paste0('delete',nr)]],{
             i <- getCatIndex(policy$categories, nr)
-            assign$table <- resetAssigns(assign$table, x$name)
+            if (!is.null(assign$table)){
+                assign$table <- resetAssigns(assign$table, x$name)   
+            }
             policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
             removeUI(
                 selector = paste0("#cat",nr) #this removes the UI for this category
@@ -207,18 +215,16 @@ shinyServer(function(input, output, session) {
         assign$table <- updateAssigns(assign$table, x$assigns, x$name, x$name)
     }
     
-    #takes reactive data output and creates a reactive assignment table
-    #contains all the columns from the original dataframe(names, emails, all columns from assignments, etc)
     assignments <- reactive({
         data <- data()
-        createAssignTable(data)
+        get_assignments(data, verbose = TRUE) ##rename for assignments_list when gradebook package implemented
     })
     
     #creates unassigned assignments table, excludes all names, sections, latenes, etc...
     observe({
         data <- data()
-        assign$table <- createAssignTable(data)%>%
-            filter(!str_detect(colnames, "Name|Sections|Max|Time|Late|Email|SID"))
+        colnames <- get_assignments(data, verbose = TRUE)
+        assign$table <- data.frame(colnames, category = c("Unassigned"))
     })
     
     output$assign <- renderDataTable({
@@ -238,28 +244,15 @@ shinyServer(function(input, output, session) {
     
     
 #### -------------------------- PIVOT + STUDENT IDS ----------------------------####
-    new_data <- reactive({
-        # Get the new column names from the form data frame
-        new_colnames <- assignments()$new_colnames
-        # Rename the columns of the data frame using the new column names
-        data_new_colnames <- data() %>%
-            rename(!!!setNames(names(.), new_colnames))
-        #fix dates
-        new_time <- data_new_colnames%>%
-            mutate(across(contains("submission_time"), lubridate::mdy_hm), #convert to datetimes , previous format: lubridate::ymd_hms
-                   across(contains("lateness"), convert_to_min), #function in process-sid
-                   across(contains("lateness"), as.character))
-        return(new_time)
-    })
-    
-    output$new_data <- renderDataTable({
-        datatable(new_data(),
-        options = list(scrollX = TRUE, scrollY = "500px"))
-    })
-    
-    processed_sids <- reactive({
-        new_data <- new_data()
-        process_sids(new_data)
+    pivotdf <- reactive({
+        data <- data()
+        
+        data <- data |>
+            #process_id()|> ##coercion issues -- do not use for now
+            # just drop NA SIDs for now
+            drop_na('SID')|>
+            process_gs()|>
+            pivot_gs()
     })
     #### MAKE A DATAFRAME WITH CATEGORIES #####
     categories_df <- reactive({
@@ -270,11 +263,6 @@ shinyServer(function(input, output, session) {
             as.data.frame(t(unlist(item)))
         })
     })
-
-    pivotdf <- reactive({
-        processed_sids <- processed_sids()$unique_sids
-        pivot(processed_sids, assign$table, categories_df())
-    })
     
     output$pivotdf <- renderDataTable({
         datatable(
@@ -283,33 +271,6 @@ shinyServer(function(input, output, session) {
         })
 
     #### -------------------------- GRADING ----------------------------####
-    
-    ### Step1: AllGradesTable calculations 
-    category_grades <- reactive({
-        if (!is.null(pivotdf()) && length(pivotdf()) > 0 && length(assign$table) > 0) {
-            CategoryGrades(pivotdf()) 
-        } 
-    })
-    output$all_grades_table <- renderDataTable({
-        datatable(
-            category_grades(),
-            options = list(scrollX = TRUE, scrollY = "500px"))
-    })
-    
-    ### Step2: GradesPerCategory calculations.
-    gradespercategory <- reactive({
-        if (!is.null(policy$categories) && length(category_grades()) > 0) {
-            allgradestable <- category_grades()
-            GradesPerCategory(allgradestable, policy$cutoff)
-        } else {
-            NULL
-        }
-    })
-    output$grades_per_category <- renderDataTable({
-        datatable(
-        gradespercategory(),
-        options = list(scrollX = TRUE, scrollY = "500px"))
-    })
     
     ## GGPLOT in Coursewide - a plot about the GRADE BINS - A,B,C,D,F
     output$letter_dist <- renderPlot({
