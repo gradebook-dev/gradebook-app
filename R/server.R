@@ -272,33 +272,6 @@ shinyServer(function(input, output, session) {
 
     #### -------------------------- GRADING ----------------------------####
     
-    ### Step1: AllGradesTable calculations 
-    category_grades <- reactive({
-        if (!is.null(pivotdf()) && length(pivotdf()) > 0 && length(assign$table) > 0) {
-            CategoryGrades(pivotdf()) 
-        } 
-    })
-    output$all_grades_table <- renderDataTable({
-        datatable(
-            category_grades(),
-            options = list(scrollX = TRUE, scrollY = "500px"))
-    })
-    
-    ### Step2: GradesPerCategory calculations.
-    gradespercategory <- reactive({
-        if (!is.null(policy$categories) && length(category_grades()) > 0) {
-            allgradestable <- category_grades()
-            GradesPerCategory(allgradestable, policy$cutoff)
-        } else {
-            NULL
-        }
-    })
-    output$grades_per_category <- renderDataTable({
-        datatable(
-        gradespercategory(),
-        options = list(scrollX = TRUE, scrollY = "500px"))
-    })
-    
     ## GGPLOT in Coursewide - a plot about the GRADE BINS - A,B,C,D,F
     output$letter_dist <- renderPlot({
         if (!is.null(policy$categories) && length(gradespercategory()) > 0){
