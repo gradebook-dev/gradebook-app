@@ -136,11 +136,16 @@ shinyServer(function(input, output, session) {
         }
         # Preload selected values
         preloaded_values <- policy$categories[[i]]$assigns
-        if (any(preloaded_values != "None")){
-            preloaded_values <- unlist(strsplit(preloaded_values, ", ")) # Split the string and unlist the result
-            choices = c(choices, preloaded_values)
+        if (any(preloaded_values != "None")) {
+            
+            # Encode commas as "&#44;" in the assignments, 
+            #use strsplit by splitting at the commas, then decode commas
+            encoded_values <- gsub(",", "&#44;", preloaded_values)
+            preloaded_values <- unlist(strsplit(encoded_values, ", "))
+            preloaded_values <- gsub("&#44;", ",", preloaded_values)
+            
+            choices <- c(choices, preloaded_values)
         }
-        updateSelectizeInput(session, "assign", selected = strsplit(policy$categories[[i]]$assigns, ", ")[[1]])
         updateSelectizeInput(session, "assign", choices = choices, selected = preloaded_values)
     }
     
