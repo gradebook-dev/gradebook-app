@@ -157,7 +157,7 @@ shinyServer(function(input, output, session) {
         if (i <= length(policy$categories)){ #if it's not a new category
             original_name <- policy$categories[[i]]$name 
         }
-        
+
         policy$categories <- updateCategory(policy$categories, input, editing$nr)
         if (!is.null(assign$table)){
          assign$table <- updateAssigns(assign$table, input$assign, original_name, input$change_cat_name)
@@ -187,7 +187,9 @@ shinyServer(function(input, output, session) {
                         #rest of information about this category will be here
                         actionButton(paste0('delete',nr), label = NULL, icon = icon("trash-can"),  style = "background-color: transparent; margin-right: 10px;"), #remove button for this category
                         #edit button
-                        actionButton(paste0('edit',nr), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; ")
+                        actionButton(paste0('edit',nr), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; "),
+                        # #collapse button ---- not implemented yet 
+                        # actionButton(paste0('collapse',nr), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; ")
                     ),
                     update_ui_categories(policy$categories, nr)
                 )
@@ -195,6 +197,7 @@ shinyServer(function(input, output, session) {
         )
         
         observeEvent(input[[paste0('edit',nr)]],{
+            
             showModal(edit_category_modal) #opens edit modal
             editing$nr <- nr
             updateModalValues(nr)
@@ -244,8 +247,8 @@ shinyServer(function(input, output, session) {
             textOutput("unassigned_message")
         }
     )
-    
     output$unassigned_message <- renderText({"Let's upload some data first..."})
+
     
     
 #### -------------------------- PIVOT + STUDENT IDS ----------------------------####
@@ -451,7 +454,19 @@ shinyServer(function(input, output, session) {
             '</div>'
         )
     })
-  
+    
+    #### -------------------------- DOWNLLOAD .R POLICY FILE ----------------------------####
+    output$download_policy_file <- downloadHandler(
+        filename = function() {
+            paste(policy$coursewide$course_name, Sys.Date(), ".R", sep = "")
+        },
+        content = function(file) {
+            deparsed_list <- deparse(policy$categories)
+            formatted_list <- gsub(",", ",\n", deparsed_list)
+            cat("policy_file <-", formatted_list, file = file)
+        },
+        contentType = "text/plain"
+    )
     
     #### -------------------------- JSON ----------------------------####
     path <- "../../gradebook-data"

@@ -1,17 +1,11 @@
 edit_category_modal <- modalDialog(
     
-    tags$head(
-        tags$style(
-            HTML(".spacing > * + * {
-                                margin-left: 10px;
-                            }
-                            .custom-flex-container {
-                                display: flex;
-                                align-items: center;
-                                margin-right: 5px;
-                            }
-                 "))),
+    tags$head(tags$style(HTML(".spacing > * + * {margin-left: 10px;}
+                  .custom-flex-container {display: flex;
+                                          align-items: center;
+                                          margin-right: 5px;}"))),
     h4("Edit this Category"),
+    ###### ROW 1  #######
     fluidRow(column(6,textInput("change_cat_name", "Category Name", value = "", width = "100%")
             ),
             column(6,tags$label(""),
@@ -69,9 +63,7 @@ edit_category_modal <- modalDialog(
                            multiple = TRUE,
                            options = list(delimiter = ','),
                            width = "100%"),
-    fluidRow(column(6,
-               checkboxInput("as_assign", strong("Save as Aggregated Assignments"), value = FALSE)),
-            column(6,)),
+    
     footer = tagList(
             actionButton("cancel", "Cancel"),
             actionButton("save", "Save"))
