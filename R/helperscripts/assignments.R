@@ -1,5 +1,11 @@
+#returns list of assignments with no assigned category
 getUnassigned <- function(assign_table){
-    
+    left <-assign_table %>% 
+        filter(category == "Unassigned")
+    if (nrow(left) != 0){
+        return (left$colnames) 
+    }
+    return ("No more new assignments")
 }
 
 #updates assignments in assignment table when they are assigned a category
