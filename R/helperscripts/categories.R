@@ -56,3 +56,8 @@ createEmptyCategory <- function(name, editing_num, i){
          nr = paste(editing_num, i, sep = "-")
          )
 }
+
+getIndex <- function(flat_policy, nr){
+    nrs <- purrr::map(flat_policy$categories, "nr") |> unlist()
+    which(nrs == nr)
+}

@@ -3,8 +3,10 @@ scratchpad <- tabItem(tabName = "scratchpad",
                           tabsetPanel(
                               tabPanel("Original Data",
                                        dataTableOutput("original_gs")),
-                              tabPanel("policy_list",
+                              tabPanel("Policy File",
                                        verbatimTextOutput("policy_list")),
+                              tabPanel("Flat Policy",
+                                       verbatimTextOutput("flat_policy")),
                               tabPanel("Assigns Table",
                                        dataTableOutput("assigns_table"))
                           )
