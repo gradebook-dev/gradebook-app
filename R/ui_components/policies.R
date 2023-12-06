@@ -31,30 +31,18 @@ Policies <- tabItem(tabName = "policies",
                     ### CATEGORIES ###
                     tabsetPanel(
                         tabPanel("Assignment View",
-                            br(),
-                            fluidRow(
-                                    div(style = "padding: 0px 20px;",
-                                        tags$div(
-                                            style = "display: flex; justify-content: left; align-items: center;",
-                                            tags$div(
-                                                tags$label("Categories", style = "font-weight: 400; font-size: 20px;"),
-                                                            style = "margin-right: 10px;"
-                                                ), 
-                                                verbatimTextOutput("editing"),
-                                                actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
-                                                br()
-                                            ))
-                            ),
-                            fluidRow(
-                                    column(8,
-                                        tags$div(id='inputList') #this is all the dynamic UI for categories
-                                        ),
-                                    column(4,
-                                        h4("New Assignments:"),
-                                        uiOutput("unassigned")
-                                        )
-                                    )
-                            ),
+                                 fluidRow(
+                                     column(8,
+                                            verbatimTextOutput("editing"),
+                                            actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
+                                            uiOutput("syllabus")
+                                     ),
+                                     column(4,
+                                            h4("New Assignments:"),
+                                            uiOutput("unassigned")
+                                     )
+                                 )
+                        ),
                         tabPanel("Coursewide", 
                                  fluidRow(
                                      plotOutput("letter_dist"),
@@ -78,6 +66,6 @@ Policies <- tabItem(tabName = "policies",
                                  ),
                                  uiOutput("grade_bin_percent")
                         )
-                                    
-)
+                        
+                    )
 )

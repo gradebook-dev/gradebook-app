@@ -3,7 +3,7 @@ getUnassigned <- function(assign_table){
     left <-assign_table %>% 
         filter(category == "Unassigned")
     if (nrow(left) != 0){
-        return (left$colnames) 
+        return (left$assignment) 
     }
     return ("No more new assignments")
 }
