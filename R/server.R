@@ -34,7 +34,7 @@ shinyServer(function(input, output, session) {
     
 #### -------------------------- CATEGORY MODAL ----------------------------####
     editing <- reactiveValues(num = 1,#used to give unique labels
-                              nr = "") #used to identify which cat is being changed
+                              nr = 0) #used to identify which cat is being changed
     
     observeEvent(input$new_cat, {
         showModal(edit_category_modal) #opens edit modal
@@ -53,21 +53,21 @@ shinyServer(function(input, output, session) {
     observeEvent(input$save,{
         removeModal() #closes edit modal
         #update policy
-        if (length(editing$nr) == 0){
+        print(editing$nr)
+        if (editing$nr == 0){
             #adding new category
             policy$categories <- append(policy$categories, 
                                         list(createCategory(input$name, input = input,
                                                             editing$num, assign$table)))
         }
-        
+        policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
         #increment editing$num by 1
         editing$num <- editing$num + 1
         #update assign$table
         #TBD
         nrs <- purrr::map(policy$flat$categories, "nr") |> unlist() |> sort()
-        print(nrs)
         purrr::walk(nrs, rerender_ui)
-        editing$nr <- ""
+        editing$nr <- 0
     })
     
 #### -------------------------- DISPLAY POLICY ----------------------------####
