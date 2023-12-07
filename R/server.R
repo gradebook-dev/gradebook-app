@@ -37,6 +37,7 @@ shinyServer(function(input, output, session) {
                               nr = 0) #used to identify which cat is being changed
     
     observeEvent(input$new_cat, {
+        editing$nr <- 0
         showModal(edit_category_modal) #opens edit modal
         #updates values that aren't always the same but still default
         updateTextInput(session, "name", value = paste0("Category ", editing$num))
@@ -64,7 +65,7 @@ shinyServer(function(input, output, session) {
         #increment editing$num by 1
         editing$num <- editing$num + 1
         #update assign$table
-        #TBD
+        assign$table <- updateAssignsTable(assign$table, input, policy$flat, editing$nr)
         nrs <- purrr::map(policy$flat$categories, "nr") |> unlist() |> sort()
         purrr::walk(nrs, rerender_ui)
         editing$nr <- 0
