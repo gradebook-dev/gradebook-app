@@ -8,6 +8,7 @@ library(gradebook)
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "categories.R"), local = TRUE)
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
+source(paste0(HSLocation, "exceptions.R"), local = TRUE)
 
 shinyServer(function(input, output, session) {
 
@@ -30,6 +31,7 @@ shinyServer(function(input, output, session) {
     policy <- reactiveValues(coursewide = list(),
                              categories = list(),
                              letter_grades = list(),
+                             exceptions = list(),
                              flat = list())
     
 #### -------------------------- CATEGORY MODAL ----------------------------####
@@ -54,7 +56,6 @@ shinyServer(function(input, output, session) {
     observeEvent(input$save,{
         removeModal() #closes edit modal
         #update policy
-        print(editing$nr)
         if (editing$nr == 0){
             #adding new category
             policy$categories <- append(policy$categories, 
@@ -139,7 +140,41 @@ shinyServer(function(input, output, session) {
         }
     )
     
+#### -------------------------- EXCEPTIONS MODAL ----------------------------####   
+    # editing_e <- reactiveValues(num = 1,#used to give unique labels
+    #                           nr = 0) #used to identify which cat is being changed
     
+    observeEvent(input$new_except, {
+        showModal(exceptions_modal) #opens edit modal
+        #updates values that aren't always the same but still default
+        updateSelectInput(session, "cat_e", choices = get_cat_names(policy$flat))
+        if (!is.null(assign$table)){
+            updateSelectInput(session, "pick_id", choices = get_id_cols(data()))   
+        }
+        
+    })
+    
+    observeEvent(input$pick_id,{
+        updateSelectInput(session, "students", choices = data()[[input$pick_id]])
+    })
+    
+    observeEvent(input$cat_e,{
+        i <- get_index_from_nr(policy$flat, input$cat_e)
+        updateSelectInput(session, "aggregation_E", selected = policy$flat$categories[[i]]$aggregation)
+        shinyWidgets::updateAutonumericInput(session, "weight_e", value = policy$flat$categories[[i]]$weight)
+        updateSelectizeInput(session, "assignments_e", selected = unlist(policy$flat$categories[[i]]$assignments),
+                             choices = assign$table$assignment)
+    })
+    
+    observeEvent(input$cancel_e,{
+        removeModal() #closes edit modal
+    })
+    
+    observeEvent(input$save_e,{
+        removeModal() #closes edit modal
+        #purrr::walk(nrs, rerender_ui)
+        
+    })
 #### -------------------------- SCRATCHPAD ----------------------------####   
     output$original_gs <- renderDataTable({
         datatable(data(), options = list(scrollX = TRUE, scrollY = "500px"))
@@ -152,6 +187,10 @@ shinyServer(function(input, output, session) {
         Hmisc::list.tree(list(coursewide = policy$coursewide, 
                               categories = policy$categories, 
                               letter_grades = policy$letter_grades))
+    })
+    
+    output$exceptions_print <- renderPrint({
+        Hmisc::list.tree(policy$exceptions)
     })
     
     output$flat_policy <- renderPrint({

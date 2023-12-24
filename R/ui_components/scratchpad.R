@@ -7,6 +7,8 @@ scratchpad <- tabItem(tabName = "scratchpad",
                                        verbatimTextOutput("policy_list")),
                               tabPanel("Flat Policy",
                                        verbatimTextOutput("flat_policy")),
+                              tabPanel("Exceptions List",
+                                       verbatimTextOutput("exceptions_print")),
                               tabPanel("Assigns Table",
                                        dataTableOutput("assigns_table"))
                           )

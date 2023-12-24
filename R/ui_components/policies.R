@@ -65,7 +65,18 @@ Policies <- tabItem(tabName = "policies",
                                      ),
                                  ),
                                  uiOutput("grade_bin_percent")
-                        )
+                        ),
+                        tabPanel("Exceptions",
+                                 fluidRow(
+                                     column(8,
+                                            actionButton("new_except", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
+                                            #tags$div(id='inputList') #this is all the dynamic UI for categories
+                                     ),
+                                     column(4,
+                                            h4("Exceptions here:")
+                                     )
+                                 )
+                                 )
                         
                     )
 )
