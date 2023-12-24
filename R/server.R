@@ -113,7 +113,7 @@ shinyServer(function(input, output, session) {
             # if (!is.null(assign$table)){
             #     assign$table <- resetAssigns(assign$table, x$name)   
             # }
-            # policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
+            policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
             removeUI(
                 selector = paste0("#cat",nr) #this removes the UI for this category
             )

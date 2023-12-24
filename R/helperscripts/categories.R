@@ -48,6 +48,8 @@ createCategory <- function(name, input, editing_num, assigns_table){
     )
 }
 
+
+
 createEmptyCategory <- function(name, editing_num, i){
     list(category = name,
          aggregation = "none",
@@ -55,6 +57,22 @@ createEmptyCategory <- function(name, editing_num, i){
          assignments = NULL,
          nr = paste(editing_num, i, sep = "-")
          )
+}
+
+updateCategory <- function(policy_categories, flat_policy, name, input, editing_nr, assigns_table){
+    category <- createCategory(name, input, editing_nr, assigns_table) #needs to be updated
+    index <- strsplit(editing_nr, "-") |> unlist()
+    index <- paste0("policy_categories[[",paste(index, collapse = "]][["), "]]")
+    eval(parse(text = paste(index, "<-", "category")))
+    return (policy_categories)
+}
+
+deleteCategory <- function(policy_categories, nr){
+    index <- strsplit(nr, "-") |> unlist()
+    index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
+    print(index)
+    eval(parse(text = paste(index, "<-", "NULL")))
+    return (policy_categories)
 }
 
 getIndex <- function(flat_policy, nr){
