@@ -106,10 +106,7 @@ shinyServer(function(input, output, session) {
         }, ignoreInit = TRUE)
         
         observeEvent(input[[paste0('delete',label)]],{
-            # if (!is.null(assign$table)){
-            #     assign$table <- resetAssigns(assign$table, x$name)   
-            # }
-            
+            #update assign$table ????
             
             #delete any inner categories ????
             
