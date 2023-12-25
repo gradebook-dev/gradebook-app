@@ -22,7 +22,7 @@ edit_category_modal <- modalDialog(
             actionButton("save", "Save"))
     )
 
-createCategory <- function(name, input, editing_num, assigns_table){
+createCategory <- function(name, input, assigns_table){
     assignments = c()
     
     if (length(input$assignments != 0)){
@@ -31,7 +31,7 @@ createCategory <- function(name, input, editing_num, assigns_table){
             if (assign %in% assigns_table$assignment){
                 assignments = append(assignments, assign)
             } else{
-                sub_cat <- createEmptyCategory(assign, editing_num, i)
+                sub_cat <- createEmptyCategory(assign, i)
                 assignments = append(assignments, list(sub_cat))
                 i = i+1
                 
@@ -43,39 +43,58 @@ createCategory <- function(name, input, editing_num, assigns_table){
         category = name,
         aggregation = input$aggregation,
         weight = input$weight,
-        nr = editing_num,
         assignments = assignments
     )
 }
 
 
 
-createEmptyCategory <- function(name, editing_num, i){
+createEmptyCategory <- function(name, i){
     list(category = name,
          aggregation = "none",
          weight = 0,
-         assignments = NULL,
-         nr = paste(editing_num, i, sep = "-")
-         )
+         assignments = NULL)
 }
 
-updateCategory <- function(policy_categories, flat_policy, name, input, editing_nr, assigns_table){
-    category <- createCategory(name, input, editing_nr, assigns_table) #needs to be updated
-    index <- strsplit(editing_nr, "-") |> unlist()
+updateCategory <- function(policy_categories, original_name, name, input, assigns_table){
+    category <- createCategory(name, input, assigns_table) #needs to be updated
+    index <- find_indices(policy_categories, original_name)
     index <- paste0("policy_categories[[",paste(index, collapse = "]][["), "]]")
     eval(parse(text = paste(index, "<-", "category")))
     return (policy_categories)
 }
 
-deleteCategory <- function(policy_categories, nr){
-    index <- strsplit(nr, "-") |> unlist()
+deleteCategory <- function(policy_categories, flat_policy, label){
+    name <- flat_policy$categories[[getIndex(flat_policy, label)]]$category
+    print(name)
+    index <- find_indices(policy_categories, name)
     index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
     print(index)
     eval(parse(text = paste(index, "<-", "NULL")))
     return (policy_categories)
 }
 
-getIndex <- function(flat_policy, nr){
-    nrs <- purrr::map(flat_policy$categories, "nr") |> unlist()
-    which(nrs == nr)
+find_indices <- function(lst, target, current_index = c()) {
+    indices <- c()
+    
+    for (i in seq_along(lst)) {
+        if (is.list(lst[[i]]) && !is.null(lst[[i]]$category) && identical(lst[[i]]$category, target)) {
+            indices <- c(current_index, i)
+            break
+        } else if (is.list(lst[[i]]) && !is.null(lst[[i]]$assignments)) {
+            indices <- find_indices(lst[[i]]$assignments, target, c(current_index, i))
+        }
+        
+        if (length(indices) > 0) {
+            break
+        }
+    }
+    
+    return(indices)
+}
+getIndex <- function(flat_policy, name){
+    names <- purrr::map(flat_policy$categories, "category") |> unlist() |>
+        gsub(pattern = "[^a-zA-Z0-9]+", replacement = "")
+    name <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", name)
+    which(names == name)
 }

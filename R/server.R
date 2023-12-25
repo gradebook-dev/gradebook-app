@@ -35,11 +35,9 @@ shinyServer(function(input, output, session) {
                              flat = list())
     
 #### -------------------------- CATEGORY MODAL ----------------------------####
-    editing <- reactiveValues(num = 1,#used to give unique labels
-                              nr = 0) #used to identify which cat is being changed
+    editing <- reactiveValues(name = NULL) #to keep track of edited category
     
     observeEvent(input$new_cat, {
-        editing$nr <- 0
         showModal(edit_category_modal) #opens edit modal
         #updates values that aren't always the same but still default
         updateTextInput(session, "name", value = paste0("Category ", editing$num))
@@ -56,51 +54,50 @@ shinyServer(function(input, output, session) {
     observeEvent(input$save,{
         removeModal() #closes edit modal
         #update policy
-        if (editing$nr == 0){
-            #adding new category
-            policy$categories <- append(policy$categories, 
-                                        list(createCategory(input$name, input = input,
-                                                            editing$num, assign$table)))
-        }
+        policy$categories <- append(policy$categories, 
+                                    list(createCategory(input$name, input = input,
+                                                        assign$table)))
+
+    })
+    
+    #whenever policy$categories changes, policy$flat, assign$table and UI updates
+    observe({
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
-        #increment editing$num by 1
-        editing$num <- editing$num + 1
-        #update assign$table
-        assign$table <- updateAssignsTable(assign$table, input, policy$flat, editing$nr)
-        nrs <- purrr::map(policy$flat$categories, "nr") |> unlist() |> sort()
-        purrr::walk(nrs, rerender_ui)
-        editing$nr <- 0
+        #assign$table <- updateAssignsTable(assign$table, input, policy$flat)
+        names <- purrr::map(policy$flat$categories, "category") |> unlist()
+        #removeUI(selector = '#inputList',)
+        purrr::walk(names, rerender_ui)
     })
     
 #### -------------------------- DISPLAY POLICY ----------------------------####
 
     
-    rerender_ui <- function(nr) { #render category UI for policy page
-        i <- getIndex(policy$flat, nr)
-        
+    rerender_ui <- function(name) { #render category UI for policy page
+        i <- getIndex(policy$flat, name)
+        label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", name)
         removeUI(
-            selector = paste0("#cat",nr) #this removes the UI for this category
+            selector = paste0("#cat",label) #this removes the UI for this category
         )
         insertUI( #creates UI for this category
             selector = '#inputList',
-            ui=div(id = paste0("cat",nr),
+            ui=div(id = paste0("cat",label),
                    box(
                     title = policy$flat$categories[[i]]$category, status = "primary", solidHeader = TRUE,
                     collapsible = TRUE,
                     "Weight: ", policy$flat$categories[[i]]$weight, br(),
                     "Aggregation: ", policy$flat$categories[[i]]$aggregation, br(),
                     "Assignments: ",paste(policy$flat$categories[[i]]$assignments, collapse = ", "), br(),
-                    actionButton(paste0('delete',nr), label = NULL, icon = icon("trash-can"),  style = "background-color: transparent; margin-right: 10px;"), #remove button for this category
-                    actionButton(paste0('edit',nr), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; "),
+                    actionButton(paste0('delete',label), label = NULL, icon = icon("trash-can"),  style = "background-color: transparent; margin-right: 10px;"), #remove button for this category
+                    actionButton(paste0('edit',label), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; "),
                     width = "100%"
                 ))
         )
         
-        observeEvent(input[[paste0('edit',nr)]],{
+        observeEvent(input[[paste0('edit',label)]],{
             
             showModal(edit_category_modal) #opens edit modal
-            editing$nr <- nr
-            i <- getIndex(policy$flat, nr)
+            editing$name <- label
+            i <- getIndex(policy$flat, label)
             updateTextInput(session, "name", value = policy$flat$categories[[i]]$category)
             updateSelectInput(session, "aggregation", selected = policy$flat$categories[[i]]$aggregation)
             shinyWidgets::updateAutonumericInput(session, "weight", value = policy$flat$categories[[i]]$weight)
@@ -108,16 +105,19 @@ shinyServer(function(input, output, session) {
                                  choices = assign$table$assignment)
         }, ignoreInit = TRUE)
         
-        observeEvent(input[[paste0('delete',nr)]],{
-            # i <- getCatIndex(policy$categories, nr)
+        observeEvent(input[[paste0('delete',label)]],{
             # if (!is.null(assign$table)){
             #     assign$table <- resetAssigns(assign$table, x$name)   
             # }
-            policy$categories <- deleteCategory(policy$categories, nr) #if this remove button pressed, it deletes this category
+            
+            
+            #delete any inner categories ????
+            
+            policy$categories <- deleteCategory(policy$categories, policy$flat, label) #if this remove button pressed, it deletes this category
             removeUI(
-                selector = paste0("#cat",nr) #this removes the UI for this category
+                selector = paste0("#cat",label) #this removes the UI for this category
             )
-        })
+        }, ignoreInit = TRUE)
     }
 #### -------------------------- ASSIGNMENTS ----------------------------#### 
 
@@ -141,9 +141,6 @@ shinyServer(function(input, output, session) {
     )
     
 #### -------------------------- EXCEPTIONS MODAL ----------------------------####   
-    # editing_e <- reactiveValues(num = 1,#used to give unique labels
-    #                           nr = 0) #used to identify which cat is being changed
-    
     observeEvent(input$new_except, {
         showModal(exceptions_modal) #opens edit modal
         #updates values that aren't always the same but still default
@@ -159,7 +156,7 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$cat_e,{
-        i <- get_index_from_nr(policy$flat, input$cat_e)
+        i <- getIndex(policy$flat, input$cat_e)
         updateSelectInput(session, "aggregation_E", selected = policy$flat$categories[[i]]$aggregation)
         shinyWidgets::updateAutonumericInput(session, "weight_e", value = policy$flat$categories[[i]]$weight)
         updateSelectizeInput(session, "assignments_e", selected = unlist(policy$flat$categories[[i]]$assignments),
@@ -172,7 +169,7 @@ shinyServer(function(input, output, session) {
     
     observeEvent(input$save_e,{
         removeModal() #closes edit modal
-        #purrr::walk(nrs, rerender_ui)
+        #purrr::walk(names, rerender_ui)
         
     })
 #### -------------------------- SCRATCHPAD ----------------------------####   
