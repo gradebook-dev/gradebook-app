@@ -10,7 +10,10 @@ scratchpad <- tabItem(tabName = "scratchpad",
                               tabPanel("Exceptions List",
                                        verbatimTextOutput("exceptions_print")),
                               tabPanel("Assigns Table",
-                                       dataTableOutput("assigns_table"))
+                                       dataTableOutput("assigns_table")),
+                              tabPanel("Grades",
+                                       dataTableOutput("grading")
+                                       )
                           )
                       )
 )

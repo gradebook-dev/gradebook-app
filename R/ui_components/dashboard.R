@@ -1,9 +1,8 @@
 Dashboard <- tabItem(tabName = "dashboard",
                         fluidRow(
-                            tagList(
-                                div(style = "padding: 0px 20px 20px 20px;",
                                      h2("Dashboard"),
-                                     uiOutput("dashboard")
-                                     ))
+                                    textInput("course_name", "Course Name", value = ""),
+                                    downloadButton("download_policy")
+                                    # uiOutput("dashboard")
                      )
 )

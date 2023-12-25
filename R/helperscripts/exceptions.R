@@ -10,9 +10,14 @@ exceptions_modal <- modalDialog(
                selectInput("aggregation_e", "Aggregation:", selected = "equally_weighted",
                            choices = c("equally_weighted", "weighted_by_points", 
                                        "max_score", "min_score", "none"))),
-        column(6,
+        column(3,
                shinyWidgets::autonumericInput("weight_e", "", value = 0, currencySymbol = "%",
-                                              currencySymbolPlacement = "s", width = "100px"))
+                                              currencySymbolPlacement = "s", width = "100px"),
+               numericInput("num_lateness_e", label = "Number of Lateness Intervals:", value = 0)),
+        column(3,
+               numericInput("n_drops_e", label = "Number of Drops:", value = 0, min = 0),
+               selectInput("clobber_e", "Clobber with:", selected = "None", choices = "")
+               )
     ),
     selectizeInput("assignments_e", "Select Assignments:",
                    choices = "", multiple = TRUE, width = "100%",

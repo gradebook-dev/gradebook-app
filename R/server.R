@@ -3,6 +3,7 @@ library(shinyWidgets)
 library(DT)
 library(tidyverse)
 library(gradebook)
+library(yaml)
 
 #load helper scripts
 HSLocation <- "helperscripts/"
@@ -38,6 +39,7 @@ shinyServer(function(input, output, session) {
     editing <- reactiveValues(name = NULL) #to keep track of edited category
     
     observeEvent(input$new_cat, {
+        editing$name <- NULL
         showModal(edit_category_modal) #opens edit modal
         #updates values that aren't always the same but still default
         updateTextInput(session, "name", value = paste0("Category ", editing$num))
@@ -47,6 +49,26 @@ shinyServer(function(input, output, session) {
         
     })
     
+    output$lateness <- renderUI({
+        if (input$num_lateness > 0){
+            lapply(1:as.integer(input$num_lateness), function(i) {
+                fluidRow(
+                    column(4,
+                           textInput(inputId = paste0("from", i), label = "From:", value = "",
+                                     placeholder = "HH:MM:SS")
+                    ),
+                    column(4,
+                           textInput(inputId = paste0("to", i), label = "To:", value = "",
+                                     placeholder = "HH:MM:SS")
+                    ),
+                    column(4,
+                           numericInput(inputId = paste0("from", i), label = "Scale by:", value = "")
+                    )
+                )
+            })
+        }
+    })
+    
     observeEvent(input$cancel,{
         removeModal() #closes edit modal
     })
@@ -54,9 +76,14 @@ shinyServer(function(input, output, session) {
     observeEvent(input$save,{
         removeModal() #closes edit modal
         #update policy
-        policy$categories <- append(policy$categories, 
-                                    list(createCategory(input$name, input = input,
-                                                        assign$table)))
+        if (!is.null(editing$name)){
+            policy$categories <- updateCategory(policy$categories, policy$flat, editing$name, 
+                                                input$name, input, assign$table)
+        } else {
+            policy$categories <- append(policy$categories, 
+                                        list(createCategory(input$name, input = input,
+                                                            assign$table)))
+        }
 
     })
     
@@ -65,7 +92,6 @@ shinyServer(function(input, output, session) {
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
         #assign$table <- updateAssignsTable(assign$table, input, policy$flat)
         names <- purrr::map(policy$flat$categories, "category") |> unlist()
-        #removeUI(selector = '#inputList',)
         purrr::walk(names, rerender_ui)
     })
     
@@ -101,8 +127,10 @@ shinyServer(function(input, output, session) {
             updateTextInput(session, "name", value = policy$flat$categories[[i]]$category)
             updateSelectInput(session, "aggregation", selected = policy$flat$categories[[i]]$aggregation)
             shinyWidgets::updateAutonumericInput(session, "weight", value = policy$flat$categories[[i]]$weight)
-            updateSelectizeInput(session, "assignments", selected = unlist(policy$flat$categories[[i]]$assignments),
-                                 choices = assign$table$assignment)
+            updateNumericInput(session, "n_drops", value = policy$flat$categories[[i]]$n_drops*100)
+            updateSelectInput(session, "clobber", selected = policy$flat$categories[[i]]$clobber)
+            updateSelectizeInput(session, "assignments", selected = (policy$flat$categories[[i]]$assignments),
+                                 choices = c(assign$table$assignment, policy$flat$categories[[i]]$assignments))
         }, ignoreInit = TRUE)
         
         observeEvent(input[[paste0('delete',label)]],{
@@ -169,6 +197,43 @@ shinyServer(function(input, output, session) {
         #purrr::walk(names, rerender_ui)
         
     })
+    
+#### -------------------------- DASHBOARD ----------------------------####   
+    output$download_policy <- downloadHandler(
+        filename = function() {
+            paste0(input$course_name, ".yml")
+        },
+        content = function(file) {
+            write_yaml(policy$categories, file)
+        }
+    )
+
+     grades <- reactiveValues(scores = NULL)
+
+    observe({
+        
+        cleaned_data <- data() |>
+            drop_na(SID) |>
+            group_by(SID) |>
+            filter(row_number() == 1) |>
+            ungroup()
+        
+        grades$scores <- cleaned_data
+        
+        if (length(policy$flat$categories) > 0){
+            grades$scores <- cleaned_data |>
+                calculate_lateness(policy$flat) |>
+                get_category_grades(policy$flat)
+        }
+
+
+    })
+
+    output$grading <- renderDataTable({ 
+        datatable(grades$scores, options = list(scrollX = TRUE, scrollY = "500px"))
+        })
+    
+    
 #### -------------------------- SCRATCHPAD ----------------------------####   
     output$original_gs <- renderDataTable({
         datatable(data(), options = list(scrollX = TRUE, scrollY = "500px"))
