@@ -29,7 +29,7 @@ edit_category_modal <- modalDialog(
             actionButton("save", "Save"))
     )
 
-createCategory <- function(name, input, assigns_table, exception = TRUE){
+createCategory <- function(name, input, assigns_table, exception = FALSE){
     assignments = c()
     
     if (length(input$assignments != 0)){

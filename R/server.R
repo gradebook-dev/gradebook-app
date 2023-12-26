@@ -233,7 +233,8 @@ shinyServer(function(input, output, session) {
         },
         content = function(file) {
             write_yaml(list(coursewide = policy$coursewide,
-                            categories = policy$categories), file)
+                            categories = policy$categories,
+                            exceptions = policy$exceptions), file)
         }
     )
 
