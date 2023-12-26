@@ -29,11 +29,16 @@ shinyServer(function(input, output, session) {
     })
     
 #### -------------------------- POLICY ----------------------------####  
-    policy <- reactiveValues(coursewide = list(),
+    policy <- reactiveValues(coursewide = list(course_name = "Course Name", description = "Description"),
                              categories = list(),
                              letter_grades = list(),
                              exceptions = list(),
                              flat = list())
+    
+#### -------------------------- COURSEWIDE ----------------------------####
+    output$course_name_display <- renderText({policy$coursewide$course_name})
+    
+    output$course_description_display <- renderText({policy$coursewide$description})
     
 #### -------------------------- CATEGORY MODAL ----------------------------####
     editing <- reactiveValues(name = NULL) #to keep track of edited category
@@ -62,7 +67,7 @@ shinyServer(function(input, output, session) {
                                      placeholder = "HH:MM:SS")
                     ),
                     column(4,
-                           numericInput(inputId = paste0("from", i), label = "Scale by:", value = "")
+                           numericInput(inputId = paste0("scale", i), label = "Scale by:", value = "")
                     )
                 )
             })
@@ -126,9 +131,15 @@ shinyServer(function(input, output, session) {
             i <- getIndex(policy$flat, label)
             updateTextInput(session, "name", value = policy$flat$categories[[i]]$category)
             updateSelectInput(session, "aggregation", selected = policy$flat$categories[[i]]$aggregation)
-            shinyWidgets::updateAutonumericInput(session, "weight", value = policy$flat$categories[[i]]$weight)
-            updateNumericInput(session, "n_drops", value = policy$flat$categories[[i]]$n_drops*100)
-            updateSelectInput(session, "clobber", selected = policy$flat$categories[[i]]$clobber)
+            if (!is.null(policy$flat$categories[[i]]$weight)){
+                shinyWidgets::updateAutonumericInput(session, "weight", value = policy$flat$categories[[i]]$weight)   
+            }
+            if (!is.null(policy$flat$categories[[i]]$n_drops)){
+                updateNumericInput(session, "n_drops", value = policy$flat$categories[[i]]$n_drops*100)
+            }
+            if (!is.null(policy$flat$categories[[i]]$clobber)){
+                updateSelectInput(session, "clobber", selected = policy$flat$categories[[i]]$clobber)
+            }
             updateSelectizeInput(session, "assignments", selected = (policy$flat$categories[[i]]$assignments),
                                  choices = c(assign$table$assignment, policy$flat$categories[[i]]$assignments))
         }, ignoreInit = TRUE)
@@ -181,11 +192,20 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$cat_e,{
+        editing$name <- NULL
         i <- getIndex(policy$flat, input$cat_e)
-        updateSelectInput(session, "aggregation_E", selected = policy$flat$categories[[i]]$aggregation)
-        shinyWidgets::updateAutonumericInput(session, "weight_e", value = policy$flat$categories[[i]]$weight)
-        updateSelectizeInput(session, "assignments_e", selected = unlist(policy$flat$categories[[i]]$assignments),
-                             choices = assign$table$assignment)
+        updateSelectInput(session, "aggregation", selected = policy$flat$categories[[i]]$aggregation)
+        if (!is.null(policy$flat$categories[[i]]$weight)){
+            shinyWidgets::updateAutonumericInput(session, "weight", value = policy$flat$categories[[i]]$weight)   
+        }
+        if (!is.null(policy$flat$categories[[i]]$n_drops)){
+            updateNumericInput(session, "n_drops", value = policy$flat$categories[[i]]$n_drops*100)
+        }
+        if (!is.null(policy$flat$categories[[i]]$clobber)){
+            updateSelectInput(session, "clobber", selected = policy$flat$categories[[i]]$clobber)
+        }
+        updateSelectizeInput(session, "assignments", selected = (policy$flat$categories[[i]]$assignments),
+                             choices = c(assign$table$assignment, policy$flat$categories[[i]]$assignments))
     })
     
     observeEvent(input$cancel_e,{
@@ -194,6 +214,14 @@ shinyServer(function(input, output, session) {
     
     observeEvent(input$save_e,{
         removeModal() #closes edit modal
+        if (!is.null(editing$name)){
+            # policy$exceptions <- updateCategory(policy$exceptions, policy$flat, editing$name, 
+            #                                     input$name, input, assign$table)
+        } else {
+            policy$exceptions <- append(policy$exceptions, 
+                                        list(createCategory(input$cat_e, input = input,
+                                                            assign$table, exception = TRUE)))
+        }
         #purrr::walk(names, rerender_ui)
         
     })
@@ -204,7 +232,8 @@ shinyServer(function(input, output, session) {
             paste0(input$course_name, ".yml")
         },
         content = function(file) {
-            write_yaml(policy$categories, file)
+            write_yaml(list(coursewide = policy$coursewide,
+                            categories = policy$categories), file)
         }
     )
 
@@ -219,14 +248,12 @@ shinyServer(function(input, output, session) {
             ungroup()
         
         grades$scores <- cleaned_data
-        
-        if (length(policy$flat$categories) > 0){
-            grades$scores <- cleaned_data |>
-                calculate_lateness(policy$flat) |>
-                get_category_grades(policy$flat)
-        }
-
-
+    })
+    
+    observeEvent(input$grading,{
+        grades$scores <- grades$scores |>
+            calculate_lateness(policy$flat) |>
+            get_category_grades(policy$flat)
     })
 
     output$grading <- renderDataTable({ 
@@ -245,7 +272,8 @@ shinyServer(function(input, output, session) {
     output$policy_list <- renderPrint({
         Hmisc::list.tree(list(coursewide = policy$coursewide, 
                               categories = policy$categories, 
-                              letter_grades = policy$letter_grades))
+                              letter_grades = policy$letter_grades,
+                              exceptions = policy$exceptions))
     })
     
     output$exceptions_print <- renderPrint({

@@ -16,7 +16,7 @@ edit_category_modal <- modalDialog(
                ),
         column(3,
                numericInput("n_drops", label = "Number of Drops:", value = 0, min = 0),
-               selectInput("clobber", "Clobber with:", selected = "None", choices = "")
+               selectInput("clobber", "Clobber with:", selected = "None", choices = c("None"))
                )
     ),
     selectizeInput("assignments", "Select Assignments:",
@@ -29,7 +29,7 @@ edit_category_modal <- modalDialog(
             actionButton("save", "Save"))
     )
 
-createCategory <- function(name, input, assigns_table){
+createCategory <- function(name, input, assigns_table, exception = TRUE){
     assignments = c()
     
     if (length(input$assignments != 0)){
@@ -46,37 +46,45 @@ createCategory <- function(name, input, assigns_table){
         }
     }
     
-    lateness <- NULL
+    category <- list(
+        category = name,
+        aggregation = input$aggregation
+    )
     
     if (input$num_lateness > 0){
         lateness <- list()
         for (i in 1:as.integer(input$num_lateness)){
-            lateness <- append(lateness, list(
+            late_policy <- list(
                 from = input[[paste0("from", i)]],
                 to = input[[paste0("to", i)]],
                 scale = input[[paste0("scale", i)]]
-            ))
+            )
+            lateness <- append(lateness, list(late_policy))
         }
         
-        return (list(
-            category = name,
-            aggregation = input$aggregation,
-            weight = input$weight,
-            n_drops = input$n_drops/100,
-            clobber = input$clobber,
-            lateness = lateness,
-            assignments = assignments
-        ))
+        category <- append(category, list(lateness = lateness))
     }
     
-    list(
-        category = name,
-        aggregation = input$aggregation,
-        weight = input$weight,
-        n_drops = input$n_drops/100,
-        clobber = input$clobber,
-        assignments = assignments
-    )
+    if (input$clobber != "None"){
+        category <- append(category, list(clobber = input$clobber))
+    }
+    
+    if (input$weight != 0){
+        weight <-  input$weight/100
+        category <- append(category, list(weight = input$weight/100))
+    }
+    
+    if (input$n_drops > 0){
+        category <- append(category, list(n_drops = input$n_drops))
+    }
+    
+    if (exception){
+        category <- append(category, list(id = input$pick_id, students = input$students))
+        assignments <- input$assignments
+    }
+    
+    return (append(category, list(assignments = assignments)))
+    
 }
 
 
@@ -84,9 +92,6 @@ createCategory <- function(name, input, assigns_table){
 createEmptyCategory <- function(name, i){
     list(category = name,
          aggregation = "none",
-         weight = 0,
-         n_drops = 0,
-         clobber = "None",
          assignments = NULL)
 }
 
@@ -95,7 +100,6 @@ updateCategory <- function(policy_categories, flat_policy, original_name, name, 
     original_name <- flat_policy$categories[[getIndex(flat_policy, original_name)]]$category
     index <- find_indices(policy_categories, original_name)
     index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
-    print(index)
     eval(parse(text = paste(index, "<-", "category")))
     return (policy_categories)
 }

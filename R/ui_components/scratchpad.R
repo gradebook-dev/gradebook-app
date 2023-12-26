@@ -12,6 +12,7 @@ scratchpad <- tabItem(tabName = "scratchpad",
                               tabPanel("Assigns Table",
                                        dataTableOutput("assigns_table")),
                               tabPanel("Grades",
+                                       actionButton("grading", "Grade"),
                                        dataTableOutput("grading")
                                        )
                           )

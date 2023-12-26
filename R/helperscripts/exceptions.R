@@ -7,19 +7,19 @@ exceptions_modal <- modalDialog(
     h6("Insert More Criteria Here Later..."),
     fluidRow(
         column(6,
-               selectInput("aggregation_e", "Aggregation:", selected = "equally_weighted",
+               selectInput("aggregation", "Aggregation:", selected = "equally_weighted",
                            choices = c("equally_weighted", "weighted_by_points", 
                                        "max_score", "min_score", "none"))),
         column(3,
-               shinyWidgets::autonumericInput("weight_e", "", value = 0, currencySymbol = "%",
+               shinyWidgets::autonumericInput("weight", "", value = 0, currencySymbol = "%",
                                               currencySymbolPlacement = "s", width = "100px"),
-               numericInput("num_lateness_e", label = "Number of Lateness Intervals:", value = 0)),
+               numericInput("num_lateness", label = "Number of Lateness Intervals:", value = 0)),
         column(3,
-               numericInput("n_drops_e", label = "Number of Drops:", value = 0, min = 0),
-               selectInput("clobber_e", "Clobber with:", selected = "None", choices = "")
+               numericInput("n_drops", label = "Number of Drops:", value = 0, min = 0),
+               selectInput("clobber", "Clobber with:", selected = "None", choices = c("None"))
                )
     ),
-    selectizeInput("assignments_e", "Select Assignments:",
+    selectizeInput("assignments", "Select Assignments:",
                    choices = "", multiple = TRUE, width = "100%",
                    options = list(create = TRUE)),
     fluidRow(
