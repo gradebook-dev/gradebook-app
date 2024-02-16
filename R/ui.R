@@ -16,7 +16,7 @@ shinyUI(
             ## Sidebar content
             sidebarMenu(
                 menuItem("Policies", tabName = "policies", icon = icon("th")),
-                #menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+                menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
                 menuItem("Data Files", tabName = "scratchpad", icon = icon("pencil")),
                 br(),
                 hr(),
@@ -29,7 +29,7 @@ shinyUI(
                 hr(),
                 div(class = "sidebar-text",
                     style = "margin-left: 20px;",
-                    "Pick Course File:"
+                    "Choose Policy File:"
                 ),
                 div(style = "margin-top: -20px;",
                     selectizeInput("pick_policy", "",
@@ -37,10 +37,11 @@ shinyUI(
                                    multiple = FALSE,
                                    width = "100%"),
                 ),
-                div(style = "display: flex; align-items: center;",
-                    actionButton("upload_json", "Upload Your Course"),
+                div(style = "display: flex; margin-left:17px;",
+                    actionButton("upload_json", "Upload Policy File"),
                     actionButton("delete_json", "", icon = icon("trash-can"))
                    ),
+                br(),
                 hr(),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     h5("Download Your Yaml Policy File:")
@@ -153,8 +154,8 @@ shinyUI(
                 <li>Create your syllabus policies in the "Assignment-view" tab (OR if you have a policy file already, load it from the sidebar to your left by "Pick Course File")</li>
                 <li>Finish creating your policy, go to the dashboard to see grades scores</li>
             </ul>
-        ')
-                     )
+                            ')
+                            )
             ),
             tabItems(
                 Dashboard,
