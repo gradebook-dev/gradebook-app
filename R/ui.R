@@ -12,14 +12,12 @@ shinyUI(
     dashboardPage(
         dashboardHeader(title = "Gradebook"),
         
-        
-        
         dashboardSidebar(
             ## Sidebar content
             sidebarMenu(
                 menuItem("Policies", tabName = "policies", icon = icon("th")),
-                menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-                menuItem("Scratchpad", tabName = "scratchpad", icon = icon("pencil")),
+                #menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+                menuItem("Data Files", tabName = "scratchpad", icon = icon("pencil")),
                 br(),
                 hr(),
                 div(class = "sidebar-text",
@@ -43,6 +41,10 @@ shinyUI(
                     actionButton("upload_json", "Upload Your Course"),
                     actionButton("delete_json", "", icon = icon("trash-can"))
                    ),
+                hr(),
+                div(style = "display: flex; align-items: center; margin-left: 15px;",
+                    h5("Download Your Yaml Policy File:")
+                ),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     downloadButton("download_policy_file","Download Policy File")
                 )
@@ -109,8 +111,51 @@ shinyUI(
                                 background-color: #ffffff; 
                             
                                 }
-                                 
-                                '))),
+                                 /* Help icon style */
+                                .help-icon {
+                                    position: fixed;
+                                    bottom: 50px;
+                                    right: 50px;
+                                    cursor: pointer;
+                                    font-size: 18px;
+                                    z-index: 101;
+                                   
+                                }
+                                
+                                /* Tooltip box style */
+                                .tooltip-box {
+                                    display: none;
+                                    position: fixed;
+                                    bottom: 70px;
+                                    right: 20px;
+                                    background-color: #f9f9f9;
+                                    border: 1px solid #ccc;
+                                    padding: 10px;
+                                    z-index: 100;
+                                    width: 300px;
+                                    border-radius: 5px;
+                                    box-shadow: 0 2px 5px rgba(0,0,0,.2);
+                                }
+                                
+                                /* Show tooltip box on hover */
+                                .help-icon:hover + .tooltip-box {
+                                    display: block;
+                                }
+                                
+                                      '))),
+            icon("question-circle", class = "help-icon"),
+            tags$div(class = "tooltip-box", 
+                     tags$div(
+                         HTML('
+            <h4>How to use Gradebook:</h4>
+            <ul>
+                <li>Load your gradescope file</li>
+                <li>Create your syllabus policies in the "Assignment-view" tab (OR if you have a policy file already, load it from the sidebar to your left by "Pick Course File")</li>
+                <li>Finish creating your policy, go to the dashboard to see grades scores</li>
+            </ul>
+        ')
+                     )
+            ),
             tabItems(
                 Dashboard,
                 Policies,

@@ -42,41 +42,6 @@ Policies <- tabItem(tabName = "policies",
                                             uiOutput("unassigned")
                                      )
                                  )
-                        ),
-                        tabPanel("Coursewide", 
-                                 fluidRow(
-                                     plotOutput("letter_dist"),
-                                     helpText("Toggling these values below change the lower-bound cutoff for each letter grade.",
-                                              "Below each is the percentage of students with that respective letter grade."),
-                                     column(2,
-                                            numericInput("F", "F", min = 0, max = 100, value = 0), 
-                                     ),
-                                     column(2,
-                                            numericInput("D", "D", min = 0, max = 100, value = 60),
-                                     ),
-                                     column(2,
-                                            numericInput("C", "C", min = 0, max = 100, value = 70),
-                                     ),
-                                     column(2,
-                                            numericInput("B", "B", min = 0, max = 100, value = 80),
-                                     ),
-                                     column(2,
-                                            numericInput("A", "A", min = 0, max = 100, value = 90), 
-                                     ),
-                                 ),
-                                 uiOutput("grade_bin_percent")
-                        ),
-                        tabPanel("Exceptions",
-                                 fluidRow(
-                                     column(8,
-                                            actionButton("new_except", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
-                                            #tags$div(id='inputList') #this is all the dynamic UI for categories
-                                     ),
-                                     column(4,
-                                            h4("Exceptions here:")
-                                     )
-                                 )
-                                 )
-                        
+                        )
                     )
 )

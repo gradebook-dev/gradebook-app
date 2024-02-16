@@ -40,6 +40,33 @@ shinyServer(function(input, output, session) {
     
     output$course_description_display <- renderText({policy$coursewide$description})
     
+    observeEvent(input$edit_policy_name, {
+        showModal(modalDialog(
+            title = "Edit Policy",
+            textInput("course_name_input", "Course Name", value = policy$coursewide$course_name),
+            textInput("course_desc_input", "Course Description", value = policy$coursewide$description),
+            footer = tagList(
+                modalButton("Cancel"),
+                actionButton("save_changes_course", "Save Changes")
+            )
+        ))
+    })
+    
+    # When save_changes is clicked, update the reactive values and close modal
+    observeEvent(input$save_changes_course, {
+        policy$coursewide$course_name <- isolate(input$course_name_input)
+        policy$coursewide$description <- isolate(input$course_desc_input)
+        removeModal()
+    })
+    # Update course_name in policy tab
+    output$course_name_display <- renderText({
+        policy$coursewide$course_name
+    })
+    # Update course description in policy tab
+    output$course_description_display <- renderText({
+        policy$coursewide$description
+    })
+    
 #### -------------------------- CATEGORY MODAL ----------------------------####
     editing <- reactiveValues(name = NULL) #to keep track of edited category
     
@@ -227,7 +254,7 @@ shinyServer(function(input, output, session) {
     })
     
 #### -------------------------- DASHBOARD ----------------------------####   
-    output$download_policy <- downloadHandler(
+    output$download_policy_file <- downloadHandler(
         filename = function() {
             paste0(input$course_name, ".yml")
         },

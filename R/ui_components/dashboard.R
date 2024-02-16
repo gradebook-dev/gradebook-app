@@ -1,8 +1,19 @@
-Dashboard <- tabItem(tabName = "dashboard",
-                        fluidRow(
-                                     h2("Dashboard"),
-                                    textInput("course_name", "Course Name", value = ""),
-                                    downloadButton("download_policy")
-                                    # uiOutput("dashboard")
-                     )
+Dashboard <- tabItem(
+    tabName = "dashboard",
+    div(
+        h2("Dashboard"),
+        div(
+        hr(),
+        h5("Download your grades CSV file"),
+        actionButton("grading", "Download Grades")
+        ),
+        br(),
+                mainPanel(
+                        tabsetPanel(
+                            tabPanel("Grades",
+                                     dataTableOutput("grading")
+                            )
+                        )
+                    )
+)
 )
