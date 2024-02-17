@@ -16,7 +16,7 @@ shinyServer(function(input, output, session) {
             data <- gradebook::read_gs(input$upload$datapath)
             return(data)
         }, error = function(e) {
-            validate("Invalid file; Please upload a .csv")
+            showNotification('Please upload a file with the Gradescope format','',type = "error")
             return(NULL)
         })
     })
@@ -79,12 +79,13 @@ shinyServer(function(input, output, session) {
     #### -------------------------- CATEGORIES MODAL ----------------------------####
     # if NULL, making new category; if not, editing category called editing$name
     editing <- reactiveValues(name = NULL,#to keep track of edited category
-                              num = 1) #to create unique names for each new category
+                              num = 0) #to create unique names for each new category
     
     
     # Opening category modal to create a NEW category
     observeEvent(input$new_cat, {
         editing$name <- NULL
+        editing$num <- editing$num + 1 #increment to continue making unique category names
         showModal(edit_category_modal) #opens edit modal
         #updates values that aren't always the same but still default
         updateTextInput(session, "name", value = paste0("Category ", editing$num))
@@ -122,17 +123,31 @@ shinyServer(function(input, output, session) {
     
     observeEvent(input$save,{
         removeModal() #closes edit modal
-        #update policy
-        if (!is.null(editing$name)){
-            editing$num <- editing$num + 1 #increment to continue making unique category names
-            #add new category
-            policy$categories <- updateCategory(policy$categories, policy$flat, editing$name, 
-                                                input$name, input, assign$table)
-        } else {
-            policy$categories <- append(policy$categories, 
-                                        list(createCategory(input$name, input = input,
-                                                            assign$table)))
+        
+        # This is used to ensure no combination of subcategories and assignments
+        # sum = 1 --> only assignments
+        # sum = 2 --> only subcategories
+        sum <- 0
+        if (!is.null(assign$table)){
+            sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments) 
         }
+        
+        
+        if (sum %in% c(0,1)){
+            #update policy
+            if (!is.null(editing$name)){
+                #add new category
+                policy$categories <- updateCategory(policy$categories, policy$flat, editing$name, 
+                                                    input$name, input, assign$table)
+            } else {
+                policy$categories <- append(policy$categories, 
+                                            list(createCategory(input$name, input = input,
+                                                                assign$table)))
+            }
+        } else {
+            showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
+        }
+        
         
     })
     
