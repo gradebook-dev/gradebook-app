@@ -3,7 +3,7 @@ library(shinydashboard)
 library(shiny)
 #library(shinyWidgets)
 library(DT)
-#library(tidyverse)
+library(tidyverse)
 #library(gradebook)
 #library(yaml)
 

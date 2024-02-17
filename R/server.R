@@ -1,5 +1,5 @@
 library(DT)
-
+library(tidyverse)
 #load helper scripts
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
@@ -28,7 +28,7 @@ shinyServer(function(input, output, session) {
                              exceptions = list(),
                              flat = list())
     
-    #### -------------------------- COURSEWIDE ----------------------------####
+    #### -------------------------- COURSEWIDE INFO ----------------------------####
     #modal to change saved course name + description
     observeEvent(input$edit_policy_name, {
         showModal(modalDialog(
@@ -63,7 +63,8 @@ shinyServer(function(input, output, session) {
     # all assignments default to "Unassigned"
     observe({
         colnames <- gradebook::get_assignments(data())
-        assign$table <- data.frame(assignment = colnames, category = c("Unassigned"))
+        assign$table <- data.frame(assignment = colnames) |>
+            mutate(category = "Unassigned")
     })
     
     #a list of unassigned assignments in policies tab
@@ -75,6 +76,75 @@ shinyServer(function(input, output, session) {
         }
     )
     
+    #### -------------------------- CATEGORIES MODAL ----------------------------####
+    # if NULL, making new category; if not, editing category called editing$name
+    editing <- reactiveValues(name = NULL,#to keep track of edited category
+                              num = 1) #to create unique names for each new category
+    
+    
+    # Opening category modal to create a NEW category
+    observeEvent(input$new_cat, {
+        editing$name <- NULL
+        showModal(edit_category_modal) #opens edit modal
+        #updates values that aren't always the same but still default
+        updateTextInput(session, "name", value = paste0("Category ", editing$num))
+        if (!is.null(assign$table)){ #updates assignments if data has been loaded
+            updateSelectizeInput(session, "assignments", choices = assign$table$assignment, selected = "")
+        }
+        
+    })
+    
+    # Reactive Lateness Cells in Modal
+    output$lateness <- renderUI({
+        if (input$num_lateness > 0){
+            lapply(1:as.integer(input$num_lateness), function(i) {
+                fluidRow(
+                    column(4,
+                           textInput(inputId = paste0("from", i), label = "From:", value = "",
+                                     placeholder = "HH:MM:SS")
+                    ),
+                    column(4,
+                           textInput(inputId = paste0("to", i), label = "To:", value = "",
+                                     placeholder = "HH:MM:SS")
+                    ),
+                    column(4,
+                           numericInput(inputId = paste0("scale", i), label = "Scale by:", value = "")
+                    )
+                )
+            })
+        }
+    })
+    
+    # Cancel and no changes will be made
+    observeEvent(input$cancel,{
+        removeModal() #closes edit modal
+    })
+    
+    observeEvent(input$save,{
+        removeModal() #closes edit modal
+        #update policy
+        if (!is.null(editing$name)){
+            editing$num <- editing$num + 1 #increment to continue making unique category names
+            #add new category
+            policy$categories <- updateCategory(policy$categories, policy$flat, editing$name, 
+                                                input$name, input, assign$table)
+        } else {
+            policy$categories <- append(policy$categories, 
+                                        list(createCategory(input$name, input = input,
+                                                            assign$table)))
+        }
+        
+    })
+    
+    #whenever policy$categories changes, policy$flat, assign$table and UI updates
+    observe({
+        policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
+        #assign$table <- updateAssignsTable(assign$table, input, policy$flat)
+        # names <- purrr::map(policy$flat$categories, "category") |> unlist()
+        # purrr::walk(names, rerender_ui)
+    })
+    
+    
     #### -------------------------- DATA FILES ----------------------------####   
     # print out uploaded Gradescope data
     output$original_gs <- renderDataTable({
@@ -83,4 +153,16 @@ shinyServer(function(input, output, session) {
     
     #print out assignment table
     output$assigns_table <- renderDataTable({ assign$table })
+    
+    #shows policy$categories in Scratchpad under policy_list tab
+    output$policy_list <- renderPrint({
+        Hmisc::list.tree(list(coursewide = policy$coursewide, 
+                              categories = policy$categories, 
+                              letter_grades = policy$letter_grades,
+                              exceptions = policy$exceptions))
+    })
+    
+    output$flat_policy_list <- renderPrint({
+        Hmisc::list.tree(policy$flat)
+    })
 })
