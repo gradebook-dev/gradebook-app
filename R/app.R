@@ -5,7 +5,7 @@ library(shiny)
 library(DT)
 library(tidyverse)
 #library(gradebook)
-#library(yaml)
+library(yaml)
 
 #load ui and server
 source("ui.R")

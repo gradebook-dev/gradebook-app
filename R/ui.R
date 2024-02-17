@@ -38,9 +38,10 @@ shinyUI(
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     h5("Download Your Yaml Policy File:")
                 ),
-                div(style = "display: flex; align-items: center; margin-left: 15px;",
-                    downloadButton("download_policy_file","Download Policy File")
-                )
+                downloadButton("download_policy_file","Download Policy File")
+                # div(style = "display: flex; align-items: center; margin-left: 15px;",
+                #     downloadButton("download_policy_file","Download Policy File")
+                # )
             )
         ),
         dashboardBody(

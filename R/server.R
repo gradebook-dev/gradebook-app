@@ -25,6 +25,7 @@ shinyServer(function(input, output, session) {
     policy <- reactiveValues(coursewide = list(course_name = "Course Name", description = "Description"),
                              categories = list(),
                              letter_grades = list(),
+                             grades = NULL,
                              exceptions = list(),
                              flat = list())
     
@@ -126,7 +127,8 @@ shinyServer(function(input, output, session) {
         
         # This is used to ensure no combination of subcategories and assignments
         # sum = 1 --> only assignments
-        # sum = 2 --> only subcategories
+        # sum = 0 --> only subcategories
+        # sum is not an integer --> combination --> throws error notification
         sum <- 0
         if (!is.null(assign$table)){
             sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments) 
@@ -159,6 +161,43 @@ shinyServer(function(input, output, session) {
         # purrr::walk(names, rerender_ui)
     })
     
+    #### -------------------------- GRADING ----------------------------####
+    
+    observeEvent(policy$categories,{
+        if (!is.null(data()) & length(policy$categories) != 0){
+            tryCatch({
+                cleaned_data <- data() |>
+                    drop_na(SID) |>
+                    group_by(SID) |>
+                    filter(row_number() == 1) |>
+                    ungroup()
+                
+                flat_policy <- list(coursewide = policy$coursewide, 
+                               categories = policy$categories, 
+                               letter_grades = policy$letter_grades,
+                               exceptions = policy$exceptions) |>
+                    gradebook::flatten_policy()
+                policy$grades <- cleaned_data |>
+                    calculate_lateness(flat_policy) |>
+                    get_category_grades(flat_policy)
+            }, error = function(e) {
+                showNotification('Fix policy file','',type = "error")
+            })
+        }
+    })
+
+    #### -------------------------- YAML ----------------------------####   
+    
+    output$download_policy_file <- downloadHandler(
+        filename = function() {
+            paste0(str_remove(policy$coursewide$course_name, "[^a-zA-Z0-9]"), ".yml")
+        },
+        content = function(file) {
+            yaml::write_yaml(list(coursewide = policy$coursewide,
+                            categories = policy$categories,
+                            exceptions = policy$exceptions), file)
+        }
+    )
     
     #### -------------------------- DATA FILES ----------------------------####   
     # print out uploaded Gradescope data
@@ -180,4 +219,8 @@ shinyServer(function(input, output, session) {
     output$flat_policy_list <- renderPrint({
         Hmisc::list.tree(policy$flat)
     })
+    
+    output$grades <- renderDataTable({ 
+        datatable(policy$grades, options = list(scrollX = TRUE, scrollY = "500px"))
+        })
 })

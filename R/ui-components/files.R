@@ -13,7 +13,10 @@ Files <- tabItem(tabName = "files",
                                   ),
                          tabPanel("Flat Policy File",
                                   verbatimTextOutput("flat_policy_list")
-                         )
+                         ),
+                         tabPanel("Final Grades",
+                                  dataTableOutput("grades")
+                                  )
                      )
                  )
 )
