@@ -33,6 +33,7 @@ Policies <- tabItem(tabName = "policies",
                                   column(8,
                                          verbatimTextOutput("editing"),
                                          actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
+                                         verbatimTextOutput("policy_list"),
                                          tags$div(id='inputList') #this is all the dynamic UI for categories
                                   ),
                                   column(4,

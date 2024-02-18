@@ -156,7 +156,7 @@ shinyServer(function(input, output, session) {
     #whenever policy$categories changes, policy$flat, assign$table and UI updates
     observe({
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
-        #assign$table <- updateAssignsTable(assign$table, input, policy$flat)
+        assign$table <- updateAssignsTable(assign$table, policy$flat)
         # names <- purrr::map(policy$flat$categories, "category") |> unlist()
         # purrr::walk(names, rerender_ui)
     })
