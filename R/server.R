@@ -1,5 +1,6 @@
 library(DT)
 library(tidyverse)
+library(readr)
 #load helper scripts
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
@@ -257,16 +258,25 @@ shinyServer(function(input, output, session) {
         }
     })
 
-    #### -------------------------- YAML ----------------------------####   
+    #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
     output$download_policy_file <- downloadHandler(
         filename = function() {
-            paste0(str_remove(policy$coursewide$course_name, "[^a-zA-Z0-9]"), ".yml")
+            paste0(str_remove(policy$coursewide$course_name, "[^a-zA-Z0-9]"),"policy", ".yml")
         },
         content = function(file) {
             yaml::write_yaml(list(coursewide = policy$coursewide,
                             categories = policy$categories,
                             exceptions = policy$exceptions), file)
+        }
+    )
+    
+    output$download_grades <- downloadHandler(
+        filename = function() {
+            paste0(str_remove(policy$coursewide$course_name, "[^a-zA-Z0-9]"),"Grades", ".csv")
+        },
+        content = function(file) {
+            readr::write_csv(policy$grades, file)
         }
     )
     
