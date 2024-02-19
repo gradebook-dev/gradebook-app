@@ -128,6 +128,14 @@ find_indices <- function(lst, target, current_index = c()) {
     return(indices)
 }
 
+updateCategory <- function(policy_categories, flat_policy, original_name, name, input, assigns_table){
+    category <- createCategory(name, input, assigns_table) #needs to be updated
+    original_name <- flat_policy$categories[[getIndex(flat_policy, original_name)]]$category
+    index <- find_indices(policy_categories, original_name)
+    index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
+    eval(parse(text = paste(index, "<-", "category")))
+    return (policy_categories)
+}
 
 getIndex <- function(flat_policy, name){
     names <- purrr::map(flat_policy$categories, "category") |> unlist() |>
