@@ -4,7 +4,7 @@ library(shiny)
 #library(shinyWidgets)
 library(DT)
 library(tidyverse)
-#library(gradebook)
+library(gradebook)
 library(yaml)
 
 #load ui and server
