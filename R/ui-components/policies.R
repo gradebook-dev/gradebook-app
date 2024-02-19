@@ -31,8 +31,18 @@ Policies <- tabItem(tabName = "policies",
                      tabPanel("Assignment View",
                               fluidRow(
                                   column(8,
-                                         verbatimTextOutput("editing"),
-                                         actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
+                                         br(),
+                                         fluidRow(
+                                             column(1,
+                                                    actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
+                                                    ),
+                                             column(6,
+                                                    selectInput("edit_cat", "Delete this Category:", selected = NULL, choices = "")
+                                                    ),
+                                             column(1,
+                                                    actionButton("delete_cat", label = NULL, icon = icon("trash-can"), style = "background-color: transparent; margin-right: 10px;"),
+                                                    )
+                                         ),
                                          verbatimTextOutput("policy_list"),
                                          tags$div(id='inputList') #this is all the dynamic UI for categories
                                   ),
