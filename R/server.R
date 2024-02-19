@@ -96,6 +96,11 @@ shinyServer(function(input, output, session) {
         
     })
     
+    observe({
+        print(editing$name)
+    })
+    
+    
     # Reactive Lateness Cells in Modal
     output$lateness <- renderUI({
         if (input$num_lateness > 0){
@@ -117,10 +122,35 @@ shinyServer(function(input, output, session) {
         }
     })
     
+    observeEvent(input$edit, {
+        editing$name <- input$edit_cat
+        if (editing$name != ""){
+            showModal(edit_category_modal) #opens edit modal
+            label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", editing$name)
+            i <- getIndex(policy$flat, label)
+            updateTextInput(session, "name", value = editing$name)
+            
+            choices <- ""
+            if (!is.null(assign$table)){ #updates assignments if data has been loaded
+                choices = assign$table$assignment
+            }
+            selected = NULL
+            if (!is.null(policy$flat$categories[[i]]$assignments)){
+                selected <- policy$flat$categories[[i]]$assignments
+            }
+            updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
+            
+            
+        } else {
+            showNotification("Please pick a category to edit", type = 'error')
+        }
+    })
+    
     # Cancel and no changes will be made
     observeEvent(input$cancel,{
         removeModal() #closes edit modal
     })
+    
     
     observeEvent(input$save,{
         removeModal() #closes edit modal
@@ -152,6 +182,7 @@ shinyServer(function(input, output, session) {
         
     })
     
+    
     observe({
         names <- purrr::map(policy$flat$categories, "category") |> unlist()
         if (!is.null(names)){
@@ -175,7 +206,7 @@ shinyServer(function(input, output, session) {
     #whenever policy$categories changes, policy$flat, assign$table and UI updates
     observe({
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
-        assign$table <- updateAssignsTable(assign$table, policy$flat)
+        assign$table <- updateAssignsTable(assign$table, gradebook::flatten_policy(list(categories = policy$categories)))
         # names <- purrr::map(policy$flat$categories, "category") |> unlist()
         # purrr::walk(names, rerender_ui)
     })
