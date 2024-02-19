@@ -37,7 +37,7 @@ Policies <- tabItem(tabName = "policies",
                                                     actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
                                                     ),
                                              column(6,
-                                                    selectInput("edit-cat", "Delete this Category:", selected = NULL, choices = "")
+                                                    selectInput("edit_cat", "Delete this Category:", selected = NULL, choices = "")
                                                     ),
                                              column(1,
                                                     actionButton("delete_cat", label = NULL, icon = icon("trash-can"), style = "background-color: transparent; margin-right: 10px;"),

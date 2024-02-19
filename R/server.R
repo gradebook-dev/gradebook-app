@@ -130,10 +130,9 @@ shinyServer(function(input, output, session) {
         # sum = 0 --> only subcategories
         # sum is not an integer --> combination --> throws error notification
         sum <- 0
-        if (!is.null(assign$table)){
+        if (!is.null(assign$table) & !is.null(input$assignments)){
             sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments) 
         }
-        
         
         if (sum %in% c(0,1)){
             #update policy
@@ -151,6 +150,26 @@ shinyServer(function(input, output, session) {
         }
         
         
+    })
+    
+    observe({
+        names <- purrr::map(policy$flat$categories, "category") |> unlist()
+        if (!is.null(names)){
+            updateSelectInput(session, "edit_cat", choices = names)
+        } else {
+            updateSelectInput(session, "edit_cat", choices = "")
+        }
+    })
+    
+    observeEvent(input$delete_cat, {
+        if (input$edit_cat != ""){
+            #some of this syntax is unnecessary now but will be relevant with dynamic UI
+            editing$name <- input$edit_cat
+            label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", editing$name)
+            policy$categories <- deleteCategory(policy$categories, policy$flat, label)
+        } else {
+            showNotification("Please pick a category to delete",type = 'error')
+        }
     })
     
     #whenever policy$categories changes, policy$flat, assign$table and UI updates

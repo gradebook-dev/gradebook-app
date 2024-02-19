@@ -92,3 +92,46 @@ createEmptyCategory <- function(name, i){
          aggregation = "none",
          assignments = NULL)
 }
+
+
+deleteCategory <- function(policy_categories, flat_policy, label){
+    if (length(getIndex(flat_policy, label)) > 0){
+        name <- flat_policy$categories[[getIndex(flat_policy, label)]]$category
+        index <- find_indices(policy_categories, name)
+        index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
+        eval(parse(text = paste(index, "<-", "NULL")))
+    }
+    return (policy_categories)
+}
+
+
+find_indices <- function(lst, target, current_index = c()) {
+    indices <- c()
+    
+    for (i in seq_along(lst)) {
+        if (is.list(lst[[i]]) && !is.null(lst[[i]]$category) && identical(lst[[i]]$category, target)) {
+            indices <- c(current_index, i)
+            break
+        } else if (is.list(lst[[i]]) && !is.null(lst[[i]]$assignments)) {
+            indices <- find_indices(lst[[i]]$assignments, target, c(current_index, i))
+        }
+        
+        if (length(indices) > 0) {
+            break
+        }
+    }
+    
+    if (length(indices) == 0) {
+        return(NULL)
+    }
+    
+    return(indices)
+}
+
+
+getIndex <- function(flat_policy, name){
+    names <- purrr::map(flat_policy$categories, "category") |> unlist() |>
+        gsub(pattern = "[^a-zA-Z0-9]+", replacement = "")
+    name <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", name)
+    which(names == name)
+}
