@@ -95,11 +95,7 @@ shinyServer(function(input, output, session) {
         }
         
     })
-    
-    observe({
-        print(editing$name)
-    })
-    
+
     
     # Reactive Lateness Cells in Modal
     output$lateness <- renderUI({
@@ -130,6 +126,30 @@ shinyServer(function(input, output, session) {
             i <- getIndex(policy$flat, label)
             updateTextInput(session, "name", value = editing$name)
             
+            updateSelectInput(session, "aggregation", selected = policy$flat$categories[[i]]$aggregation)
+            if (!is.null(policy$flat$categories[[i]]$weight)){
+                shinyWidgets::updateAutonumericInput(session, "weight", value = policy$flat$categories[[i]]$weight*100)   
+            }
+            if (!is.null(policy$flat$categories[[i]]$n_drops)){
+                updateNumericInput(session, "n_drops", value = policy$flat$categories[[i]]$n_drops)
+            }
+            if (!is.null(policy$flat$categories[[i]]$clobber)){
+                updateSelectInput(session, "clobber", selected = policy$flat$categories[[i]]$clobber)
+            }
+            
+            #update lateness
+            if (!is.null(policy$flat$categories[[i]]$lateness)){
+                num_lateness <- length(policy$flat$categories[[i]]$lateness)
+                updateNumericInput(session, "num_lateness", value = num_lateness)
+                print(policy$flat$categories[[i]]$lateness)
+                # for (i in 1:num_lateness){
+                #     updateTextInput(session, paste0("from", i), value = policy$flat$categories[[i]]$lateness[[i]]$from)
+                #     updateTextInput(session, paste0("to", i), value = policy$flat$categories[[i]]$lateness[[i]]$to)
+                #     updateTextInput(session, paste0("scale", i), value = policy$flat$categories[[i]]$lateness[[i]]$scale)
+                # }
+            }
+            
+            #update assignments
             choices <- ""
             if (!is.null(assign$table)){ #updates assignments if data has been loaded
                 choices = assign$table$assignment
