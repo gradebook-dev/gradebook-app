@@ -101,6 +101,7 @@ shinyServer(function(input, output, session) {
     output$lateness <- renderUI({
         if (input$num_lateness > 0){
             lapply(1:as.integer(input$num_lateness), function(i) {
+                
                 fluidRow(
                     column(4,
                            textInput(inputId = paste0("from", i), label = "From:", value = "",
@@ -141,11 +142,11 @@ shinyServer(function(input, output, session) {
             if (!is.null(policy$flat$categories[[i]]$lateness)){
                 num_lateness <- length(policy$flat$categories[[i]]$lateness)
                 updateNumericInput(session, "num_lateness", value = num_lateness)
-                print(policy$flat$categories[[i]]$lateness)
-                # for (i in 1:num_lateness){
-                #     updateTextInput(session, paste0("from", i), value = policy$flat$categories[[i]]$lateness[[i]]$from)
-                #     updateTextInput(session, paste0("to", i), value = policy$flat$categories[[i]]$lateness[[i]]$to)
-                #     updateTextInput(session, paste0("scale", i), value = policy$flat$categories[[i]]$lateness[[i]]$scale)
+                # for (j in 1:num_lateness){
+                #     late_policy <- policy$flat$categories[[i]]$lateness[[j]]
+                #     updateTextInput(session, paste0("from", j), value = late_policy$from)
+                #     updateTextInput(session, paste0("to", j), value = late_policy$to)
+                #     updateTextInput(session, paste0("scale", j), value = late_policy$scale)
                 # }
             }
             
