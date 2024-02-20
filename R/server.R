@@ -1,5 +1,6 @@
 library(DT)
 library(tidyverse)
+library(readr)
 #load helper scripts
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
@@ -95,11 +96,13 @@ shinyServer(function(input, output, session) {
         }
         
     })
+
     
     # Reactive Lateness Cells in Modal
     output$lateness <- renderUI({
         if (input$num_lateness > 0){
             lapply(1:as.integer(input$num_lateness), function(i) {
+                
                 fluidRow(
                     column(4,
                            textInput(inputId = paste0("from", i), label = "From:", value = "",
@@ -117,10 +120,59 @@ shinyServer(function(input, output, session) {
         }
     })
     
+    observeEvent(input$edit, {
+        editing$name <- input$edit_cat
+        if (editing$name != ""){
+            showModal(edit_category_modal) #opens edit modal
+            label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", editing$name)
+            i <- getIndex(policy$flat, label)
+            updateTextInput(session, "name", value = editing$name)
+            
+            updateSelectInput(session, "aggregation", selected = policy$flat$categories[[i]]$aggregation)
+            if (!is.null(policy$flat$categories[[i]]$weight)){
+                shinyWidgets::updateAutonumericInput(session, "weight", value = policy$flat$categories[[i]]$weight*100)   
+            }
+            if (!is.null(policy$flat$categories[[i]]$n_drops)){
+                updateNumericInput(session, "n_drops", value = policy$flat$categories[[i]]$n_drops)
+            }
+            if (!is.null(policy$flat$categories[[i]]$clobber)){
+                updateSelectInput(session, "clobber", selected = policy$flat$categories[[i]]$clobber)
+            }
+            
+            #update lateness
+            if (!is.null(policy$flat$categories[[i]]$lateness)){
+                num_lateness <- length(policy$flat$categories[[i]]$lateness)
+                updateNumericInput(session, "num_lateness", value = num_lateness)
+                # for (j in 1:num_lateness){
+                #     late_policy <- policy$flat$categories[[i]]$lateness[[j]]
+                #     updateTextInput(session, paste0("from", j), value = late_policy$from)
+                #     updateTextInput(session, paste0("to", j), value = late_policy$to)
+                #     updateTextInput(session, paste0("scale", j), value = late_policy$scale)
+                # }
+            }
+            
+            #update assignments
+            choices <- ""
+            if (!is.null(assign$table)){ #updates assignments if data has been loaded
+                choices = assign$table$assignment
+            }
+            selected = NULL
+            if (!is.null(policy$flat$categories[[i]]$assignments)){
+                selected <- policy$flat$categories[[i]]$assignments
+            }
+            updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
+            
+            
+        } else {
+            showNotification("Please pick a category to edit", type = 'error')
+        }
+    })
+    
     # Cancel and no changes will be made
     observeEvent(input$cancel,{
         removeModal() #closes edit modal
     })
+    
     
     observeEvent(input$save,{
         removeModal() #closes edit modal
@@ -152,6 +204,7 @@ shinyServer(function(input, output, session) {
         
     })
     
+    
     observe({
         names <- purrr::map(policy$flat$categories, "category") |> unlist()
         if (!is.null(names)){
@@ -175,7 +228,7 @@ shinyServer(function(input, output, session) {
     #whenever policy$categories changes, policy$flat, assign$table and UI updates
     observe({
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
-        assign$table <- updateAssignsTable(assign$table, policy$flat)
+        assign$table <- updateAssignsTable(assign$table, gradebook::flatten_policy(list(categories = policy$categories)))
         # names <- purrr::map(policy$flat$categories, "category") |> unlist()
         # purrr::walk(names, rerender_ui)
     })
@@ -205,16 +258,25 @@ shinyServer(function(input, output, session) {
         }
     })
 
-    #### -------------------------- YAML ----------------------------####   
+    #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
     output$download_policy_file <- downloadHandler(
         filename = function() {
-            paste0(str_remove(policy$coursewide$course_name, "[^a-zA-Z0-9]"), ".yml")
+            paste0(str_remove(policy$coursewide$course_name, "[^a-zA-Z0-9]"),"policy", ".yml")
         },
         content = function(file) {
             yaml::write_yaml(list(coursewide = policy$coursewide,
                             categories = policy$categories,
                             exceptions = policy$exceptions), file)
+        }
+    )
+    
+    output$download_grades <- downloadHandler(
+        filename = function() {
+            paste0(str_remove(policy$coursewide$course_name, "[^a-zA-Z0-9]"),"Grades", ".csv")
+        },
+        content = function(file) {
+            readr::write_csv(policy$grades, file)
         }
     )
     

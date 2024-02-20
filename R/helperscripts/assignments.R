@@ -9,6 +9,7 @@ getUnassigned <- function(assign_table){
 }
 
 updateAssignsTable <- function(assign_table, flat_policy){
+    assign_table[["category"]] = "Unassigned"
     for (cat in flat_policy$categories){
         assign_table[["category"]][assign_table$assignment %in% cat$assignments] = cat$category
     }

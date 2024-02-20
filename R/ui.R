@@ -29,11 +29,15 @@ shinyUI(
                                    multiple = FALSE,
                                    width = "100%"),
                 ),
-                div(style = "display: flex; margin-left:17px;",
-                    actionButton("upload_json", "Upload Policy File"),
-                    actionButton("delete_json", "", icon = icon("trash-can"))
+                # div(style = "display: flex; margin-left:17px;",
+                #     actionButton("upload_json", "Upload Policy File"),
+                #     actionButton("delete_json", "", icon = icon("trash-can"))
+                # ),
+                # br(),
+                div(style = "display: flex; align-items: center; margin-left: 15px;",
+                    h5("Download Your Course Grades:")
                 ),
-                br(),
+                downloadButton("download_grades","Download Grades"),
                 hr(),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     h5("Download Your Yaml Policy File:")
