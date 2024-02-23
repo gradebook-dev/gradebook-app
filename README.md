@@ -1,11 +1,5 @@
 # Gradebook
 
-An app to help calculate course grades.
+A Shiny app to help calculate course grades. Built on top of the [gradebook](https://github.com/gradebook-dev/gradebook) R package.
 
-Contributors:
-
-- Andrew Bray
-- Nikita Jayaprakash
-- Monika Voutov
-
-- A whiteboard with design diagrams can be found here: https://link.excalidraw.com/l/4AKpAITWs2z/5mcvzNSuDhn.
+*This app is under active development and shouldn't be used as the sole manner of calculating course grades.*
