@@ -207,15 +207,15 @@ shinyServer(function(input, output, session) {
                 policy$categories <- append(policy$categories, 
                                             list(createCategory(input$name, input = input,
                                                                 assign$table)))
-            }
-            
-            if (sum == 0){
-                for(subcategory in input$assignments){
-                    subcat$table <- rbind(subcat$table, 
-                                          mutate(data.frame(Name = subcategory),
-                                                 label = gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", subcategory),
-                                                 Category = list(createEmptyCategory(subcategory)))
-                                          )
+                #adding new subcategories
+                if (sum == 0){
+                    for(subcategory in input$assignments){
+                        subcat$table <- rbind(subcat$table, 
+                                              mutate(data.frame(Name = subcategory),
+                                                     label = gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", subcategory),
+                                                     Category = list(createEmptyCategory(subcategory)))
+                        )
+                    }
                 }
             }
             
