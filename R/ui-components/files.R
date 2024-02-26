@@ -9,7 +9,10 @@ Files <- tabItem(tabName = "files",
                                   dataTableOutput("assigns_table")
                          ),
                          tabPanel("Subcategories Tabl",
-                                  dataTableOutput("subcat_table")
+                                  dataTableOutput("subcat_table"),
+                                  selectInput("print_subcat", "See a Subcat", 
+                                              selected = NULL, choices = c()),
+                                  verbatimTextOutput("print_out_subcat")
                                   ),
                          tabPanel("Flat Policy File",
                                   verbatimTextOutput("flat_policy_list")

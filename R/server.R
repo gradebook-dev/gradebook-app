@@ -311,6 +311,16 @@ shinyServer(function(input, output, session) {
                               exceptions = policy$exceptions))
     })
     
+    observe({
+        updateSelectInput(session, "print_subcat", selected = NULL, choices = subcat$table$Name)
+    })
+    
+    output$print_out_subcat <- renderPrint({
+        if (!is.null(input$print_subcat)){
+            Hmisc::list.tree(subcat$table$Category[subcat$table$Name == input$print_subcat])
+        }
+    })
+    
     output$flat_policy_list <- renderPrint({
         Hmisc::list.tree(policy$flat)
     })
