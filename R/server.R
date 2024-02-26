@@ -203,6 +203,29 @@ shinyServer(function(input, output, session) {
                 #update existing category
                 policy$categories <- updateCategory(policy$categories, policy$flat, editing$name, 
                                                     input$name, input, assign$table)
+                if (editing$name %in% subcat$table$Name){
+                    #if editing a subcategory, update within subcat table
+                    i <- which(subcat$table$Name == editing$name)
+                    subcat$table$Name[i] <- input$name
+                    subcat$table$Label[i] <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", input$name)
+                    subcat$table$Category[i] <- list(createCategory(input$name, input, assign$table))
+                }
+                if(sum == 0){
+                    for(subcategory in input$assignments){
+                        #if existing subcategory, re-add to overarching category
+                        if (subcategory %in% subcat$table$Name){
+                            policy$categories <- updateSubcategory(policy$categories, subcategory, subcat$table)
+                        } else{
+                            #create new subcategory
+                            subcat$table <- rbind(subcat$table, 
+                                                  mutate(data.frame(Name = subcategory),
+                                                         Label = gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", subcategory),
+                                                         Category = list(createEmptyCategory(subcategory)))
+                            )
+                        }
+                    }
+                }
+                
             } else {
                 policy$categories <- append(policy$categories, 
                                             list(createCategory(input$name, input = input,
@@ -212,7 +235,7 @@ shinyServer(function(input, output, session) {
                     for(subcategory in input$assignments){
                         subcat$table <- rbind(subcat$table, 
                                               mutate(data.frame(Name = subcategory),
-                                                     label = gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", subcategory),
+                                                     Label = gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", subcategory),
                                                      Category = list(createEmptyCategory(subcategory)))
                         )
                     }

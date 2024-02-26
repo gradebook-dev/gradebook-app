@@ -137,6 +137,15 @@ updateCategory <- function(policy_categories, flat_policy, original_name, name, 
     return (policy_categories)
 }
 
+updateSubcategory <- function(policy_categories, name, subcat_table){
+    i <- which(subcat_table$Name == name)
+    category <- subcat_table$Category[i]
+    index <- find_indices(policy_categories, name)
+    index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
+    eval(parse(text = paste(index, "<-", "category")))
+    return (policy_categories)
+}
+
 getIndex <- function(flat_policy, name){
     names <- purrr::map(flat_policy$categories, "category") |> unlist() |>
         gsub(pattern = "[^a-zA-Z0-9]+", replacement = "")
