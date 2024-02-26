@@ -8,6 +8,9 @@ Files <- tabItem(tabName = "files",
                          tabPanel("Assignments Table",
                                   dataTableOutput("assigns_table")
                          ),
+                         tabPanel("Subcategories Tabl",
+                                  dataTableOutput("subcat_table")
+                                  ),
                          tabPanel("Flat Policy File",
                                   verbatimTextOutput("flat_policy_list")
                          ),

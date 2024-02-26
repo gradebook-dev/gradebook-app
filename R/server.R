@@ -61,6 +61,9 @@ shinyServer(function(input, output, session) {
     #keeps track of which category each assignment is assigned to, if any
     assign <- reactiveValues(table = NULL)
     
+    #keeps track of subcategories
+    subcat <- reactiveValues(table = NULL)
+    
     # creates assigns table when data uploads 
     # all assignments default to "Unassigned"
     observe({
@@ -156,7 +159,7 @@ shinyServer(function(input, output, session) {
             if (!is.null(assign$table)){ #updates assignments if data has been loaded
                 choices = assign$table$assignment
             }
-            selected = NULL
+            selected <- NULL
             if (!is.null(policy$flat$categories[[i]]$assignments)){
                 selected <- policy$flat$categories[[i]]$assignments
             }
@@ -288,6 +291,7 @@ shinyServer(function(input, output, session) {
     
     #print out assignment table
     output$assigns_table <- renderDataTable({ assign$table })
+    output$subcat_table <- renderDataTable({ subcat$table })
     
     #shows policy$categories in Scratchpad under policy_list tab
     output$policy_list <- renderPrint({
