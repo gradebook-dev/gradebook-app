@@ -94,9 +94,14 @@ shinyServer(function(input, output, session) {
         showModal(edit_category_modal) #opens edit modal
         #updates values that aren't always the same but still default
         updateTextInput(session, "name", value = paste0("Category ", editing$num))
+        choices <- c()
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
-            updateSelectizeInput(session, "assignments", choices = assign$table$assignment, selected = "")
+            choices <- c(choices, assign$table$assignment)
         }
+        if (!is.null(subcat$table)){
+            choices <- c(choices, subcat$table$Name)
+        }
+        updateSelectizeInput(session, "assignments", choices = choices, selected = "")
         
     })
 
@@ -157,7 +162,10 @@ shinyServer(function(input, output, session) {
             #update assignments
             choices <- ""
             if (!is.null(assign$table)){ #updates assignments if data has been loaded
-                choices = assign$table$assignment
+                choices <- assign$table$assignment
+            }
+            if (!is.null(subcat$table)){
+                choices <- c(choices, subcat$table$Name)
             }
             selected <- NULL
             if (!is.null(policy$flat$categories[[i]]$assignments)){
@@ -204,7 +212,9 @@ shinyServer(function(input, output, session) {
             if (sum == 0){
                 for(subcategory in input$assignments){
                     subcat$table <- rbind(subcat$table, 
-                                          mutate(data.frame(Name = subcategory), Category = list(createEmptyCategory(subcategory)))
+                                          mutate(data.frame(Name = subcategory),
+                                                 label = gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", subcategory),
+                                                 Category = list(createEmptyCategory(subcategory)))
                                           )
                 }
             }
