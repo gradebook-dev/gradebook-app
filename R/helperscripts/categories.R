@@ -41,7 +41,7 @@ createCategory <- function(name, input, assigns_table){
             if (assign %in% assigns_table$assignment){
                 assignments = append(assignments, assign)
             } else{
-                sub_cat <- createEmptyCategory(assign, i)
+                sub_cat <- createEmptyCategory(assign)
                 assignments = append(assignments, list(sub_cat))
                 i = i+1
                 
@@ -87,7 +87,7 @@ createCategory <- function(name, input, assigns_table){
 
 
 
-createEmptyCategory <- function(name, i){
+createEmptyCategory <- function(name){
     list(category = name,
          aggregation = "equally_weighted",
          assignments = NULL)

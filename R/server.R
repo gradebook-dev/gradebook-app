@@ -192,7 +192,7 @@ shinyServer(function(input, output, session) {
         if (sum %in% c(0,1)){
             #update policy
             if (!is.null(editing$name)){
-                #add new category
+                #update existing category
                 policy$categories <- updateCategory(policy$categories, policy$flat, editing$name, 
                                                     input$name, input, assign$table)
             } else {
@@ -200,9 +200,19 @@ shinyServer(function(input, output, session) {
                                             list(createCategory(input$name, input = input,
                                                                 assign$table)))
             }
+            
+            if (sum == 0){
+                for(subcategory in input$assignments){
+                    subcat$table <- rbind(subcat$table, 
+                                          mutate(data.frame(Name = subcategory), Category = list(createEmptyCategory(subcategory)))
+                                          )
+                }
+            }
+            
         } else {
             showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
         }
+        
         
         
     })
