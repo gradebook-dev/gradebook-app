@@ -35,15 +35,13 @@ createCategory <- function(name, input, assigns_table){
     
     #logic: if assignment appears in assignment table, add as assignment in policy file
     #       if assignment isn't in assign$table, create subcategory
-    if (length(input$assignments != 0)){
-        i = 1
+    if (length(input$assignments) != 0){
         for (assign in input$assignments){
             if (assign %in% assigns_table$assignment){
                 assignments = append(assignments, assign)
             } else{
-                sub_cat <- createEmptyCategory(assign, i)
+                sub_cat <- createEmptyCategory(assign)
                 assignments = append(assignments, list(sub_cat))
-                i = i+1
                 
             }
         }
@@ -87,7 +85,7 @@ createCategory <- function(name, input, assigns_table){
 
 
 
-createEmptyCategory <- function(name, i){
+createEmptyCategory <- function(name){
     list(category = name,
          aggregation = "equally_weighted",
          assignments = NULL)
@@ -129,11 +127,31 @@ find_indices <- function(lst, target, current_index = c()) {
 }
 
 updateCategory <- function(policy_categories, flat_policy, original_name, name, input, assigns_table){
-    category <- createCategory(name, input, assigns_table) #needs to be updated
     original_name <- flat_policy$categories[[getIndex(flat_policy, original_name)]]$category
     index <- find_indices(policy_categories, original_name)
     index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
-    eval(parse(text = paste(index, "<-", "category")))
+    eval(parse(text = paste("category", "<-", index))) #category now stores original version of category
+    new_category <- createCategory(name, input, assigns_table) #needs to be updated
+    #at this point, new_category has all updated qualities except nested subcats, if applicable
+    if (length(input$assignments) != 0){
+        #if assignments are only subcats
+        if(sum(input$assignments %in% assigns_table$assignment) == 0){
+            existing_subcats <- purrr::map(category$assignments, "category")
+            assignments <- list()
+            for (assign in input$assignments){
+                if (assign %in% existing_subcats){
+                    i <- which(existing_subcats == assign)
+                    print(category$assignments[[i]])
+                    assignments <- append(assignments, list(category$assignments[[i]]))
+                } else {
+                    sub_cat <- createEmptyCategory(assign)
+                    assignments <- append(assignments, list(sub_cat))
+                }
+            }
+            new_category$assignments <- assignments
+        }
+    }
+    eval(parse(text = paste(index, "<-", "new_category")))
     return (policy_categories)
 }
 
