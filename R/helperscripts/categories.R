@@ -89,7 +89,7 @@ createCategory <- function(name, input, assigns_table){
 
 createEmptyCategory <- function(name, i){
     list(category = name,
-         aggregation = "none",
+         aggregation = "equally_weighted",
          assignments = NULL)
 }
 
