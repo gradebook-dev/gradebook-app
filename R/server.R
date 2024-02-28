@@ -152,13 +152,14 @@ shinyServer(function(input, output, session) {
             }
             
             #update assignments
-            choices <- ""
+            choices <- c()
             if (!is.null(assign$table)){ #updates assignments if data has been loaded
-                choices = assign$table$assignment
+                choices <- assign$table$assignment
             }
             selected = NULL
             if (!is.null(policy$flat$categories[[i]]$assignments)){
                 selected <- policy$flat$categories[[i]]$assignments
+                choices <- c(choices, selected)
             }
             updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
             
