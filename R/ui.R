@@ -1,3 +1,5 @@
+library(shinydashboard)
+
 UICompDirectory <- "ui-components/"
 
 source(paste0(UICompDirectory, "files.R"), local = TRUE)
