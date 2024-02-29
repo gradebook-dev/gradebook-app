@@ -92,7 +92,8 @@ shinyServer(function(input, output, session) {
         #updates values that aren't always the same but still default
         updateTextInput(session, "name", value = paste0("Category ", editing$num))
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
-            updateSelectizeInput(session, "assignments", choices = assign$table$assignment, selected = "")
+            choices <- getUnassigned(assign$table)
+            updateSelectizeInput(session, "assignments", choices = choices, selected = "")
         }
         
     })
@@ -154,7 +155,7 @@ shinyServer(function(input, output, session) {
             #update assignments
             choices <- c()
             if (!is.null(assign$table)){ #updates assignments if data has been loaded
-                choices <- assign$table$assignment
+                choices <- getUnassigned(assign$table)
             }
             selected = NULL
             if (!is.null(policy$flat$categories[[i]]$assignments)){
@@ -162,8 +163,7 @@ shinyServer(function(input, output, session) {
                 choices <- c(choices, selected)
             }
             updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
-            
-            
+
         } else {
             showNotification("Please pick a category to edit", type = 'error')
         }
