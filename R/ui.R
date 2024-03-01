@@ -19,23 +19,19 @@ shinyUI(
                     "Upload Student Data"
                     
                 ),
-                fileInput("upload", label = NULL, accept = c(".csv")),
+                fileInput("upload_gs", label = NULL, accept = c(".csv")),
                 hr(),
                 div(class = "sidebar-text",
                     style = "margin-left: 20px;",
-                    "Choose Policy File:"
+                    "Upload Policy File:"
                 ),
-                div(style = "margin-top: -20px;",
-                    selectizeInput("pick_policy", "",
-                                   choices = '',
-                                   multiple = FALSE,
-                                   width = "100%"),
-                ),
+                fileInput("upload_policy", label = NULL, accept = c(".yml")),
                 # div(style = "display: flex; margin-left:17px;",
                 #     actionButton("upload_json", "Upload Policy File"),
                 #     actionButton("delete_json", "", icon = icon("trash-can"))
                 # ),
                 # br(),
+                hr(),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     h5("Download Your Course Grades:")
                 ),

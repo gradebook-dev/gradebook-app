@@ -11,14 +11,26 @@ shinyServer(function(input, output, session) {
     
     #can only upload data that can be read in by read_gs()
     data <- reactive({
-        req(input$upload)
+        req(input$upload_gs)
         
         tryCatch({
-            data <- gradebook::read_gs(input$upload$datapath)
+            data <- gradebook::read_gs(input$upload_gs$datapath)
             return(data)
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
             return(NULL)
+        })
+    })
+    
+    observe({
+        req(input$upload_policy)
+        #eventually validate
+        tryCatch({
+            yaml <- yaml::read_yaml(input$upload_policy$datapath)
+            policy$coursewide <- yaml$coursewide
+            policy$categories <- yaml$categories
+        }, error = function(e) {
+            showNotification('Please upload a policy file in YAML format','',type = "error")
         })
     })
     
