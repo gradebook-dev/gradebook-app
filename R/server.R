@@ -92,11 +92,12 @@ shinyServer(function(input, output, session) {
         #updates values that aren't always the same but still default
         updateTextInput(session, "name", value = paste0("Category ", editing$num))
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
-            updateSelectizeInput(session, "assignments", choices = assign$table$assignment, selected = "")
+            choices <- getUnassigned(assign$table)
+            updateSelectizeInput(session, "assignments", choices = choices, selected = "")
         }
         
     })
-
+    
     
     # Reactive Lateness Cells in Modal
     output$lateness <- renderUI({
@@ -154,7 +155,7 @@ shinyServer(function(input, output, session) {
             #update assignments
             choices <- c()
             if (!is.null(assign$table)){ #updates assignments if data has been loaded
-                choices <- assign$table$assignment
+                choices <- getUnassigned(assign$table)
             }
             selected = NULL
             if (!is.null(policy$flat$categories[[i]]$assignments)){
@@ -162,7 +163,6 @@ shinyServer(function(input, output, session) {
                 choices <- c(choices, selected)
             }
             updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
-            
             
         } else {
             showNotification("Please pick a category to edit", type = 'error')
@@ -234,6 +234,19 @@ shinyServer(function(input, output, session) {
         # purrr::walk(names, rerender_ui)
     })
     
+    #### -------------------------- DISPLAY CATEGORIES UI ----------------------------####
+# 
+    # output$categoriesUI <- renderUI({
+    #     req(policy$flat$categories)
+    #     category_levels <- assignLevelsToCategories(policy$flat$categories)
+    #     createFlatCards(policy$flat$categories, category_levels)
+    # })
+    output$categoriesUI <- renderUI({
+        req(policy$flat$categories)
+        category_levels <- assignLevelsToCategories(policy$flat$categories)
+        createNestedCards(policy$flat$categories, category_levels)
+    })
+    
     #### -------------------------- GRADING ----------------------------####
     
     observeEvent(policy$categories,{
@@ -246,9 +259,9 @@ shinyServer(function(input, output, session) {
                     ungroup()
                 
                 flat_policy <- list(coursewide = policy$coursewide, 
-                               categories = policy$categories, 
-                               letter_grades = policy$letter_grades,
-                               exceptions = policy$exceptions) |>
+                                    categories = policy$categories, 
+                                    letter_grades = policy$letter_grades,
+                                    exceptions = policy$exceptions) |>
                     gradebook::flatten_policy()
                 policy$grades <- cleaned_data |>
                     calculate_lateness(flat_policy) |>
@@ -258,7 +271,6 @@ shinyServer(function(input, output, session) {
             })
         }
     })
-
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
     output$download_policy_file <- downloadHandler(
@@ -267,8 +279,8 @@ shinyServer(function(input, output, session) {
         },
         content = function(file) {
             yaml::write_yaml(list(coursewide = policy$coursewide,
-                            categories = policy$categories,
-                            exceptions = policy$exceptions), file)
+                                  categories = policy$categories,
+                                  exceptions = policy$exceptions), file)
         }
     )
     

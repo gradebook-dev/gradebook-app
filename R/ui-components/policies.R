@@ -46,6 +46,7 @@ Policies <- tabItem(tabName = "policies",
                                                     actionButton("edit", label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; margin-right: 10px;"),
                                                     )
                                          ),
+                                         uiOutput("categoriesUI"),
                                          verbatimTextOutput("policy_list"),
                                          tags$div(id='inputList') #this is all the dynamic UI for categories
                                   ),

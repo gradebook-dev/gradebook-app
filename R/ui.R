@@ -94,11 +94,10 @@ shinyUI(
                                 .skin-blue .main-sidebar .sidebar .sidebar-menu a:hover{
                                 background-color: #438BC5;
                                 }
-                               s
+                               
                                 /* body */
-                                .content-wrapper, .right-side {
+                                .content-wrapper, .right-side{
                                 background-color: #ffffff; 
-                            
                                 }
                                  
                                 '))),
