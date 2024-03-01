@@ -132,9 +132,17 @@ shinyServer(function(input, output, session) {
             })
         }
     })
+    observe({
+        print(input)
+    })
+        
     
+    #observeEvent(input[[paste0('edit',label)]],{
     observeEvent(input$edit, {
         editing$name <- input$edit_cat
+        print("editing$name -- in edit")
+        print(editing$name)
+        
         if (editing$name != ""){
             showModal(edit_category_modal) #opens edit modal
             label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", editing$name)
@@ -231,7 +239,10 @@ shinyServer(function(input, output, session) {
         if (input$edit_cat != ""){
             #some of this syntax is unnecessary now but will be relevant with dynamic UI
             editing$name <- input$edit_cat
+            print("editing$name -- in delete")
+            print(editing$name)
             label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", editing$name)
+            (label)
             policy$categories <- deleteCategory(policy$categories, policy$flat, label)
         } else {
             showNotification("Please pick a category to delete",type = 'error')

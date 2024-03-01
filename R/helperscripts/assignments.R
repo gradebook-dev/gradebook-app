@@ -97,7 +97,6 @@ assignLevelsToCategories <- function(flat_categories) {
     for (category_name in names(children_map)) {
         levels[category_name] <- calculate_level(category_name, children_map)
     }
-    print(levels)
     levels
 }
 
@@ -110,7 +109,13 @@ createNestedCards <- function(flat_categories, category_levels) {
 
     # Helper function to create a box for a category
     createCategoryBox <- function(category, level, assignments_list) {
-        title <- div(class = "category-title", category$category)
+        label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", category$category)
+        title <- div(class = "category-title", 
+                     category$category,
+                     actionButton(paste0('delete', label), label = NULL, icon = icon("trash-can"), style = "background-color: transparent; margin-right: 10px;"),
+                     actionButton(paste0('edit', label), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent;"),
+                     
+                     )
         content <- div(
             strong("Weight: "), category$weight %||% "Not set", br(),
             strong("Aggregation: "), category$aggregation, br(),
