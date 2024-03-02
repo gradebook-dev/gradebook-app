@@ -236,7 +236,6 @@ shinyServer(function(input, output, session) {
             #some of this syntax is unnecessary now but will be relevant with dynamic UI
             editing$name <- input$edit_cat
             label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", editing$name)
-            (label)
             policy$categories <- deleteCategory(policy$categories, policy$flat, label)
         } else {
             showNotification("Please pick a category to delete",type = 'error')
@@ -264,6 +263,18 @@ shinyServer(function(input, output, session) {
         createNestedCards(policy$flat$categories, category_levels)
     })
     
+    # observe({
+    #     names <- str_subset(names(input), 'delete')
+    #     print(input[['deleteLab1']])
+    #     for (n in names){
+    #         if (input[[n]] != 0){
+    #             label <- str_remove(n, 'delete')
+    #             policy$categories <- deleteCategory(policy$categories, policy$flat, label)
+    #             shinyjs::reset(n)
+    #         }
+    #     }
+    # })
+    # 
     #### -------------------------- GRADING ----------------------------####
     
     observeEvent(policy$categories,{
