@@ -258,7 +258,12 @@ shinyServer(function(input, output, session) {
             })
         }
     })
-
+    output$dashboard <- renderPlot({
+        if (!is.null(policy$grades)) {
+            
+            ggplot()
+        }
+    })
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
     output$download_policy_file <- downloadHandler(

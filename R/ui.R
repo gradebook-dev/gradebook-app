@@ -4,6 +4,7 @@ UICompDirectory <- "ui-components/"
 
 source(paste0(UICompDirectory, "files.R"), local = TRUE)
 source(paste0(UICompDirectory, "policies.R"), local = TRUE)
+source(paste0(UICompDirectory, "dashboard.R"), local = TRUE)
 
 shinyUI(
     dashboardPage(
@@ -12,6 +13,7 @@ shinyUI(
             sidebarMenu(
                 menuItem("Files", tabName = "files", icon = icon("pencil")),
                 menuItem("Policies", tabName = "policies", icon = icon("pencil")),
+                menuItem("Dashboard", tabName = "dashboard", icon = icon("pencil")),
                 br(),
                 hr(),
                 div(class = "sidebar-text",
@@ -104,7 +106,8 @@ shinyUI(
                                 '))),
             tabItems(
                 Files,
-                Policies
+                Policies,
+                Dashboard
                 )
         )
     )
