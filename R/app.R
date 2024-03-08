@@ -1,6 +1,7 @@
 #load libraries
 library(shinydashboard)
 library(shiny)
+library(plotly)
 #library(shinyWidgets)
 library(DT)
 library(tidyverse)

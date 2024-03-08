@@ -285,7 +285,6 @@ shinyServer(function(input, output, session) {
                     group_by(SID) |>
                     filter(row_number() == 1) |>
                     ungroup()
-                
                 flat_policy <- list(coursewide = policy$coursewide, 
                                     categories = policy$categories, 
                                     letter_grades = policy$letter_grades,
@@ -297,6 +296,20 @@ shinyServer(function(input, output, session) {
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
             })
+        }
+    })
+    
+    #### -------------------------- DASHBOARD ----------------------------####
+    
+    output$dashboard <- renderPlot({
+        if (!is.null(policy$grades)) {
+            plot_ly(x = policy$grades$`Overall Score`, type = "histogram")
+        }
+    })
+    
+    observe({
+        if (!is.null(policy$grades)) {
+            # print(columns())
         }
     })
 
@@ -343,7 +356,7 @@ shinyServer(function(input, output, session) {
         Hmisc::list.tree(policy$flat)
     })
     
-    output$grades <- renderDataTable({ 
+    output$grades <- renderDataTable({
         datatable(policy$grades, options = list(scrollX = TRUE, scrollY = "500px"))
         })
 })
