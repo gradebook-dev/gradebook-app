@@ -301,7 +301,7 @@ shinyServer(function(input, output, session) {
     
     #### -------------------------- DASHBOARD ----------------------------####
     
-    output$dashboard <- renderPlot({
+    output$dashboard <- renderPlotly({
         if (!is.null(policy$grades)) {
             plot_ly(x = policy$grades$`Overall Score`, type = "histogram")
         }
