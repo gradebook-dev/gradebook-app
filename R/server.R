@@ -299,6 +299,7 @@ shinyServer(function(input, output, session) {
             })
         }
     })
+
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
     output$download_policy_file <- downloadHandler(
