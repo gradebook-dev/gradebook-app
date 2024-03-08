@@ -11,14 +11,26 @@ shinyServer(function(input, output, session) {
     
     #can only upload data that can be read in by read_gs()
     data <- reactive({
-        req(input$upload)
+        req(input$upload_gs)
         
         tryCatch({
-            data <- gradebook::read_gs(input$upload$datapath)
+            data <- gradebook::read_gs(input$upload_gs$datapath)
             return(data)
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
             return(NULL)
+        })
+    })
+    
+    observe({
+        req(input$upload_policy)
+        #eventually validate
+        tryCatch({
+            yaml <- yaml::read_yaml(input$upload_policy$datapath)
+            policy$coursewide <- yaml$coursewide
+            policy$categories <- yaml$categories
+        }, error = function(e) {
+            showNotification('Please upload a policy file in YAML format','',type = "error")
         })
     })
     
@@ -92,11 +104,12 @@ shinyServer(function(input, output, session) {
         #updates values that aren't always the same but still default
         updateTextInput(session, "name", value = paste0("Category ", editing$num))
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
-            updateSelectizeInput(session, "assignments", choices = assign$table$assignment, selected = "")
+            choices <- getUnassigned(assign$table)
+            updateSelectizeInput(session, "assignments", choices = choices, selected = "")
         }
         
     })
-
+    
     
     # Reactive Lateness Cells in Modal
     output$lateness <- renderUI({
@@ -119,9 +132,13 @@ shinyServer(function(input, output, session) {
             })
         }
     })
+
+        
     
+    #observeEvent(input[[paste0('edit',label)]],{
     observeEvent(input$edit, {
         editing$name <- input$edit_cat
+        
         if (editing$name != ""){
             showModal(edit_category_modal) #opens edit modal
             label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", editing$name)
@@ -154,7 +171,7 @@ shinyServer(function(input, output, session) {
             #update assignments
             choices <- c()
             if (!is.null(assign$table)){ #updates assignments if data has been loaded
-                choices <- assign$table$assignment
+                choices <- getUnassigned(assign$table)
             }
             selected = NULL
             if (!is.null(policy$flat$categories[[i]]$assignments)){
@@ -162,7 +179,6 @@ shinyServer(function(input, output, session) {
                 choices <- c(choices, selected)
             }
             updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
-            
             
         } else {
             showNotification("Please pick a category to edit", type = 'error')
@@ -234,6 +250,31 @@ shinyServer(function(input, output, session) {
         # purrr::walk(names, rerender_ui)
     })
     
+    #### -------------------------- DISPLAY CATEGORIES UI ----------------------------####
+# 
+    # output$categoriesUI <- renderUI({
+    #     req(policy$flat$categories)
+    #     category_levels <- assignLevelsToCategories(policy$flat$categories)
+    #     createFlatCards(policy$flat$categories, category_levels)
+    # })
+    output$categoriesUI <- renderUI({
+        req(policy$flat$categories)
+        category_levels <- assignLevelsToCategories(policy$flat$categories)
+        createNestedCards(policy$flat$categories, category_levels)
+    })
+    
+    # observe({
+    #     names <- str_subset(names(input), 'delete')
+    #     print(input[['deleteLab1']])
+    #     for (n in names){
+    #         if (input[[n]] != 0){
+    #             label <- str_remove(n, 'delete')
+    #             policy$categories <- deleteCategory(policy$categories, policy$flat, label)
+    #             shinyjs::reset(n)
+    #         }
+    #     }
+    # })
+    # 
     #### -------------------------- GRADING ----------------------------####
     
     observeEvent(policy$categories,{
@@ -246,9 +287,9 @@ shinyServer(function(input, output, session) {
                     ungroup()
                 
                 flat_policy <- list(coursewide = policy$coursewide, 
-                               categories = policy$categories, 
-                               letter_grades = policy$letter_grades,
-                               exceptions = policy$exceptions) |>
+                                    categories = policy$categories, 
+                                    letter_grades = policy$letter_grades,
+                                    exceptions = policy$exceptions) |>
                     gradebook::flatten_policy()
                 policy$grades <- cleaned_data |>
                     calculate_lateness(flat_policy) |>
@@ -258,12 +299,7 @@ shinyServer(function(input, output, session) {
             })
         }
     })
-    output$dashboard <- renderPlot({
-        if (!is.null(policy$grades)) {
-            
-            ggplot()
-        }
-    })
+
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
     output$download_policy_file <- downloadHandler(
@@ -272,8 +308,8 @@ shinyServer(function(input, output, session) {
         },
         content = function(file) {
             yaml::write_yaml(list(coursewide = policy$coursewide,
-                            categories = policy$categories,
-                            exceptions = policy$exceptions), file)
+                                  categories = policy$categories,
+                                  exceptions = policy$exceptions), file)
         }
     )
     
