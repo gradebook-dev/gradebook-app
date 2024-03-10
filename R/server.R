@@ -301,15 +301,49 @@ shinyServer(function(input, output, session) {
     
     #### -------------------------- DASHBOARD ----------------------------####
     
+    output$dashboard <- renderUI({
+        
+    })
+    
     output$dashboard <- renderPlotly({
         if (!is.null(policy$grades)) {
-            plot_ly(x = policy$grades$`Overall Score`, type = "histogram")
+            A_bin = 0.9
+            B_bin = 0.8
+            C_bin = 0.7
+            vline <- function(x = 0, color = "red") {
+                list(
+                    type = "line",
+                    y0 = 0,
+                    y1 = 1,
+                    yref = "paper",
+                    x0 = x,
+                    x1 = x,
+                    line = list(color = color)
+                )
+            }
+            
+            p <- plot_ly(x = policy$grades$`Overall Score`, type = "histogram", hoverinfo = 'none') |>
+                config(displayModeBar = FALSE) |>
+                layout(dragmode = FALSE)
+            
+            p <- p |>
+                layout(hovermode = 'x', 
+                       shapes = list(
+                        vline(x = A_bin, color = "red"),
+                        vline(x = B_bin, color = "red"),
+                        vline(x = C_bin, color = "red")
+                    )
+                )
+                
+                
+                
+            p
         }
     })
     
     observe({
         if (!is.null(policy$grades)) {
-            # print(columns())
+            print("isnt null")
         }
     })
 
