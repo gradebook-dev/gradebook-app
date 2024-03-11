@@ -49,16 +49,10 @@ assignLevelsToCategories <- function(flat_categories) {
 createNestedCards <- function(flat_categories, category_levels) {
     ui_elements <- list()
     labels <- list(edit = list(), delete = list())
-
+    
     # Helper function to create a box for a category
     createCategoryBox <- function(category, level, assignments_list) {
         label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", category$category)
-        # Create IDs for buttons
-        edit_id <- paste0('edit', label)
-        delete_id <- paste0('delete', label)
-        # Store these IDs
-        labels$edit[[category$category]] <- edit_id
-        labels$delete[[category$category]] <- delete_id
         
         title <- div(class = "category-title", 
                      category$category,
@@ -96,6 +90,13 @@ createNestedCards <- function(flat_categories, category_levels) {
     # Loop over flat_categories and create the UI elements
     for (cat in flat_categories) {
         level <- category_levels[cat$category]
+        label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", cat$category)
+        # Create IDs for buttons
+        edit_id <- paste0('edit', label)
+        delete_id <- paste0('delete', label)
+        # Store IDs
+        labels$edit[[cat$category]] <- edit_id
+        labels$delete[[cat$category]] <- delete_id
         if (level == 1) {  # Check if it is a top-level category
             ui_elements[[cat$category]] <- createNestedUI(cat, level)
         }
@@ -105,5 +106,4 @@ createNestedCards <- function(flat_categories, category_levels) {
     ui <- do.call(tagList, ui_elements)
     return(list(ui = ui, labels = labels))
 }
-
 

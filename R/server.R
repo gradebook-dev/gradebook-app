@@ -158,6 +158,7 @@ shinyServer(function(input, output, session) {
                     if (!is.null(matched_category)) {
                         showModal(edit_category_modal) #opens edit modal
                         cat_details <- matched_category
+                        
                         updateTextInput(session, "name", value = cat_details$category)
                         updateSelectInput(session, "aggregation", selected = cat_details$aggregation)
                         shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)   
@@ -260,6 +261,7 @@ shinyServer(function(input, output, session) {
     #### -------------------------- DISPLAY CATEGORIES UI ----------------------------####
 
     category_labels <- reactiveValues(edit = list(), delete = list())
+   
     
     observe({
         req(policy$flat$categories)
@@ -273,13 +275,9 @@ shinyServer(function(input, output, session) {
         # Store the labels returned from createNestedCards function
         category_labels$edit <- result$labels$edit
         category_labels$delete <- result$labels$delete
+        
     })
     
-    # output$categoriesUI <- renderUI({
-    #     req(policy$flat$categories)
-    #     category_levels <- assignLevelsToCategories(policy$flat$categories)
-    #     createNestedCards(policy$flat$categories, category_levels)
-    # })
     
     # observe({
     #     names <- str_subset(names(input), 'delete')
