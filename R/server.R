@@ -277,6 +277,7 @@ shinyServer(function(input, output, session) {
     # 
     #### -------------------------- GRADING ----------------------------####
     
+    
     observeEvent(policy$categories,{
         if (!is.null(data()) & length(policy$categories) != 0){
             tryCatch({
@@ -317,33 +318,43 @@ shinyServer(function(input, output, session) {
     #   - possibly plotly?
     #   - python script
     
-    output$dashboard <- renderPlotly({
+    output$dashboardUI <- renderUI({
+        paste0("Hey world!")
+    })
+    
+
+    output$dashboardVisualizer <- renderPlotly({
         if (!is.null(policy$grades)) {
-            A_bin = 0.9
-            B_bin = 0.8
-            C_bin = 0.7
-            vline <- function(x = 0, color = "red") {
+            A_bin = 1
+            B_bin = 0.9
+            C_bin = 0.8
+            D_bin = 0.7
+            F_bin = 0.6
+            
+            vline <- function(x = 0, color = "black") {
                 list(
                     type = 'line',
+                    line = list(color = color, width = 3, dash = 'longdash'),
                     y0 = 0,
                     y1 = 1,
                     yref = 'paper',
                     x0 = x,
-                    x1 = x,
-                    line = list(color = color)
+                    x1 = x
                 )
             }
-            
+
             p <- plot_ly(x = policy$grades$`Overall Score`, type = 'histogram', source = 'click_test') |>
                 config(displayModeBar = FALSE) |>
                 layout(dragmode = FALSE)
-            
+
             p <- p |>
-                layout(hovermode = 'x', 
+                layout(hovermode = 'x',
                        shapes = list(
                         vline(x = A_bin),
                         vline(x = B_bin),
-                        vline(x = C_bin)
+                        vline(x = C_bin),
+                        vline(x = D_bin),
+                        vline(x = F_bin)
                     )
                 )
             p
