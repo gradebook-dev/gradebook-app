@@ -1,6 +1,8 @@
 library(DT)
 library(tidyverse)
 library(readr)
+library(plotly)
+library(gradebook)
 #load helper scripts
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
@@ -277,7 +279,6 @@ shinyServer(function(input, output, session) {
     # 
     #### -------------------------- GRADING ----------------------------####
     
-    
     observeEvent(policy$categories,{
         if (!is.null(data()) & length(policy$categories) != 0){
             tryCatch({
@@ -302,26 +303,9 @@ shinyServer(function(input, output, session) {
     
     #### -------------------------- DASHBOARD ----------------------------####
     
-    # observe({
-    #     if (!is.null(policy$grades)) {
-    #         click <- event_data("plotly_click", source = 'click_test')
-    #         if (!is.null(click)) {
-    #             print(paste0('click is at x =', hover$x, 'and y =', hover$y, '\n'))
-    #         }
-    #     }
-    # })
-    # 
-    # WANT: an interactive plot to adjust bins of grades
-    # 
-    # POSSIBILITIES:
-    #   - r2d3 + using js scripts with shinyjs
-    #   - possibly plotly?
-    #   - python script
-    
     output$dashboardUI <- renderUI({
-        paste0("Hey world!")
+        # TODO
     })
-    
 
     output$dashboardVisualizer <- renderPlotly({
         if (!is.null(policy$grades)) {
@@ -330,33 +314,35 @@ shinyServer(function(input, output, session) {
             C_bin = 0.8
             D_bin = 0.7
             F_bin = 0.6
-            
-            vline <- function(x = 0, color = "black") {
-                list(
-                    type = 'line',
-                    line = list(color = color, width = 3, dash = 'longdash'),
-                    y0 = 0,
-                    y1 = 1,
-                    yref = 'paper',
-                    x0 = x,
-                    x1 = x
-                )
-            }
+            grade_bins = c(A_bin, B_bin, C_bin, D_bin, F_bin)
 
-            p <- plot_ly(x = policy$grades$`Overall Score`, type = 'histogram', source = 'click_test') |>
+            p <- plot_ly(x = policy$grades$`Overall Score`, type = 'histogram') |>
                 config(displayModeBar = FALSE) |>
                 layout(dragmode = FALSE)
-
+            
+            line = list(
+                type = 'line',
+                line = list(color = "black", width = 2, dash = 'longdash'),
+                y0 = 0,
+                y1 = 1,
+                opacity = 0.5,
+                yref = 'paper',
+                x0 = B_bin,
+                x1 = B_bin
+            )
+            
+            # eventually, lines will be reactive to grade bins from user input
+            lines = list()
+            for (bin in grade_bins) {
+                line[['x0']] = bin
+                line[['x1']] = bin
+                lines = c(lines, list(line))
+            }
             p <- p |>
-                layout(hovermode = 'x',
-                       shapes = list(
-                        vline(x = A_bin),
-                        vline(x = B_bin),
-                        vline(x = C_bin),
-                        vline(x = D_bin),
-                        vline(x = F_bin)
+                    layout(hovermode = 'x',
+                        shapes = lines
                     )
-                )
+            
             p
         }
     })
