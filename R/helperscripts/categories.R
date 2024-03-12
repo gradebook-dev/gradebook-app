@@ -92,14 +92,25 @@ createEmptyCategory <- function(name){
 }
 
 
-deleteCategory <- function(policy_categories, flat_policy, label){
-    if (length(getIndex(flat_policy, label)) > 0){
-        name <- flat_policy$categories[[getIndex(flat_policy, label)]]$category
-        index <- find_indices(policy_categories, name)
-        index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
-        eval(parse(text = paste(index, "<-", "NULL")))
+# deleteCategory <- function(policy_categories, flat_policy, label){
+#     if (length(getIndex(flat_policy, label)) > 0){
+#         name <- flat_policy$categories[[getIndex(flat_policy, label)]]$category
+#         index <- find_indices(policy_categories, name)
+#         index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
+#         eval(parse(text = paste(index, "< -", "NULL")))
+#     }
+#     return (policy_categories)
+# }
+
+deleteCategory <- function(policy_categories, matched_category_name) {
+    # Using find_indices function to directly find the category to delete
+    index <- find_indices(policy_categories, matched_category_name)
+    if (length(index) > 0) {
+        # Constructing the dynamic command to set the category or its assignments to NULL
+        index_cmd <- paste0("policy_categories[[", paste(index, collapse = "]]$assignments[["), "]] <- NULL")
+        eval(parse(text = index_cmd))
     }
-    return (policy_categories)
+    return(policy_categories)
 }
 
 
