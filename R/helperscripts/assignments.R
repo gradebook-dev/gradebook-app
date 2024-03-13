@@ -5,7 +5,7 @@ getUnassigned <- function(assign_table){
     if (length(assigns) != 0){
         return (assigns) 
     }
-    return ("No more new assignments")
+    return ()
 }
 
 updateAssignsTable <- function(assign_table, flat_policy){
