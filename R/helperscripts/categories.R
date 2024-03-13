@@ -23,14 +23,15 @@ edit_category_modal <- modalDialog(
                    choices = "", multiple = TRUE, width = "100%",
                    options = list(create = TRUE)),
     uiOutput("lateness"),
-    
+    easyClose = TRUE,
     footer = tagList(
         actionButton("cancel", "Cancel"),
         actionButton("save", "Save"))
 )
 
 confirm_delete <- modalDialog(
-    h4("Are you sure"),
+    h4("Are you sure you want to delete this category ?"),
+    easyClose = TRUE,
     footer = tagList(
         actionButton("cancel", "Cancel"),
         actionButton("delete", "Delete"))

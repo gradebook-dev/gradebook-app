@@ -277,12 +277,8 @@ shinyServer(function(input, output, session) {
         print(category_to_be_deleted$cat$category)
         policy$categories <- deleteCategory(policy$categories, category_to_be_deleted$cat$category)
         category_to_be_deleted$cat <- NULL
-        
-        
     })
-    
-    
-    
+
     #whenever policy$categories changes, policy$flat, assign$table and UI updates
     observe({
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
