@@ -92,7 +92,7 @@ shinyServer(function(input, output, session) {
     
     #### -------------------------- CATEGORIES MODAL ----------------------------####
     # if NULL, making new category; if not, editing category called editing$name
-   # editing <- reactiveValues(name = NULL,#to keep track of edited category
+    # editing <- reactiveValues(name = NULL,#to keep track of edited category
     #                          num = 0) #to create unique names for each new category
     
     current_edit <- reactiveValues(category = NULL)
@@ -133,7 +133,7 @@ shinyServer(function(input, output, session) {
             })
         }
     })
-
+    
     observe({
         req(category_labels$edit)
         
@@ -142,7 +142,7 @@ shinyServer(function(input, output, session) {
             local({
                 # Localize the variables to ensure they're correctly captured in the observer
                 local_cat_name <- cat_name
-                edit_id <- category_labels$edit[[cat_name]]
+                edit_id <- category_labels$edit[[local_cat_name]]
                 
                 observeEvent(input[[edit_id]], {
                     # Initialize a variable to hold the found category details
@@ -174,7 +174,7 @@ shinyServer(function(input, output, session) {
                         #     updateTextInput(session, paste0("to", j), value = late_policy$to)
                         #     updateTextInput(session, paste0("scale", j), value = late_policy$scale)
                         # }
-                    
+                        
                         #update assignments
                         choices <- c()
                         if (!is.null(assign$table)){ #updates assignments if data has been loaded
@@ -186,9 +186,9 @@ shinyServer(function(input, output, session) {
                             choices <- c(choices, selected)
                         }
                         updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
-                } else {
-                    showNotification("Please pick a category to edit", type = 'error')
-                }
+                    } else {
+                        showNotification("Please pick a category to edit", type = 'error')
+                    }
                 })
             })
         })
@@ -206,11 +206,11 @@ shinyServer(function(input, output, session) {
         if (!is.null(assign$table) & !is.null(input$assignments)){
             sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
         }
-
+        
         if (sum %in% c(0,1)){
             #update policy
             if (!is.null(current_edit$category$category)){
-
+                
                 #add new category
                 policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
                                                     input$name, input, assign$table)
@@ -223,7 +223,7 @@ shinyServer(function(input, output, session) {
             showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
         }
     })
-
+    
     
     observe({
         names <- purrr::map(policy$flat$categories, "category") |> unlist()
@@ -242,7 +242,7 @@ shinyServer(function(input, output, session) {
             local({
                 # Localize the variables to ensure they're correctly captured in the observer
                 local_cat_name <- cat_name
-                delete_id <- category_labels$delete[[cat_name]]
+                delete_id <- category_labels$delete[[local_cat_name]]
                 
                 observeEvent(input[[delete_id]], {
                     # Initialize a variable to hold the found category details
@@ -255,22 +255,16 @@ shinyServer(function(input, output, session) {
                             break
                         }
                     }
-                        
-                        if (!is.null(matched_category)) {
-        # observeEvent(input$delete_cat, {
-        #     if (input$edit_cat != ""){
-        #         #some of this syntax is unnecessary now but will be relevant with dynamic UI
-        #         editing$name <- input$edit_cat
-                            
-                #policy$categories <- deleteCategory(policy$categories, policy$flat, label)
-                policy$categories <- deleteCategory(policy$categories, matched_category$category)
-            } else {
-                showNotification("Please pick a category to delete",type = 'error')
-            }
+                    
+                    if (!is.null(matched_category)) {
+                        policy$categories <- deleteCategory(policy$categories, matched_category$category)
+                    } else {
+                        showNotification("Please pick a category to delete",type = 'error')
+                    }
+                })
+            })
         })
     })
- })   
-})
     
     #whenever policy$categories changes, policy$flat, assign$table and UI updates
     observe({
@@ -281,9 +275,9 @@ shinyServer(function(input, output, session) {
     })
     
     #### -------------------------- DISPLAY CATEGORIES UI ----------------------------####
-
+    
     category_labels <- reactiveValues(edit = list(), delete = list())
-   
+    
     
     observe({
         req(policy$flat$categories)
@@ -325,7 +319,7 @@ shinyServer(function(input, output, session) {
             })
         }
     })
-
+    
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
     output$download_policy_file <- downloadHandler(
@@ -371,5 +365,5 @@ shinyServer(function(input, output, session) {
     
     output$grades <- renderDataTable({ 
         datatable(policy$grades, options = list(scrollX = TRUE, scrollY = "500px"))
-        })
+    })
 })
