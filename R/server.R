@@ -91,16 +91,11 @@ shinyServer(function(input, output, session) {
     )
     
     #### -------------------------- CATEGORIES MODAL ----------------------------####
-    # if NULL, making new category; if not, editing category called editing$name
-    # editing <- reactiveValues(name = NULL,#to keep track of edited category
-    #                          num = 0) #to create unique names for each new category
-    
     current_edit <- reactiveValues(category = NULL)
+    modalIsOpen <- reactiveVal(FALSE)
     
     # Opening category modal to create a NEW category
     observeEvent(input$new_cat, {
-        #editing$name <- NULL
-        #editing$num <- editing$num + 1 #increment to continue making unique category names
         showModal(edit_category_modal) #opens edit modal
         #updates values that aren't always the same but still default
         updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
@@ -186,22 +181,25 @@ shinyServer(function(input, output, session) {
                             choices <- c(choices, selected)
                         }
                         updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
-                    } else {
+                        } else {
                         showNotification("Please pick a category to edit", type = 'error')
                     }
-                })
+                },         ignoreInit = TRUE)
             })
         })
+
     })   
     
     # Cancel and no changes will be made
     observeEvent(input$cancel,{
         removeModal() #closes edit modal
+       
     })
     
     observeEvent(input$save,{
         
         removeModal() #closes edit modal
+       
         sum <- 0
         if (!is.null(assign$table) & !is.null(input$assignments)){
             sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
@@ -237,8 +235,7 @@ shinyServer(function(input, output, session) {
     category_to_be_deleted <- reactiveValues(cat = NULL)
     observe({
         req(category_labels$delete)
-       
-        
+
         # Iterate over each category name to set up edit observers dynamically
         lapply(names(category_labels$delete), function(cat_name) {
             local({
@@ -266,7 +263,7 @@ shinyServer(function(input, output, session) {
                     } else {
                         showNotification("Please pick a category to delete",type = 'error')
                     }
-                })
+                },ignoreInit = TRUE)
             })
         })
     })
