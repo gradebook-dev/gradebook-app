@@ -29,6 +29,13 @@ edit_category_modal <- modalDialog(
         actionButton("save", "Save"))
 )
 
+confirm_delete <- modalDialog(
+    h4("Are you sure"),
+    footer = tagList(
+        actionButton("cancel", "Cancel"),
+        actionButton("delete", "Delete"))
+    
+)
 
 createCategory <- function(name, input, assigns_table){
     assignments = c()

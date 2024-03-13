@@ -234,8 +234,10 @@ shinyServer(function(input, output, session) {
         }
     })
     
+    category_to_be_deleted <- reactiveValues(cat = NULL)
     observe({
         req(category_labels$delete)
+       
         
         # Iterate over each category name to set up edit observers dynamically
         lapply(names(category_labels$delete), function(cat_name) {
@@ -245,6 +247,7 @@ shinyServer(function(input, output, session) {
                 delete_id <- category_labels$delete[[local_cat_name]]
                 
                 observeEvent(input[[delete_id]], {
+                   
                     # Initialize a variable to hold the found category details
                     matched_category <- NULL
                     
@@ -257,7 +260,9 @@ shinyServer(function(input, output, session) {
                     }
                     
                     if (!is.null(matched_category)) {
-                        policy$categories <- deleteCategory(policy$categories, matched_category$category)
+                        showModal(confirm_delete)
+                        category_to_be_deleted$cat <- matched_category
+
                     } else {
                         showNotification("Please pick a category to delete",type = 'error')
                     }
@@ -265,6 +270,18 @@ shinyServer(function(input, output, session) {
             })
         })
     })
+    
+    observeEvent(input$delete, {
+        req(category_to_be_deleted$cat)
+        removeModal()
+        print(category_to_be_deleted$cat$category)
+        policy$categories <- deleteCategory(policy$categories, category_to_be_deleted$cat$category)
+        category_to_be_deleted$cat <- NULL
+        
+        
+    })
+    
+    
     
     #whenever policy$categories changes, policy$flat, assign$table and UI updates
     observe({
