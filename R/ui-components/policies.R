@@ -32,19 +32,7 @@ Policies <- tabItem(tabName = "policies",
                               fluidRow(
                                   column(8,
                                          br(),
-                                         fluidRow(
-                                             column(1,
-                                                    actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;"),
-                                                    ),
-                                             column(6,
-                                                    selectInput("edit_cat", "Delete this Category:", selected = NULL, choices = "")
-                                                    ),
-                                             column(1,
-                                                    actionButton("delete_cat", label = NULL, icon = icon("trash-can"), style = "background-color: transparent; margin-right: 10px;"),
-                                                    ),
-                                             column(1,
-                                                    actionButton("edit", label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent; margin-right: 10px;"),
-                                                    )
+                                         fluidRow(actionButton("new_cat", label = NULL, icon = icon("plus"), style = "background-color: transparent; margin-right: 10px;")
                                          ),
                                          uiOutput("categoriesUI"),
                                          verbatimTextOutput("policy_list"),

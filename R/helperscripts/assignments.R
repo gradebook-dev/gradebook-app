@@ -5,7 +5,7 @@ getUnassigned <- function(assign_table){
     if (length(assigns) != 0){
         return (assigns) 
     }
-    return ("No more new assignments")
+    return ()
 }
 
 updateAssignsTable <- function(assign_table, flat_policy){
@@ -16,61 +16,6 @@ updateAssignsTable <- function(assign_table, flat_policy){
     
     return (assign_table)
 }
-
-# 
-# 
-# createCards <- function(categories, level = 1) {
-#     ui_elements <- lapply(seq_along(categories), function(i) {
-#         category <- categories[[i]]
-#         name <- category$category
-#         label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", name)
-# 
-#         # Prepare the assignments text if available
-#         assignments_text <- ""
-#         if (!is.null(category$assignments) && length(category$assignments) > 0) {
-#             assignments_text <- sapply(category$assignments, function(a) a$category, USE.NAMES = FALSE)
-#             assignments_text <- paste(assignments_text, collapse = ", ")
-#         } else {
-#             assignments_text <- "No assignments"
-#         }
-# 
-#         # Create the box content
-#         box_content <- div(
-#             h5("Weight: ", category$weight),
-#             h5("Aggregation: ", category$aggregation),
-#             h5("Assignments: ", assignments_text)
-#         )
-# 
-#         # Create the subcategories UI if they exist
-#         subcategories_ui <- NULL
-#         if (!is.null(category$assignments) && length(category$assignments) > 0) {
-#             subcategories_ui <- lapply(category$assignments, function(subcat) {
-#                 if (!is.null(subcat$assignments)) {
-#                     print(subcat$assignments)
-#                     createCards(subcat$assignments, level + 1)
-#                 }
-#             })
-#             subcategories_ui <- do.call(tagList, subcategories_ui)
-#         }
-# 
-#         # Create the box
-#         box(
-#             id = paste0("cat", label),
-#             title = div(class = "category-title", name),
-#             status = "primary",
-#             actionButton(paste0('delete', label), label = NULL, icon = icon("trash-can"), style = "background-color: transparent; margin-right: 10px;"),
-#             actionButton(paste0('edit', label), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent;"),
-#             width = "100%",
-#             collapsible = TRUE,
-#             collapsed = (level != 1), # Collapse all but the first level
-#             box_content,
-#             subcategories_ui # Add the subcategories if any
-#         )
-#     })
-# 
-#     # Combine all elements into a single UI element
-#     do.call(tagList, ui_elements)
-# }
 
 
 ### This helper function assigns level of depth/nesting of each category for the purpose of nesting in the UI
@@ -101,15 +46,14 @@ assignLevelsToCategories <- function(flat_categories) {
 }
 
 
-
-
-
 createNestedCards <- function(flat_categories, category_levels) {
     ui_elements <- list()
-
+    labels <- list(edit = list(), delete = list())
+    
     # Helper function to create a box for a category
     createCategoryBox <- function(category, level, assignments_list) {
         label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", category$category)
+        
         title <- div(class = "category-title", 
                      category$category,
                      actionButton(paste0('delete', label), label = NULL, icon = icon("trash-can"), style = "background-color: transparent; margin-right: 10px;"),
@@ -146,13 +90,20 @@ createNestedCards <- function(flat_categories, category_levels) {
     # Loop over flat_categories and create the UI elements
     for (cat in flat_categories) {
         level <- category_levels[cat$category]
+        label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", cat$category)
+        # Create IDs for buttons
+        edit_id <- paste0('edit', label)
+        delete_id <- paste0('delete', label)
+        # Store IDs
+        labels$edit[[cat$category]] <- edit_id
+        labels$delete[[cat$category]] <- delete_id
         if (level == 1) {  # Check if it is a top-level category
             ui_elements[[cat$category]] <- createNestedUI(cat, level)
         }
     }
 
     # Combine all the elements into a single UI element
-    do.call(tagList, ui_elements)
+    ui <- do.call(tagList, ui_elements)
+    return(list(ui = ui, labels = labels))
 }
-
 
