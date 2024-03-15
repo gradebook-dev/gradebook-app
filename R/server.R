@@ -11,14 +11,26 @@ shinyServer(function(input, output, session) {
     
     #can only upload data that can be read in by read_gs()
     data <- reactive({
-        req(input$upload)
+        req(input$upload_gs)
         
         tryCatch({
-            data <- gradebook::read_gs(input$upload$datapath)
+            data <- gradebook::read_gs(input$upload_gs$datapath)
             return(data)
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
             return(NULL)
+        })
+    })
+    
+    observe({
+        req(input$upload_policy)
+        #eventually validate
+        tryCatch({
+            yaml <- yaml::read_yaml(input$upload_policy$datapath)
+            policy$coursewide <- yaml$coursewide
+            policy$categories <- yaml$categories
+        }, error = function(e) {
+            showNotification('Please upload a policy file in YAML format','',type = "error")
         })
     })
     
@@ -79,24 +91,21 @@ shinyServer(function(input, output, session) {
     )
     
     #### -------------------------- CATEGORIES MODAL ----------------------------####
-    # if NULL, making new category; if not, editing category called editing$name
-    editing <- reactiveValues(name = NULL,#to keep track of edited category
-                              num = 0) #to create unique names for each new category
-    
+    current_edit <- reactiveValues(category = NULL)
+    modalIsOpen <- reactiveVal(FALSE)
     
     # Opening category modal to create a NEW category
     observeEvent(input$new_cat, {
-        editing$name <- NULL
-        editing$num <- editing$num + 1 #increment to continue making unique category names
         showModal(edit_category_modal) #opens edit modal
         #updates values that aren't always the same but still default
-        updateTextInput(session, "name", value = paste0("Category ", editing$num))
+        updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
-            updateSelectizeInput(session, "assignments", choices = assign$table$assignment, selected = "")
+            choices <- getUnassigned(assign$table)
+            updateSelectizeInput(session, "assignments", choices = choices, selected = "")
         }
         
     })
-
+    
     
     # Reactive Lateness Cells in Modal
     output$lateness <- renderUI({
@@ -120,88 +129,97 @@ shinyServer(function(input, output, session) {
         }
     })
     
-    observeEvent(input$edit, {
-        editing$name <- input$edit_cat
-        if (editing$name != ""){
-            showModal(edit_category_modal) #opens edit modal
-            label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", editing$name)
-            i <- getIndex(policy$flat, label)
-            updateTextInput(session, "name", value = editing$name)
-            
-            updateSelectInput(session, "aggregation", selected = policy$flat$categories[[i]]$aggregation)
-            if (!is.null(policy$flat$categories[[i]]$weight)){
-                shinyWidgets::updateAutonumericInput(session, "weight", value = policy$flat$categories[[i]]$weight*100)   
-            }
-            if (!is.null(policy$flat$categories[[i]]$n_drops)){
-                updateNumericInput(session, "n_drops", value = policy$flat$categories[[i]]$n_drops)
-            }
-            if (!is.null(policy$flat$categories[[i]]$clobber)){
-                updateSelectInput(session, "clobber", selected = policy$flat$categories[[i]]$clobber)
-            }
-            
-            #update lateness
-            if (!is.null(policy$flat$categories[[i]]$lateness)){
-                num_lateness <- length(policy$flat$categories[[i]]$lateness)
-                updateNumericInput(session, "num_lateness", value = num_lateness)
-                # for (j in 1:num_lateness){
-                #     late_policy <- policy$flat$categories[[i]]$lateness[[j]]
-                #     updateTextInput(session, paste0("from", j), value = late_policy$from)
-                #     updateTextInput(session, paste0("to", j), value = late_policy$to)
-                #     updateTextInput(session, paste0("scale", j), value = late_policy$scale)
-                # }
-            }
-            
-            #update assignments
-            choices <- ""
-            if (!is.null(assign$table)){ #updates assignments if data has been loaded
-                choices = assign$table$assignment
-            }
-            selected = NULL
-            if (!is.null(policy$flat$categories[[i]]$assignments)){
-                selected <- policy$flat$categories[[i]]$assignments
-            }
-            updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
-            
-            
-        } else {
-            showNotification("Please pick a category to edit", type = 'error')
-        }
-    })
+    observe({
+        req(category_labels$edit)
+        
+        # Iterate over each category name to set up edit observers dynamically
+        lapply(names(category_labels$edit), function(cat_name) {
+            local({
+                # Localize the variables to ensure they're correctly captured in the observer
+                local_cat_name <- cat_name
+                edit_id <- category_labels$edit[[local_cat_name]]
+                
+                observeEvent(input[[edit_id]], {
+                    # Initialize a variable to hold the found category details
+                    matched_category <- NULL
+                    
+                    # Iterate through policy$flat$categories to find a match
+                    for (cat in policy$flat$categories) {
+                        if (cat$category == cat_name) {  # Match found
+                            matched_category <- cat
+                            break
+                        }
+                    }
+                    
+                    if (!is.null(matched_category)) {
+                        showModal(edit_category_modal) #opens edit modal
+                        current_edit$category <- matched_category
+                        cat_details <- matched_category
+                        
+                        updateTextInput(session, "name", value = cat_details$category)
+                        updateSelectInput(session, "aggregation", selected = cat_details$aggregation)
+                        shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)   
+                        updateNumericInput(session, "n_drops", value = cat_details$n_drops)
+                        updateSelectInput(session, "clobber", selected = cat_details$clobber)
+                        num_lateness <- length(cat_details$lateness)
+                        updateNumericInput(session, "num_lateness", value = num_lateness)
+                        # for (j in 1:num_lateness){
+                        #     late_policy <- policy$flat$categories[[i]]$lateness[[j]]
+                        #     updateTextInput(session, paste0("from", j), value = late_policy$from)
+                        #     updateTextInput(session, paste0("to", j), value = late_policy$to)
+                        #     updateTextInput(session, paste0("scale", j), value = late_policy$scale)
+                        # }
+                        
+                        #update assignments
+                        choices <- c()
+                        if (!is.null(assign$table)){ #updates assignments if data has been loaded
+                            choices <- getUnassigned(assign$table)
+                        }
+                        selected = NULL
+                        if (!is.null(matched_category$assignments)){
+                            selected <- matched_category$assignments
+                            choices <- c(choices, selected)
+                        }
+                        updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
+                        } else {
+                        showNotification("Please pick a category to edit", type = 'error')
+                    }
+                },         ignoreInit = TRUE)
+            })
+        })
+
+    })   
     
     # Cancel and no changes will be made
     observeEvent(input$cancel,{
         removeModal() #closes edit modal
+       
     })
     
-    
     observeEvent(input$save,{
-        removeModal() #closes edit modal
         
-        # This is used to ensure no combination of subcategories and assignments
-        # sum = 1 --> only assignments
-        # sum = 0 --> only subcategories
-        # sum is not an integer --> combination --> throws error notification
+        removeModal() #closes edit modal
+       
         sum <- 0
         if (!is.null(assign$table) & !is.null(input$assignments)){
-            sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments) 
+            sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
         }
         
         if (sum %in% c(0,1)){
             #update policy
-            if (!is.null(editing$name)){
+            if (!is.null(current_edit$category$category)){
+                
                 #add new category
-                policy$categories <- updateCategory(policy$categories, policy$flat, editing$name, 
+                policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
                                                     input$name, input, assign$table)
             } else {
-                policy$categories <- append(policy$categories, 
+                policy$categories <- append(policy$categories,
                                             list(createCategory(input$name, input = input,
                                                                 assign$table)))
             }
         } else {
             showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
         }
-        
-        
     })
     
     
@@ -214,17 +232,50 @@ shinyServer(function(input, output, session) {
         }
     })
     
-    observeEvent(input$delete_cat, {
-        if (input$edit_cat != ""){
-            #some of this syntax is unnecessary now but will be relevant with dynamic UI
-            editing$name <- input$edit_cat
-            label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", editing$name)
-            policy$categories <- deleteCategory(policy$categories, policy$flat, label)
-        } else {
-            showNotification("Please pick a category to delete",type = 'error')
-        }
+    category_to_be_deleted <- reactiveValues(cat = NULL)
+    observe({
+        req(category_labels$delete)
+
+        # Iterate over each category name to set up edit observers dynamically
+        lapply(names(category_labels$delete), function(cat_name) {
+            local({
+                # Localize the variables to ensure they're correctly captured in the observer
+                local_cat_name <- cat_name
+                delete_id <- category_labels$delete[[local_cat_name]]
+                
+                observeEvent(input[[delete_id]], {
+                   
+                    # Initialize a variable to hold the found category details
+                    matched_category <- NULL
+                    
+                    # Iterate through policy$flat$categories to find a match
+                    for (cat in policy$flat$categories) {
+                        if (cat$category == cat_name) {  # Match found
+                            matched_category <- cat
+                            break
+                        }
+                    }
+                    
+                    if (!is.null(matched_category)) {
+                        showModal(confirm_delete)
+                        category_to_be_deleted$cat <- matched_category
+
+                    } else {
+                        showNotification("Please pick a category to delete",type = 'error')
+                    }
+                },ignoreInit = TRUE)
+            })
+        })
     })
     
+    observeEvent(input$delete, {
+        req(category_to_be_deleted$cat)
+        removeModal()
+        print(category_to_be_deleted$cat$category)
+        policy$categories <- deleteCategory(policy$categories, category_to_be_deleted$cat$category)
+        category_to_be_deleted$cat <- NULL
+    })
+
     #whenever policy$categories changes, policy$flat, assign$table and UI updates
     observe({
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
@@ -232,6 +283,27 @@ shinyServer(function(input, output, session) {
         # names <- purrr::map(policy$flat$categories, "category") |> unlist()
         # purrr::walk(names, rerender_ui)
     })
+    
+    #### -------------------------- DISPLAY CATEGORIES UI ----------------------------####
+    
+    category_labels <- reactiveValues(edit = list(), delete = list())
+    
+    
+    observe({
+        req(policy$flat$categories)
+        category_levels <- assignLevelsToCategories(policy$flat$categories)
+        result <- createNestedCards(policy$flat$categories, category_levels)
+        
+        output$categoriesUI <- renderUI({
+            result$ui
+        })
+        
+        # Store the labels returned from createNestedCards function
+        category_labels$edit <- result$labels$edit
+        category_labels$delete <- result$labels$delete
+        
+    })
+    
     
     #### -------------------------- GRADING ----------------------------####
     
@@ -245,9 +317,9 @@ shinyServer(function(input, output, session) {
                     ungroup()
                 
                 flat_policy <- list(coursewide = policy$coursewide, 
-                               categories = policy$categories, 
-                               letter_grades = policy$letter_grades,
-                               exceptions = policy$exceptions) |>
+                                    categories = policy$categories, 
+                                    letter_grades = policy$letter_grades,
+                                    exceptions = policy$exceptions) |>
                     gradebook::flatten_policy()
                 policy$grades <- cleaned_data |>
                     calculate_lateness(flat_policy) |>
@@ -257,7 +329,7 @@ shinyServer(function(input, output, session) {
             })
         }
     })
-
+    
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
     output$download_policy_file <- downloadHandler(
@@ -266,8 +338,8 @@ shinyServer(function(input, output, session) {
         },
         content = function(file) {
             yaml::write_yaml(list(coursewide = policy$coursewide,
-                            categories = policy$categories,
-                            exceptions = policy$exceptions), file)
+                                  categories = policy$categories,
+                                  exceptions = policy$exceptions), file)
         }
     )
     
@@ -303,5 +375,5 @@ shinyServer(function(input, output, session) {
     
     output$grades <- renderDataTable({ 
         datatable(policy$grades, options = list(scrollX = TRUE, scrollY = "500px"))
-        })
+    })
 })
