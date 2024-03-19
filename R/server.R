@@ -302,51 +302,94 @@ shinyServer(function(input, output, session) {
     })
     
     #### -------------------------- DASHBOARD ----------------------------####
-    
-    output$dashboardUI <- renderUI({
-        # TODO
-    })
 
-    output$dashboardVisualizer <- renderPlotly({
-        if (!is.null(policy$grades)) {
-            A_bin = 1
-            B_bin = 0.9
-            C_bin = 0.8
-            D_bin = 0.7
-            F_bin = 0.6
-            grade_bins = c(A_bin, B_bin, C_bin, D_bin, F_bin)
-
-            p <- plot_ly(x = policy$grades$`Overall Score`, type = 'histogram') |>
-                config(displayModeBar = FALSE) |>
-                layout(dragmode = FALSE)
-            
-            line = list(
-                type = 'line',
-                line = list(color = "black", width = 2, dash = 'longdash'),
-                y0 = 0,
-                y1 = 1,
-                opacity = 0.5,
-                yref = 'paper',
-                x0 = B_bin,
-                x1 = B_bin
+    output$dashboard <- renderUI({
+        if (length(policy$categories) > 0) {
+            fluidRow(
+                column(8,
+                ),
+                column(4,
+                       tabsetPanel(
+                           tabPanel("Overall",
+                                    br(),
+                                    br(),
+                                    plotOutput("grade_dist")
+                           ),
+                           tabPanel("By Category",
+                                    br(),
+                                    selectInput("which_cat", "Pick a Category", choices = unlist(purrr::map(policy$categories, "name"))),
+                                    plotOutput("cat_dist")
+                           ),
+                           tabPanel("By Assignment",
+                                    br(),
+                                    selectInput("which_assign", "Pick an Assignment", choices = assign$table$assignment),
+                                    plotlyOutput("assign_dist")
+                           ),
+                           # tabPanel("Grades Table",       #shows category and final grades
+                           #          br(),
+                           #          h6("If you would like to download your course grades, click the download button below."),
+                           #          downloadButton("download_grades_data"),
+                           #          br(),
+                           #          br(),
+                           #          h4("Overall Grades Table"),
+                           #          dataTableOutput("grades_per_category")
+                           # )
+                       )
+                )
+            )
+        } else if (!is.null(assign$table$assignment)) { # if data is uploaded
+            tagList(
+                # h4("Go into the 'Policies' tab above and fill in the grading criteria for each category"),
+                # h4("or upload one of your courses from the left."),
+                # h4("Once you're done, return to this 'Dashboard' page to see your course statistics.")
+            )
+        } else {    #default message
+            tags$div(style = "display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;",
+                     tagList(
+                         h4(strong("You haven't uploaded any student data yet.")),
+                         h5("Summary statistics and plots will appear here as you build your course policy.")
+                     )
             )
             
-            # eventually, lines will be reactive to grade bins from user input
-            lines = list()
-            for (bin in grade_bins) {
-                line[['x0']] = bin
-                line[['x1']] = bin
-                lines = c(lines, list(line))
-            }
-            p <- p |>
-                    layout(hovermode = 'x',
-                        shapes = lines
-                    )
-            
-            p
         }
     })
-
+    
+    ### GGPLOT on a overall grades 
+    output$grade_dist <- renderPlot({
+        plot <- gradespercategory() %>% 
+            mutate(Overall_Grade = as.integer(course_grade)) %>%
+            ggplot(aes(x = Overall_Grade)) + geom_histogram( color = "grey", fill = "lightgrey") +
+            ggtitle("Distribution of Overall Grades") + xlab("Individual Grades") +
+            theme_bw()
+        plot
+    })
+    
+    ### GGPLOT on a distribution of a category of choice
+    output$cat_dist <- renderPlot({
+        plot <- gradespercategory() %>% ggplot(aes_string(x = input$which_cat)) +
+            geom_histogram() + theme_bw() +
+            ggtitle(paste0("Distribution of ", input$which_cat))
+        return (plot)
+    })
+    
+    ### GGPLOT on a distribution of an Assignment of choice
+    output$assign_dist <- renderPlotly({
+        # dat <- assign$table |>
+        #     dplyr::filter(colnames == input$which_assign) |>
+        #     dplyr::mutate(score = raw_points/max_points)
+        # plot
+    })
+    
+    #download grades table with category and overall grades
+    # output$download_grades_data <- downloadHandler(
+    #     filename = function() {
+    #         paste(policy$coursewide$course_name, Sys.Date(), ".csv", sep = "")
+    #     },
+    #     content = function(filename) {
+    #         write.csv(gradespercategory(), filename, row.names = FALSE)
+    #     }
+    # )
+    
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
     output$download_policy_file <- downloadHandler(

@@ -19,7 +19,6 @@ shinyUI(
                 div(class = "sidebar-text",
                     icon("upload", style = "margin-left: 20px;"),
                     "Upload Student Data"
-                    
                 ),
                 fileInput("upload_gs", label = NULL, accept = c(".csv")),
                 hr(),
