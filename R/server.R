@@ -302,93 +302,113 @@ shinyServer(function(input, output, session) {
     })
     
     #### -------------------------- DASHBOARD ----------------------------####
-
+    
     output$dashboard <- renderUI({
-        if (length(policy$categories) > 0) {
+        # if categories are made OR data is uploaded.
+        if (length(policy$categories) > 0 || !is.null(assign$table$assignment)) {
+            
             fluidRow(
                 column(8,
+                       uiOutput('dash_left_column_ui')
                 ),
                 column(4,
                        tabsetPanel(
-                           tabPanel("Overall",
+                           id = 'dashTabsetPanel',
+                           tabPanel('By Assignment',value = 'dash_assignment_tab',
                                     br(),
-                                    br(),
-                                    plotOutput("grade_dist")
+                                    selectInput('which_assignment', 'Choose an Assignment', choices = assign$table$assignment),
+                                    
                            ),
-                           tabPanel("By Category",
+                           tabPanel('By Category', value = 'dash_category_tab',
                                     br(),
-                                    selectInput("which_cat", "Pick a Category", choices = unlist(purrr::map(policy$categories, "name"))),
-                                    plotOutput("cat_dist")
+                                    selectInput('which_category', 'Choose a Category', choices = available_categories()),
                            ),
-                           tabPanel("By Assignment",
+                           tabPanel('Overall', value = 'dash_overall_tab',
                                     br(),
-                                    selectInput("which_assign", "Pick an Assignment", choices = assign$table$assignment),
-                                    plotlyOutput("assign_dist")
-                           ),
-                           # tabPanel("Grades Table",       #shows category and final grades
-                           #          br(),
-                           #          h6("If you would like to download your course grades, click the download button below."),
-                           #          downloadButton("download_grades_data"),
-                           #          br(),
-                           #          br(),
-                           #          h4("Overall Grades Table"),
-                           #          dataTableOutput("grades_per_category")
-                           # )
+                           )
                        )
                 )
             )
-        } else if (!is.null(assign$table$assignment)) { # if data is uploaded
-            tagList(
-                # h4("Go into the 'Policies' tab above and fill in the grading criteria for each category"),
-                # h4("or upload one of your courses from the left."),
-                # h4("Once you're done, return to this 'Dashboard' page to see your course statistics.")
-            )
-        } else {    #default message
-            tags$div(style = "display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;",
+        } else {
+            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
                      tagList(
-                         h4(strong("You haven't uploaded any student data yet.")),
-                         h5("Summary statistics and plots will appear here as you build your course policy.")
+                         h4(strong('You haven\'t uploaded any student data yet.')),
+                         h5('Summary statistics and plots will appear here as you build your course policy.')
                      )
             )
             
         }
     })
     
-    ### GGPLOT on a overall grades 
-    output$grade_dist <- renderPlot({
-        plot <- gradespercategory() %>% 
-            mutate(Overall_Grade = as.integer(course_grade)) %>%
-            ggplot(aes(x = Overall_Grade)) + geom_histogram( color = "grey", fill = "lightgrey") +
-            ggtitle("Distribution of Overall Grades") + xlab("Individual Grades") +
-            theme_bw()
-        plot
+    output$dash_left_column_ui <- renderUI({
+        if (input$dashTabsetPanel == 'dash_assignment_tab') {
+            uiOutput('dash_assignment_ui')
+        } else if (input$dashTabsetPanel == 'dash_category_tab') {
+            uiOutput('dash_categories_ui')
+        } else if (input$dashTabsetPanel == 'dash_overall_tab') {
+            uiOutput('dash_overall_ui')
+        }
     })
     
-    ### GGPLOT on a distribution of a category of choice
-    output$cat_dist <- renderPlot({
-        plot <- gradespercategory() %>% ggplot(aes_string(x = input$which_cat)) +
-            geom_histogram() + theme_bw() +
-            ggtitle(paste0("Distribution of ", input$which_cat))
-        return (plot)
+    output$dash_assignment_ui <- renderUI({
+        h4('Assignment Distribution')
+        plotlyOutput('assignment_plotly')
     })
     
-    ### GGPLOT on a distribution of an Assignment of choice
-    output$assign_dist <- renderPlotly({
-        # dat <- assign$table |>
-        #     dplyr::filter(colnames == input$which_assign) |>
-        #     dplyr::mutate(score = raw_points/max_points)
-        # plot
+    output$assignment_plotly <- renderPlotly({
+        assignment_grades <- data() |> 
+            dplyr::select(input$which_assignment) |>
+            dplyr::pull(1)
+            
+        plt <- plot_ly(x = ~assignment_grades, type='histogram')
+        
+        plt
     })
     
-    #download grades table with category and overall grades
-    # output$download_grades_data <- downloadHandler(
-    #     filename = function() {
-    #         paste(policy$coursewide$course_name, Sys.Date(), ".csv", sep = "")
-    #     },
-    #     content = function(filename) {
-    #         write.csv(gradespercategory(), filename, row.names = FALSE)
-    #     }
-    # )
+    output$dash_categories_ui <- renderUI({
+        if (input$which_category == '') {
+            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+                     tagList(
+                         h4(strong('You haven\'t created your course policy file.')),
+                         h4('See "Policies" tab.')
+                     )
+            )
+        } else {
+            # TODO
+            plotlyOutput('categories_plotly')
+        }
+    })
+    
+    output$categories_plotly <- renderPlotly({
+        # plt <- plot_ly(x = )
+        # 
+        # plt
+    })
+    
+    output$dash_overall_ui <- renderUI({
+        h4('Overall Course Grades') # delete this line eventually.
+        if (is.null(policy$grades)) {
+            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+                     tagList(
+                         h4(strong('You haven\'t created your course policy file.')),
+                         h4('See "Policies" tab.')
+                     )
+            )
+        } else {
+            plotlyOutput('overall_plotly')
+        }
+    })
+    
+    output$overall_plotly <- renderPlotly({
+        plt <- plot_ly(x = policy$grades$`Overall Score`, type = 'histogram') |>
+            config(displayModeBar = FALSE) |>
+            layout(dragmode = FALSE)
+        plt
+    })
+    
+    available_categories <- reactive({
+        return(sapply(policy$categories, function(df) df$category))
+    })
     
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
