@@ -253,7 +253,7 @@ shinyServer(function(input, output, session) {
     })
     
     #### -------------------------- DISPLAY CATEGORIES UI ----------------------------####
-# 
+
     # output$categoriesUI <- renderUI({
     #     req(policy$flat$categories)
     #     category_levels <- assignLevelsToCategories(policy$flat$categories)
@@ -306,7 +306,6 @@ shinyServer(function(input, output, session) {
     output$dashboard <- renderUI({
         # if categories are made OR data is uploaded.
         if (length(policy$categories) > 0 || !is.null(assign$table$assignment)) {
-            
             fluidRow(
                 column(8,
                        uiOutput('dash_left_column_ui')
@@ -355,16 +354,6 @@ shinyServer(function(input, output, session) {
         plotlyOutput('assignment_plotly')
     })
     
-    output$assignment_plotly <- renderPlotly({
-        assignment_grades <- data() |> 
-            dplyr::select(input$which_assignment) |>
-            dplyr::pull(1)
-            
-        plt <- plot_ly(x = ~assignment_grades, type='histogram')
-        
-        plt
-    })
-    
     output$dash_categories_ui <- renderUI({
         if (input$which_category == '') {
             tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
@@ -379,12 +368,6 @@ shinyServer(function(input, output, session) {
         }
     })
     
-    output$categories_plotly <- renderPlotly({
-        # plt <- plot_ly(x = )
-        # 
-        # plt
-    })
-    
     output$dash_overall_ui <- renderUI({
         h4('Overall Course Grades') # delete this line eventually.
         if (is.null(policy$grades)) {
@@ -397,6 +380,25 @@ shinyServer(function(input, output, session) {
         } else {
             plotlyOutput('overall_plotly')
         }
+    })
+    
+    output$assignment_plotly <- renderPlotly({
+        assignment_grades <- data() |> 
+            dplyr::select(input$which_assignment) |>
+            dplyr::pull(1)
+            
+        plt <- plot_ly(x = ~assignment_grades, type='histogram') |>
+            config(displayModeBar = FALSE) |>
+            layout(dragmode = FALSE)
+        
+        plt
+    })
+    
+    output$categories_plotly <- renderPlotly({
+        # policy$grades <- category columns
+        # plt <- plot_ly(x = )
+        # 
+        # plt
     })
     
     output$overall_plotly <- renderPlotly({
