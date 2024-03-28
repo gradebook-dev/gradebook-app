@@ -1,4 +1,5 @@
 library(shinydashboard)
+library(fontawesome)
 
 UICompDirectory <- "ui-components/"
 
@@ -11,9 +12,9 @@ shinyUI(
         dashboardHeader(title = "Gradebook"),
         dashboardSidebar(
             sidebarMenu(
+                menuItem("Dashboard", tabName = "dashboard", icon = icon("book-bookmark")),
                 menuItem("Files", tabName = "files", icon = icon("pencil")),
                 menuItem("Policies", tabName = "policies", icon = icon("pencil")),
-                menuItem("Dashboard", tabName = "dashboard", icon = icon("pencil")),
                 br(),
                 hr(),
                 div(class = "sidebar-text",
@@ -24,15 +25,10 @@ shinyUI(
                 fileInput("upload_gs", label = NULL, accept = c(".csv")),
                 hr(),
                 div(class = "sidebar-text",
-                    style = "margin-left: 20px;",
-                    "Upload Policy File:"
+                    icon('upload', style = "margin-left: 20px;"),
+                    "Upload Policy File"
                 ),
                 fileInput("upload_policy", label = NULL, accept = c(".yml")),
-                # div(style = "display: flex; margin-left:17px;",
-                #     actionButton("upload_json", "Upload Policy File"),
-                #     actionButton("delete_json", "", icon = icon("trash-can"))
-                # ),
-                # br(),
                 hr(),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     h5("Download Your Course Grades:")
