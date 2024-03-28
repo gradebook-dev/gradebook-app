@@ -20,7 +20,7 @@ shinyUI(
                 '))
                 ),
                 menuItem("Dashboard", tabName = "dashboard", icon = icon("book-bookmark", class = "fixed-width-icon")),
-                menuItem("Files", tabName = "files", icon = icon("folder", class = "fixed-width-icon")),
+              #  menuItem("Files", tabName = "files", icon = icon("folder", class = "fixed-width-icon")),
                 menuItem("Policies", tabName = "policies", icon = icon("file-pen", class = "fixed-width-icon")),
                 hr(),
                 div(class = "sidebar-text",
@@ -45,7 +45,7 @@ shinyUI(
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     h5("Download Your Yaml Policy File")
                 ),
-                div(style = "display: flex; align-items: center; margin-left: 15px;",
+                div(style = "display: flex; align-items: center; margin-left: 15px; color: #007bff;",
                     downloadButton("download_policy_file","Download Policy File")
                 )
             )
@@ -98,10 +98,13 @@ shinyUI(
                                 .content-wrapper, .right-side{
                                 background-color: #ffffff; 
                                 }
-                                 
+                                
+                              .row {
+                              verticle-align: middle;
+                              }
                                 '))),
             tabItems(
-                Files,
+             #   Files,
                 Policies,
                 Dashboard
                 )

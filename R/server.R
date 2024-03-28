@@ -272,7 +272,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$delete, {
         req(category_to_be_deleted$cat)
         removeModal()
-        print(category_to_be_deleted$cat$category)
+       # print(category_to_be_deleted$cat$category)
         policy$categories <- deleteCategory(policy$categories, category_to_be_deleted$cat$category)
         category_to_be_deleted$cat <- NULL
     })
