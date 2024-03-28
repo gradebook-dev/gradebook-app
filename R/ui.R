@@ -1,5 +1,4 @@
 library(shinydashboard)
-library(fontawesome)
 
 UICompDirectory <- "ui-components/"
 
@@ -12,15 +11,21 @@ shinyUI(
         dashboardHeader(title = "Gradebook"),
         dashboardSidebar(
             sidebarMenu(
-                menuItem("Dashboard", tabName = "dashboard", icon = icon("book-bookmark")),
-                menuItem("Files", tabName = "files", icon = icon("pencil")),
-                menuItem("Policies", tabName = "policies", icon = icon("pencil")),
-                br(),
+                tags$head(
+                    tags$style(HTML('
+                    .fixed-width-icon {
+                      width: 25px !important;
+                      text-align: left;
+                    }
+                '))
+                ),
+                menuItem("Dashboard", tabName = "dashboard", icon = icon("book-bookmark", class = "fixed-width-icon")),
+                menuItem("Files", tabName = "files", icon = icon("folder", class = "fixed-width-icon")),
+                menuItem("Policies", tabName = "policies", icon = icon("file-pen", class = "fixed-width-icon")),
                 hr(),
                 div(class = "sidebar-text",
                     icon("upload", style = "margin-left: 20px;"),
                     "Upload Student Data"
-                    
                 ),
                 fileInput("upload_gs", label = NULL, accept = c(".csv")),
                 hr(),
@@ -31,14 +36,14 @@ shinyUI(
                 fileInput("upload_policy", label = NULL, accept = c(".yml")),
                 hr(),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
-                    h5("Download Your Course Grades:")
+                    h5("Download Your Course Grades")
                 ),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                 downloadButton("download_grades","Download Grades")
                 ),
                 hr(),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
-                    h5("Download Your Yaml Policy File:")
+                    h5("Download Your Yaml Policy File")
                 ),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     downloadButton("download_policy_file","Download Policy File")
