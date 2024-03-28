@@ -84,7 +84,7 @@ shinyServer(function(input, output, session) {
     
     #a list of unassigned assignments in policies tab
     output$unassigned <- renderUI(
-        if (!is.null(assign$table$assigment)){
+        if (!is.null(assign$table$assignment)){
             HTML(markdown::renderMarkdown(text = paste(paste0("- ", getUnassigned(assign$table), "\n"), collapse = "")))
         } else {
             h5('New assignments will appear here.')
