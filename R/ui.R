@@ -19,7 +19,7 @@ shinyUI(
                     }
                 '))
                 ),
-                menuItem("Dashboard", tabName = "dashboard", icon = icon("book-bookmark", class = "fixed-width-icon")),
+                menuItem("Dashboard", tabName = "dashboard", icon = icon("chart-line", class = "fixed-width-icon")),
               #  menuItem("Files", tabName = "files", icon = icon("folder", class = "fixed-width-icon")),
                 menuItem("Policies", tabName = "policies", icon = icon("file-pen", class = "fixed-width-icon")),
                 hr(),
