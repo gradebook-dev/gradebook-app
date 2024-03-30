@@ -1,6 +1,9 @@
 library(DT)
 library(tidyverse)
+library(plotly)
+library(bslib)
 library(readr)
+library(shinydashboard)
 
 #load helper scripts
 HSLocation <- "helperscripts/"
@@ -305,6 +308,127 @@ shinyServer(function(input, output, session) {
         
     })
     
+    #### -------------------------- DASHBOARD ----------------------------####
+    
+    output$dashboard <- renderUI({
+        # categories are made AND data is uploaded (everything available)
+        if (length(policy$categories) > 0 && !is.null(assign$table$assignment)) {
+            fluidRow(
+                layout_column_wrap(
+                    width = 1/2,
+                    height = 300,
+                    card(
+                        card_header(
+                            class = "bg-dark",
+                            "A header"
+                        ),
+                        card_body(
+                            markdown("Some text with a [link](https://github.com)")
+                        )
+                    ),
+                    card(
+                        card_header(
+                            class = "bg-dark",
+                            "A header"
+                        ),
+                        card_body(
+                            markdown("Some text with a [link](https://github.com)")
+                        )
+                    )
+                )
+                   # uiOutput('dash_left_column_ui')
+            )
+        } else if (!is.null(assign$table$assignment)) {  # student data uploaded, but policy file is not uploaded
+            
+        } else if (length(policy$categories) > 0) {  # categories are made, but student data not uploaded
+            
+        }
+        else { # neither student data nor policy uploaded
+            tags$div(style = 
+                'display: flex;
+                 flex-direction: column;
+                 justify-content: center;
+                 align-items: center;
+                 height: 60vh;',
+                 tagList(
+                     h4(strong('You haven\'t uploaded any student data yet.')),
+                     h5('Summary statistics and plots will appear here as you build your course policy.')
+                 )
+            )
+            
+        }
+    })
+    
+    output$dash_left_column_ui <- renderUI({
+        switch(input$dashTabsetPanel,
+            'dash_assignment_tab' = uiOutput('dash_assignment_ui'),
+            'dash_category_tab' = uiOutput('dash_categories_ui'),
+            'dash_overall_tab' = uiOutput('dash_overall_ui')
+        )
+    })
+    
+    output$dash_assignment_ui <- renderUI({
+        h4('Assignment Distribution')
+        plotlyOutput('assignment_plotly')
+    })
+    
+    output$dash_categories_ui <- renderUI({
+        if (input$which_category == '') {
+            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+                     tagList(
+                         h4(strong('You haven\'t created your course policy file.')),
+                         h4('See "Policies" tab.')
+                     )
+            )
+        } else {
+            # TODO
+            plotlyOutput('categories_plotly')
+        }
+    })
+    
+    output$dash_overall_ui <- renderUI({
+        h4('Overall Course Grades') # delete this line eventually.
+        if (is.null(policy$grades)) {
+            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+                     tagList(
+                         h4(strong('You haven\'t created your course policy file.')),
+                         h4('See "Policies" tab.')
+                     )
+            )
+        } else {
+            plotlyOutput('overall_plotly')
+        }
+    })
+    
+    output$assignment_plotly <- renderPlotly({
+        assignment_grades <- data() |> 
+            dplyr::select(input$which_assignment) |>
+            dplyr::pull(1)
+        
+        plt <- plot_ly(x = ~assignment_grades, type='histogram') |>
+            config(displayModeBar = FALSE) |>
+            layout(dragmode = FALSE)
+        
+        plt
+    })
+    
+    output$categories_plotly <- renderPlotly({
+        # policy$grades <- category columns
+        # plt <- plot_ly(x = )
+        # 
+        # plt
+    })
+    
+    output$overall_plotly <- renderPlotly({
+        plt <- plot_ly(x = policy$grades$`Overall Score`, type = 'histogram') |>
+            config(displayModeBar = FALSE) |>
+            layout(dragmode = FALSE)
+        plt
+    })
+    
+    available_categories <- reactive({
+        return(sapply(policy$categories, function(df) df$category))
+    })
     
     #### -------------------------- GRADING ----------------------------####
     
@@ -330,6 +454,8 @@ shinyServer(function(input, output, session) {
             })
         }
     })
+    
+    
     
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
     

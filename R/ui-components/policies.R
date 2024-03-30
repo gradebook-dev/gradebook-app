@@ -39,6 +39,7 @@ Policies <- tabItem(tabName = "policies",
                                   column(8, 
                                         # h4('Policy View', style = "font-size: 24px; display: inline-block; margin-right: 10px; " ),
                                          br(),
+                                         uiOutput("categoriesUI"),
                                          fluidRow(style = "margin-left: 10px;")
                                   ),
                                   column(4,
