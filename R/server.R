@@ -326,8 +326,10 @@ shinyServer(function(input, output, session) {
                 # 1) get assignments table
                 # 2) select the most recent assignment
                 # 3) call in output$assignment_selection
-                # 1)
-                
+                # 1) 
+                # it's called `assign$table`
+                # 2)
+                output$assignment_selection <- assign$table |>
             }
             
             distr_card <- card(
