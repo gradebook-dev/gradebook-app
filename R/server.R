@@ -309,32 +309,55 @@ shinyServer(function(input, output, session) {
     })
     
     #### -------------------------- DASHBOARD ----------------------------####
+    # TODO: 
+    # - define `assignment_selection` as most recent assignment by default.
+    # - create method of editing `assignment_selection`.
+    # - fix tableoutput to display summary stats
+    
+    assignment_selection <- reactive({
+        NULL
+    })
+    
+    observeEvent(output$assignment_selection { # Add re-selection to first argument (before brace).
+        if (length(policy$categories) > 0 && !is.null(assign$table$assignment)) {
+            
+            if (is.null(output$assignment_selection)) {
+                # TODO: 
+                # 1) get assignments table
+                # 2) select the most recent assignment
+                # 3) call in output$assignment_selection
+                # 1)
+                
+            }
+            
+            distr_card <- card(
+                full_screen = TRUE,
+                card_header(
+                    # Most recent assignment by date by default
+                    paste0(output$assignment_selection |> dplyr::pull(1))
+                ),
+                plotlyOutput('')
+            )
+            
+            # statistics from assignment_selection
+            stats_card <- card(
+                full_screen = FALSE,
+                card_header(
+                    paste0(output$assignment_selection |> dplyr::pull(1))
+                ),
+                tableOutput(
+                    output$assignment_selection # then agg eventually
+                )
+            )
+        }
+    })
     
     output$dashboard <- renderUI({
         # categories are made AND data is uploaded (everything available)
         if (length(policy$categories) > 0 && !is.null(assign$table$assignment)) {
             fluidRow(
-                layout_column_wrap(
-                    width = 1/2,
-                    height = 300,
-                    card(
-                        card_header(
-                            class = "bg-dark",
-                            "A header"
-                        ),
-                        card_body(
-                            markdown("Some text with a [link](https://github.com)")
-                        )
-                    ),
-                    card(
-                        card_header(
-                            class = "bg-dark",
-                            "A header"
-                        ),
-                        card_body(
-                            markdown("Some text with a [link](https://github.com)")
-                        )
-                    )
+                layout_columns(
+                    distr_card, stats_card
                 )
                    # uiOutput('dash_left_column_ui')
             )
@@ -355,8 +378,11 @@ shinyServer(function(input, output, session) {
                      h5('Summary statistics and plots will appear here as you build your course policy.')
                  )
             )
-            
         }
+    })
+    
+    output$test <- renderUI({
+        ggplot() + geom_blank()
     })
     
     output$dash_left_column_ui <- renderUI({
