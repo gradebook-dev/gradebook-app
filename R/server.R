@@ -11,16 +11,34 @@ shinyServer(function(input, output, session) {
     #### -------------------------- UPLOADS ----------------------------####   
     
     #can only upload data that can be read in by read_gs()
+    # data <- reactive({
+    #     reg(input$upload_gs)
+    #     
+    #     tryCatch({
+    #         data <- gradebook::read_gs(input$upload_gs$datapath)
+    #         return(data)
+    #     }, error = function(e) {
+    #         showNotification('Please upload a file with the Gradescope format','',type = "error")
+    #         return(NULL)
+    #     })
+    # })
+    
     data <- reactive({
-        req(input$upload_gs)
-        
-        tryCatch({
-            data <- gradebook::read_gs(input$upload_gs$datapath)
-            return(data)
-        }, error = function(e) {
-            showNotification('Please upload a file with the Gradescope format','',type = "error")
-            return(NULL)
-        })
+        if(is.null(input$upload_gs) && is.null(input$demogs)) {
+            req(NULL)
+        }
+        data <- NULL
+        if(!is.null(input$upload_gs)) {
+            tryCatch({
+                data <- gradebook::read_gs(input$upload_gs$datapath)
+            }, error = function(e) {
+                showNotification('Please upload a file with the Gradescope format', type = "error")
+            })
+        }
+        if(!is.null(input$demogs) && is.null(data)) {
+            data <- gradebook::gs_demo
+        }
+        return(data)
     })
     
     observe({
@@ -198,10 +216,17 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$save,{
+        existingCategories <- policy$flat$categories
+           # print(policy$flat$categories)
+           # print('existingCategories')
+           # print(existingCategories)
         #### ADD in the if statement: input$name == any one of the names of the categories that already exist...
-        if(input$name == "Your Category name"){ 
-            showNotification("The text input cannot be 'Your Category name'. Please enter a different category name.")
+        if(input$name == "Your Category name" || input$name %in% existingCategories) {
+            showNotification("The text input cannot be 'Your Category name'. Please enter a different category name.", type = "error")
         }
+        #else {
+           # showNotification("The category name already exists. Please enter a different category name.", type = "error")
+        #}
     
         else{
             removeModal() #closes edit modal
@@ -330,6 +355,7 @@ shinyServer(function(input, output, session) {
                                     letter_grades = policy$letter_grades,
                                     exceptions = policy$exceptions) |>
                     gradebook::flatten_policy()
+               
                 policy$grades <- cleaned_data |>
                     calculate_lateness(flat_policy) |>
                     get_category_grades(flat_policy)
