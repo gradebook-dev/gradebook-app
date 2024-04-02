@@ -309,130 +309,66 @@ shinyServer(function(input, output, session) {
     })
     
     #### -------------------------- DASHBOARD ----------------------------####
-    # TODO: 
-    # - define `assignment_selection` as most recent assignment by default.
-    # - create method of editing `assignment_selection`.
-    # - fix tableoutput to display summary stats
-    
-    assignment_selection <- reactive({
-        NULL
-    })
-    
-    observeEvent(output$assignment_selection { # Add re-selection to first argument (before brace).
-        if (length(policy$categories) > 0 && !is.null(assign$table$assignment)) {
-            
-            if (is.null(output$assignment_selection)) {
-                # TODO: 
-                # 1) get assignments table
-                # 2) select the most recent assignment
-                # 3) call in output$assignment_selection
-                # 1) 
-                # it's called `assign$table`
-                # 2)
-                output$assignment_selection <- assign$table |>
-            }
-            
-            distr_card <- card(
-                full_screen = TRUE,
-                card_header(
-                    # Most recent assignment by date by default
-                    paste0(output$assignment_selection |> dplyr::pull(1))
-                ),
-                plotlyOutput('')
-            )
-            
-            # statistics from assignment_selection
-            stats_card <- card(
-                full_screen = FALSE,
-                card_header(
-                    paste0(output$assignment_selection |> dplyr::pull(1))
-                ),
-                tableOutput(
-                    output$assignment_selection # then agg eventually
-                )
-            )
-        }
-    })
     
     output$dashboard <- renderUI({
-        # categories are made AND data is uploaded (everything available)
+        # if categories are made OR data is uploaded.
         if (length(policy$categories) > 0 && !is.null(assign$table$assignment)) {
             fluidRow(
-                layout_columns(
-                    distr_card, stats_card
-                )
-                   # uiOutput('dash_left_column_ui')
+                box(
+                    title = 'Assignment Distribution',
+                    plotlyOutput('assignment_plotly', height = '150px'),
+                    width = 6,
+                    height = '200px'
+                ),
+                box(
+                    title = 'Summary Statistics',
+                    selectInput('which_assignment', label=NULL, choices = assign$table$assignment),
+                    uiOutput('assignment_stats'),
+                    width = 6,
+                    height = '200px'
+                ),
+                box(
+                    title = 'Category Distribution', 
+                    plotlyOutput('category_plotly', height = '200px'),
+                    width = 6,
+                    height = '300px'
+                ),
+                box(
+                    title = 'Category Distribution', 
+                    uiOutput('category_stats', height = '200px'),
+                    width = 6,
+                    height = '300px'
+                ),
             )
-        } else if (!is.null(assign$table$assignment)) {  # student data uploaded, but policy file is not uploaded
-            
-        } else if (length(policy$categories) > 0) {  # categories are made, but student data not uploaded
-            
-        }
-        else { # neither student data nor policy uploaded
-            tags$div(style = 
-                'display: flex;
-                 flex-direction: column;
-                 justify-content: center;
-                 align-items: center;
-                 height: 60vh;',
-                 tagList(
-                     h4(strong('You haven\'t uploaded any student data yet.')),
-                     h5('Summary statistics and plots will appear here as you build your course policy.')
-                 )
-            )
-        }
-    })
-    
-    output$test <- renderUI({
-        ggplot() + geom_blank()
-    })
-    
-    output$dash_left_column_ui <- renderUI({
-        switch(input$dashTabsetPanel,
-            'dash_assignment_tab' = uiOutput('dash_assignment_ui'),
-            'dash_category_tab' = uiOutput('dash_categories_ui'),
-            'dash_overall_tab' = uiOutput('dash_overall_ui')
-        )
-    })
-    
-    output$dash_assignment_ui <- renderUI({
-        h4('Assignment Distribution')
-        plotlyOutput('assignment_plotly')
-    })
-    
-    output$dash_categories_ui <- renderUI({
-        if (input$which_category == '') {
+        } else if (length(policy$categories) > 0) { # policy is created only
             tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
                      tagList(
-                         h4(strong('You haven\'t created your course policy file.')),
-                         h4('See "Policies" tab.')
+                         h4(strong('You haven\'t uploaded any student data yet.')),
+                         h5('Upload course data from Gradescope to get started.')
+                     )
+            )
+        } else if (!is.null(assign$table$assignment)) {
+            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+                     tagList(
+                         h4(strong('You still need to build your course policy.')),
+                         h5('See "Policies" tab to get started.')
                      )
             )
         } else {
-            # TODO
-            plotlyOutput('categories_plotly')
-        }
-    })
-    
-    output$dash_overall_ui <- renderUI({
-        h4('Overall Course Grades') # delete this line eventually.
-        if (is.null(policy$grades)) {
             tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
                      tagList(
-                         h4(strong('You haven\'t created your course policy file.')),
-                         h4('See "Policies" tab.')
+                         h4(strong('You haven\'t uploaded any student data yet.')),
+                         h5('Summary statistics and plots will appear here as you build your course policy.')
                      )
             )
-        } else {
-            plotlyOutput('overall_plotly')
         }
     })
-    
+
     output$assignment_plotly <- renderPlotly({
-        assignment_grades <- data() |> 
+        assignment_grades <- data() |>
             dplyr::select(input$which_assignment) |>
             dplyr::pull(1)
-        
+
         plt <- plot_ly(x = ~assignment_grades, type='histogram') |>
             config(displayModeBar = FALSE) |>
             layout(dragmode = FALSE)
@@ -440,14 +376,28 @@ shinyServer(function(input, output, session) {
         plt
     })
     
-    output$categories_plotly <- renderPlotly({
+    output$assignment_stats <- renderUI({
+        markdown('Assignment Summary Statistics will appear here')
+    })
+    
+    output$category_plotly <- renderPlotly({
         # policy$grades <- category columns
-        # plt <- plot_ly(x = )
-        # 
-        # plt
+        print('policy')
+        print(policy$grades)
+        # plt <- plot_ly(x = policy$grades, type = 'histogram') |>
+        #     config(displayModeBar = FALSE) |>
+        #     layout(dragmode = FALSE)
+        plt <- plot_ly()
+        plt
+    })
+    
+    output$category_stats <- renderUI({
+        markdown('Category Summary Statistics will appear here')
     })
     
     output$overall_plotly <- renderPlotly({
+        print('policy$grades')
+        print(policy$grades)
         plt <- plot_ly(x = policy$grades$`Overall Score`, type = 'histogram') |>
             config(displayModeBar = FALSE) |>
             layout(dragmode = FALSE)
@@ -457,32 +407,6 @@ shinyServer(function(input, output, session) {
     available_categories <- reactive({
         return(sapply(policy$categories, function(df) df$category))
     })
-    
-    #### -------------------------- GRADING ----------------------------####
-    
-    observeEvent(policy$categories,{
-        if (!is.null(data()) & length(policy$categories) != 0){
-            tryCatch({
-                cleaned_data <- data() |>
-                    drop_na(SID) |>
-                    group_by(SID) |>
-                    filter(row_number() == 1) |>
-                    ungroup()
-                
-                flat_policy <- list(coursewide = policy$coursewide, 
-                                    categories = policy$categories, 
-                                    letter_grades = policy$letter_grades,
-                                    exceptions = policy$exceptions) |>
-                    gradebook::flatten_policy()
-                policy$grades <- cleaned_data |>
-                    calculate_lateness(flat_policy) |>
-                    get_category_grades(flat_policy)
-            }, error = function(e) {
-                showNotification('Fix policy file','',type = "error")
-            })
-        }
-    })
-    
     
     
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
