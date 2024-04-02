@@ -24,7 +24,7 @@ shinyServer(function(input, output, session) {
     # })
     
     data <- reactive({
-        if(is.null(input$upload_gs) && is.null(input$demogs)) {
+        if(is.null(input$upload_gs) && is.null(input$demogs) || input$demogs <= 0) {
             req(NULL)
         }
         data <- NULL
@@ -35,7 +35,7 @@ shinyServer(function(input, output, session) {
                 showNotification('Please upload a file with the Gradescope format', type = "error")
             })
         }
-        if(!is.null(input$demogs) && is.null(data)) {
+        if(input$demogs > 0 && is.null(data)) {
             data <- gradebook::gs_demo
         }
         return(data)
@@ -216,23 +216,13 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$save,{
-        existingCategories <- policy$flat$categories
-           # print(policy$flat$categories)
-           # print('existingCategories')
-           # print(existingCategories)
-        #### ADD in the if statement: input$name == any one of the names of the categories that already exist...
-        if(input$name == "Your Category name" || input$name %in% existingCategories) {
-            showNotification("The text input cannot be 'Your Category name'. Please enter a different category name.", type = "error")
+        existingCategories <- sapply(policy$flat$categories, function(cat) cat$category)
+        if(input$name %in% existingCategories) {
+            showNotification("Please enter a different category name. You cannot have repeating names. ", type = "error")
         }
-        #else {
-           # showNotification("The category name already exists. Please enter a different category name.", type = "error")
-        #}
-    
         else{
             removeModal() #closes edit modal
-            
-            
-            
+
             sum <- 0
             if (!is.null(assign$table) & !is.null(input$assignments)){
                 sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
