@@ -198,31 +198,39 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$save,{
-        
-        removeModal() #closes edit modal
-       
-        sum <- 0
-        if (!is.null(assign$table) & !is.null(input$assignments)){
-            sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
+        #### ADD in the if statement: input$name == any one of the names of the categories that already exist...
+        if(input$name == "Your Category name"){ 
+            showNotification("The text input cannot be 'Your Category name'. Please enter a different category name.")
         }
-        
-        if (sum %in% c(0,1)){
-            #update policy
-            if (!is.null(current_edit$category$category)){
-                
-                #add new category
-                policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
-                                                    input$name, input, assign$table)
-            } else {
-                policy$categories <- append(policy$categories,
-                                            list(createCategory(input$name, input = input,
-                                                                assign$table)))
+    
+        else{
+            removeModal() #closes edit modal
+            
+            
+            
+            sum <- 0
+            if (!is.null(assign$table) & !is.null(input$assignments)){
+                sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
             }
-        } else {
-            showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
+            
+            
+            if (sum %in% c(0,1)){
+                #update policy
+                if (!is.null(current_edit$category$category)){
+                    
+                    #add new category
+                    policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
+                                                        input$name, input, assign$table)
+                } else {
+                    policy$categories <- append(policy$categories,
+                                                list(createCategory(input$name, input = input,
+                                                                    assign$table)))
+                }
+            } else {
+                showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
+            }
         }
     })
-    
     
     observe({
         names <- purrr::map(policy$flat$categories, "category") |> unlist()
