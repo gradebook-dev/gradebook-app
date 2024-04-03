@@ -308,6 +308,31 @@ shinyServer(function(input, output, session) {
         
     })
     
+    #### -------------------------- GRADING ----------------------------####
+    
+    observeEvent(policy$categories,{
+        if (!is.null(data()) & length(policy$categories) != 0){
+            tryCatch({
+                cleaned_data <- data() |>
+                    drop_na(SID) |>
+                    group_by(SID) |>
+                    filter(row_number() == 1) |>
+                    ungroup()
+                
+                flat_policy <- list(coursewide = policy$coursewide, 
+                                    categories = policy$categories, 
+                                    letter_grades = policy$letter_grades,
+                                    exceptions = policy$exceptions) |>
+                    gradebook::flatten_policy()
+                policy$grades <- cleaned_data |>
+                    calculate_lateness(flat_policy) |>
+                    get_category_grades(flat_policy)
+            }, error = function(e) {
+                showNotification('Fix policy file','',type = "error")
+            })
+        }
+    })
+    
     #### -------------------------- DASHBOARD ----------------------------####
     
     output$dashboard <- renderUI({
@@ -315,30 +340,58 @@ shinyServer(function(input, output, session) {
         if (length(policy$categories) > 0 && !is.null(assign$table$assignment)) {
             fluidRow(
                 box(
-                    title = 'Assignment Distribution',
-                    plotlyOutput('assignment_plotly', height = '150px'),
+                    tabsetPanel(
+                        tabPanel("Plot", 
+                            plotlyOutput('assignment_plotly', height = '200px')
+                        ),
+                        tabPanel("Statistics", 
+                            # TODO
+                            uiOutput('assignment_stats'),
+                        ),
+                    ),
                     width = 6,
-                    height = '200px'
+                    height = '300px',
                 ),
                 box(
-                    title = 'Summary Statistics',
+                    title = 'Assignment Options',
                     selectInput('which_assignment', label=NULL, choices = assign$table$assignment),
-                    uiOutput('assignment_stats'),
+                    radioButtons("assignment_score_option", "Choose an option:",
+                                 choices = list("Percentage" = "percentage", 
+                                                "By Points" = "point"),
+                                 selected = "percentage"),
                     width = 6,
-                    height = '200px'
+                    height = '300px'
+                    
                 ),
                 box(
-                    title = 'Category Distribution', 
-                    plotlyOutput('category_plotly', height = '200px'),
+                    tabsetPanel(
+                        tabPanel("Plot", 
+                            plotlyOutput('category_plotly', height = '200px'),
+                        ),
+                        tabPanel("Statistics", 
+                            # TODO
+                            uiOutput('category_stats', height = '200px'),
+                        ),
+                    ),
                     width = 6,
                     height = '300px'
                 ),
                 box(
-                    title = 'Category Distribution', 
-                    uiOutput('category_stats', height = '200px'),
+                    title = 'Category Options', 
+                    selectInput('which_category', label=NULL, choices = available_categories()),
+                    radioButtons("choice2", "Choose an option:",
+                                 choices = list("Percentage" = "percentage", 
+                                                "By Points" = "point"),
+                                 selected = "percentage"),
                     width = 6,
                     height = '300px'
                 ),
+                box(
+                    title = 'Overall Course Distribution',
+                    plotlyOutput('overall_plotly'),
+                    width = 12,
+                    height = '400px'
+                )
             )
         } else if (length(policy$categories) > 0) { # policy is created only
             tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
@@ -365,10 +418,14 @@ shinyServer(function(input, output, session) {
     })
 
     output$assignment_plotly <- renderPlotly({
-        assignment_grades <- data() |>
+        assignment_grades <- policy$grades |>
             dplyr::select(input$which_assignment) |>
             dplyr::pull(1)
-
+        
+        if (input$assignment_score_option == 'point') {
+            assignment_grades
+        }
+        
         plt <- plot_ly(x = ~assignment_grades, type='histogram') |>
             config(displayModeBar = FALSE) |>
             layout(dragmode = FALSE)
@@ -381,23 +438,22 @@ shinyServer(function(input, output, session) {
     })
     
     output$category_plotly <- renderPlotly({
-        # policy$grades <- category columns
-        print('policy')
-        print(policy$grades)
-        # plt <- plot_ly(x = policy$grades, type = 'histogram') |>
-        #     config(displayModeBar = FALSE) |>
-        #     layout(dragmode = FALSE)
-        plt <- plot_ly()
+        category_grades <- policy$grades |>
+            dplyr::select(input$which_category) |>
+            dplyr::pull(1)
+        
+        plt <- plot_ly(x = ~category_grades, type = 'histogram') |>
+            config(displayModeBar = FALSE) |>
+            layout(dragmode = FALSE)
+        
         plt
     })
     
     output$category_stats <- renderUI({
-        markdown('Category Summary Statistics will appear here')
+        markdown('Category Summary Statistics will appear here.')
     })
     
     output$overall_plotly <- renderPlotly({
-        print('policy$grades')
-        print(policy$grades)
         plt <- plot_ly(x = policy$grades$`Overall Score`, type = 'histogram') |>
             config(displayModeBar = FALSE) |>
             layout(dragmode = FALSE)
@@ -407,7 +463,6 @@ shinyServer(function(input, output, session) {
     available_categories <- reactive({
         return(sapply(policy$categories, function(df) df$category))
     })
-    
     
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
     
