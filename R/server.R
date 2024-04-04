@@ -217,7 +217,8 @@ shinyServer(function(input, output, session) {
     
     observeEvent(input$save,{
         existingCategories <- sapply(policy$flat$categories, function(cat) cat$category)
-        if(input$name %in% existingCategories) {
+        
+        if(is.null(current_edit$category$category)  & input$name %in% existingCategories) {
             showNotification("Please enter a different category name. You cannot have repeating names. ", type = "error")
         }
         else{
