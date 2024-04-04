@@ -216,12 +216,16 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$save,{
-        existingCategories <- sapply(policy$flat$categories, function(cat) cat$category)
-        
-        if(is.null(current_edit$category$category)  & input$name %in% existingCategories) {
-            showNotification("Please enter a different category name. You cannot have repeating names. ", type = "error")
+        existingCategories <- unlist(map(policy$flat$categories, "category"))
+        if (!is.null(assign$table$assignment)){
+            existingCategories <- c(existingCategories, gradebook::get_assignments(data()))
         }
-        else{
+        if (!is.null(current_edit$category)){
+            existingCategories <- existingCategories[existingCategories != current_edit$category$category]
+        }
+        if(!is.null(existingCategories)  & input$name %in% existingCategories) {
+            showNotification("Please enter a different category name. You cannot have repeating names. ", type = "error")
+        }else{
             removeModal() #closes edit modal
 
             sum <- 0
