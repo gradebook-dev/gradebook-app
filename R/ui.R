@@ -41,7 +41,7 @@ shinyUI(
                     h5("Download Your Course Grades")
                 ),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
-                downloadButton("download_grades","Download Grades")
+                div(downloadButton("download_grades","Download Grades")),
                 ),
                 hr(),
               #div(actionButton('demogs', "demo gs")),
