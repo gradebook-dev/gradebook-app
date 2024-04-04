@@ -53,6 +53,15 @@ shinyServer(function(input, output, session) {
         })
     })
     
+    observe({
+        req(input$demogs)
+        tryCatch({
+            yaml <- yaml::read_yaml("../inst/extdata/sample_policy.yaml")
+            policy$coursewide <- yaml$coursewide
+            policy$categories <- yaml$categories
+        })
+    })
+    
     #### -------------------------- POLICY ----------------------------####  
     policy <- reactiveValues(coursewide = list(course_name = "Course Name", description = "Description"),
                              categories = list(),
@@ -74,6 +83,8 @@ shinyServer(function(input, output, session) {
             )
         ))
     })
+    
+    
     
     # When save_changes is clicked, update the reactive values and close modal
     observeEvent(input$save_changes_course, {

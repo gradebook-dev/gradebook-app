@@ -35,6 +35,7 @@ shinyUI(
                 ),
                 fileInput("upload_policy", label = NULL, accept = c(".yml")),
                 hr(),
+              h5("Explore With Generic Data", style = 'margin-left: 20px;'),
               div(actionButton('demogs', "Use Demo Data and Policy")),
               hr(),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
