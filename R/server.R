@@ -1,4 +1,5 @@
 library(DT)
+library(gradebook)
 library(tidyverse)
 library(plotly)
 library(bslib)
@@ -275,7 +276,6 @@ shinyServer(function(input, output, session) {
     observeEvent(input$delete, {
         req(category_to_be_deleted$cat)
         removeModal()
-       # print(category_to_be_deleted$cat$category)
         policy$categories <- deleteCategory(policy$categories, category_to_be_deleted$cat$category)
         category_to_be_deleted$cat <- NULL
     })
@@ -325,8 +325,8 @@ shinyServer(function(input, output, session) {
                                     exceptions = policy$exceptions) |>
                     gradebook::flatten_policy()
                 policy$grades <- cleaned_data |>
-                    calculate_lateness(flat_policy) |>
-                    get_category_grades(flat_policy)
+                    gradebook::calculate_lateness(flat_policy) |>
+                    gradebook::get_category_grades(flat_policy)
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
             })
@@ -342,7 +342,7 @@ shinyServer(function(input, output, session) {
                 box(
                     tabsetPanel(
                         tabPanel("Plot", 
-                            plotlyOutput('assignment_plotly', height = '200px')
+                            plotlyOutput('assignment_plotly', height = '220px')
                         ),
                         tabPanel("Statistics", 
                             # TODO
@@ -355,10 +355,10 @@ shinyServer(function(input, output, session) {
                 box(
                     title = 'Assignment Options',
                     selectInput('which_assignment', label=NULL, choices = assign$table$assignment),
-                    radioButtons("assignment_score_option", "Choose an option:",
-                                 choices = list("Percentage" = "percentage", 
-                                                "By Points" = "point"),
-                                 selected = "percentage"),
+                    # TODO: radioButtons("assignment_score_option", "Choose an option:", 
+                    #              choices = list("Percentage" = "percentage", 
+                    #                             "By Points" = "point"),
+                    #              selected = "percentage"),
                     width = 6,
                     height = '300px'
                     
@@ -366,7 +366,7 @@ shinyServer(function(input, output, session) {
                 box(
                     tabsetPanel(
                         tabPanel("Plot", 
-                            plotlyOutput('category_plotly', height = '200px'),
+                            plotlyOutput('category_plotly', height = '220px'),
                         ),
                         tabPanel("Statistics", 
                             # TODO
@@ -379,10 +379,10 @@ shinyServer(function(input, output, session) {
                 box(
                     title = 'Category Options', 
                     selectInput('which_category', label=NULL, choices = available_categories()),
-                    radioButtons("choice2", "Choose an option:",
-                                 choices = list("Percentage" = "percentage", 
-                                                "By Points" = "point"),
-                                 selected = "percentage"),
+                    # TODO: radioButtons("choice2", "Choose an option:",
+                    #              choices = list("Percentage" = "percentage", 
+                    #                             "By Points" = "point"),
+                    #              selected = "percentage"),
                     width = 6,
                     height = '300px'
                 ),
@@ -391,6 +391,9 @@ shinyServer(function(input, output, session) {
                     plotlyOutput('overall_plotly'),
                     width = 12,
                     height = '400px'
+                ),
+                uiOutput(
+                    'course_data_table'
                 )
             )
         } else if (length(policy$categories) > 0) { # policy is created only
@@ -422,19 +425,40 @@ shinyServer(function(input, output, session) {
             dplyr::select(input$which_assignment) |>
             dplyr::pull(1)
         
-        if (input$assignment_score_option == 'point') {
-            assignment_grades
-        }
+        # if (input$assignment_score_option == 'point') {
+        #     assignment_grades
+        # }
         
         plt <- plot_ly(x = ~assignment_grades, type='histogram') |>
             config(displayModeBar = FALSE) |>
-            layout(dragmode = FALSE)
+            layout(
+                title = list(text = 'Assignment Distribution', font = list(size = 14), y = 0.95),
+                xaxis = list(title = 'percentage'),
+                dragmode = FALSE
+            )
         
         plt
     })
     
     output$assignment_stats <- renderUI({
-        markdown('Assignment Summary Statistics will appear here')
+        assignment_vec <- policy$grades |>
+            dplyr::select(input$which_assignment) |> 
+            drop_na() |>
+            dplyr::pull(1)
+        
+        mu <- paste0((mean(assignment_vec) |> round(digits = 4)) * 100, '%')
+        med <- paste0((median(assignment_vec) |> round(digits = 4)) * 100, '%')
+        sd <- paste0((sd(assignment_vec) |> round(digits = 4)) * 100, '%')
+        tfive <- paste0((quantile(assignment_vec, 0.25) |> round(digits = 4)) * 100, '%')
+        sfive <- paste0((quantile(assignment_vec, 0.75) |> round(digits = 4)) * 100, '%')
+        
+        HTML(paste0(
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Mean</p> <p>', mu, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Standard Deviation</p> <p>', sd, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Median</p> <p>', med, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>25%ile</p> <p>', tfive, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; padding: 5px 0;"><p>75%ile</p> <p>', sfive, '</p></div>'
+        ))
     })
     
     output$category_plotly <- renderPlotly({
@@ -444,13 +468,34 @@ shinyServer(function(input, output, session) {
         
         plt <- plot_ly(x = ~category_grades, type = 'histogram') |>
             config(displayModeBar = FALSE) |>
-            layout(dragmode = FALSE)
+            layout(
+                title = list(text = 'Category Distribution', font = list(size = 14), y = 0.95),
+                xaxis = list(title = 'percentage'),
+                dragmode = FALSE
+            )
         
         plt
     })
     
     output$category_stats <- renderUI({
-        markdown('Category Summary Statistics will appear here.')
+        category_vec <- policy$grades |>
+            dplyr::select(input$which_category) |> 
+            drop_na() |>
+            dplyr::pull(1)
+        
+        mu <- paste0((mean(category_vec) |> round(digits = 4)) * 100, '%')
+        med <- paste0((median(category_vec) |> round(digits = 4)) * 100, '%')
+        sd <- paste0((sd(category_vec) |> round(digits = 4)) * 100, '%')
+        tfive <- paste0((quantile(category_vec, 0.25) |> round(digits = 4)) * 100, '%')
+        sfive <- paste0((quantile(category_vec, 0.75) |> round(digits = 4)) * 100, '%')
+
+        HTML(paste0(
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Mean</p> <p>', mu, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Standard Deviation</p> <p>', sd, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Median</p> <p>', med, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>25%ile</p> <p>', tfive, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; padding: 5px 0;"><p>75%ile</p> <p>', sfive, '</p></div>'
+        ))
     })
     
     output$overall_plotly <- renderPlotly({
@@ -458,6 +503,10 @@ shinyServer(function(input, output, session) {
             config(displayModeBar = FALSE) |>
             layout(dragmode = FALSE)
         plt
+    })
+    
+    output$course_data_table <- renderUI({
+        DT::datatable()
     })
     
     available_categories <- reactive({
