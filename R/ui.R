@@ -35,14 +35,17 @@ shinyUI(
                 ),
                 fileInput("upload_policy", label = NULL, accept = c(".yml")),
                 hr(),
+              h5("Explore With Generic Data", style = 'margin-left: 20px;'),
+              div(actionButton('demogs', "Use Demo Data and Policy")),
+              hr(),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     h5("Download Your Course Grades")
                 ),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
-                downloadButton("download_grades","Download Grades")
+                div(downloadButton("download_grades","Download Grades")),
                 ),
                 hr(),
-              div(actionButton('demogs', "demo gs")),
+              #div(actionButton('demogs', "demo gs")),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     h5("Download Your Yaml Policy File")
                 ),
