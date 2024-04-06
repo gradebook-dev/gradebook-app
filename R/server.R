@@ -1,6 +1,7 @@
 library(DT)
 library(tidyverse)
 library(readr)
+
 #load helper scripts
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
@@ -9,19 +10,27 @@ shinyServer(function(input, output, session) {
     
     #### -------------------------- UPLOADS ----------------------------####   
     
+    data <- reactiveVal(NULL)
+    
     #can only upload data that can be read in by read_gs()
-    data <- reactive({
+    observeEvent(input$upload_gs,{
         req(input$upload_gs)
-        
         tryCatch({
-            data <- gradebook::read_gs(input$upload_gs$datapath)
-            return(data)
+            uploaded_data <- gradebook::read_gs(input$upload_gs$datapath)
+            data(uploaded_data)
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
-            return(NULL)
+            
         })
     })
     
+    observeEvent(input$demogs, {
+       if(is.null(data())){
+        demo_data <- gradebook::gs_demo 
+        data(demo_data)
+       }
+    })
+  
     observe({
         req(input$upload_policy)
         #eventually validate
@@ -34,6 +43,15 @@ shinyServer(function(input, output, session) {
         })
     })
     
+    # observe({
+    #     req(input$demogs)
+    #     tryCatch({
+    #         yaml <- yaml::read_yaml("../inst/extdata/sample_policy.yaml")
+    #         policy$coursewide <- yaml$coursewide
+    #         policy$categories <- yaml$categories
+    #     })
+    # })
+    # 
     #### -------------------------- POLICY ----------------------------####  
     policy <- reactiveValues(coursewide = list(course_name = "Course Name", description = "Description"),
                              categories = list(),
@@ -56,6 +74,8 @@ shinyServer(function(input, output, session) {
         ))
     })
     
+    
+    
     # When save_changes is clicked, update the reactive values and close modal
     observeEvent(input$save_changes_course, {
         policy$coursewide$course_name <- isolate(input$course_name_input)
@@ -77,16 +97,18 @@ shinyServer(function(input, output, session) {
     # all assignments default to "Unassigned"
     observe({
         colnames <- gradebook::get_assignments(data())
+        if(length(colnames) > 0){
         assign$table <- data.frame(assignment = colnames) |>
             mutate(category = "Unassigned")
+        }
     })
     
     #a list of unassigned assignments in policies tab
     output$unassigned <- renderUI(
-        if (!is.null(assign$table)){
+        if (!is.null(assign$table$assignment)){
             HTML(markdown::renderMarkdown(text = paste(paste0("- ", getUnassigned(assign$table), "\n"), collapse = "")))
         } else {
-            h5("Let's upload some data first...")
+            h5('New assignments will appear here.')
         }
     )
     
@@ -197,31 +219,41 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$save,{
-        
-        removeModal() #closes edit modal
-       
-        sum <- 0
-        if (!is.null(assign$table) & !is.null(input$assignments)){
-            sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
+        existingCategories <- unlist(map(policy$flat$categories, "category"))
+        if (!is.null(assign$table$assignment)){
+            existingCategories <- c(existingCategories, gradebook::get_assignments(data()))
         }
-        
-        if (sum %in% c(0,1)){
-            #update policy
-            if (!is.null(current_edit$category$category)){
-                
-                #add new category
-                policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
-                                                    input$name, input, assign$table)
-            } else {
-                policy$categories <- append(policy$categories,
-                                            list(createCategory(input$name, input = input,
-                                                                assign$table)))
+        if (!is.null(current_edit$category)){
+            existingCategories <- existingCategories[existingCategories != current_edit$category$category]
+        }
+        if(!is.null(existingCategories)  & input$name %in% existingCategories) {
+            showNotification("Please enter a different category name. You cannot have repeating names. ", type = "error")
+        }else{
+            removeModal() #closes edit modal
+
+            sum <- 0
+            if (!is.null(assign$table) & !is.null(input$assignments)){
+                sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
             }
-        } else {
-            showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
+            
+            
+            if (sum %in% c(0,1)){
+                #update policy
+                if (!is.null(current_edit$category$category)){
+                    
+                    #add new category
+                    policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
+                                                        input$name, input, assign$table)
+                } else {
+                    policy$categories <- append(policy$categories,
+                                                list(createCategory(input$name, input = input,
+                                                                    assign$table)))
+                }
+            } else {
+                showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
+            }
         }
     })
-    
     
     observe({
         names <- purrr::map(policy$flat$categories, "category") |> unlist()
@@ -271,7 +303,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$delete, {
         req(category_to_be_deleted$cat)
         removeModal()
-        print(category_to_be_deleted$cat$category)
+       # print(category_to_be_deleted$cat$category)
         policy$categories <- deleteCategory(policy$categories, category_to_be_deleted$cat$category)
         category_to_be_deleted$cat <- NULL
     })
@@ -321,6 +353,7 @@ shinyServer(function(input, output, session) {
                                     letter_grades = policy$letter_grades,
                                     exceptions = policy$exceptions) |>
                     gradebook::flatten_policy()
+               
                 policy$grades <- cleaned_data |>
                     calculate_lateness(flat_policy) |>
                     get_category_grades(flat_policy)
