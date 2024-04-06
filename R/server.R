@@ -10,37 +10,27 @@ shinyServer(function(input, output, session) {
     
     #### -------------------------- UPLOADS ----------------------------####   
     
-    #can only upload data that can be read in by read_gs()
-    # data <- reactive({
-    #     reg(input$upload_gs)
-    #     
-    #     tryCatch({
-    #         data <- gradebook::read_gs(input$upload_gs$datapath)
-    #         return(data)
-    #     }, error = function(e) {
-    #         showNotification('Please upload a file with the Gradescope format','',type = "error")
-    #         return(NULL)
-    #     })
-    # })
+    data <- reactiveVal(NULL)
     
-    data <- reactive({
-        if(is.null(input$upload_gs) && is.null(input$demogs) || input$demogs <= 0) {
-            req(NULL)
-        }
-        data <- NULL
-        if(!is.null(input$upload_gs)) {
-            tryCatch({
-                data <- gradebook::read_gs(input$upload_gs$datapath)
-            }, error = function(e) {
-                showNotification('Please upload a file with the Gradescope format', type = "error")
-            })
-        }
-        if(input$demogs > 0 && is.null(data)) {
-            data <- gradebook::gs_demo
-        }
-        return(data)
+    #can only upload data that can be read in by read_gs()
+    observeEvent(input$upload_gs,{
+        req(input$upload_gs)
+        tryCatch({
+            uploaded_data <- gradebook::read_gs(input$upload_gs$datapath)
+            data(uploaded_data)
+        }, error = function(e) {
+            showNotification('Please upload a file with the Gradescope format','',type = "error")
+            
+        })
     })
     
+    observeEvent(input$demogs, {
+       if(is.null(data())){
+        demo_data <- gradebook::gs_demo 
+        data(demo_data)
+       }
+    })
+  
     observe({
         req(input$upload_policy)
         #eventually validate
@@ -96,8 +86,10 @@ shinyServer(function(input, output, session) {
     # all assignments default to "Unassigned"
     observe({
         colnames <- gradebook::get_assignments(data())
+        if(length(colnames) > 0){
         assign$table <- data.frame(assignment = colnames) |>
             mutate(category = "Unassigned")
+        }
     })
     
     #a list of unassigned assignments in policies tab
