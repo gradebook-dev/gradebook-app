@@ -341,10 +341,10 @@ shinyServer(function(input, output, session) {
             fluidRow(
                 box(
                     tabsetPanel(
-                        tabPanel("Plot", 
+                        tabPanel('Plot', 
                             plotlyOutput('assignment_plotly', height = '220px')
                         ),
-                        tabPanel("Statistics", 
+                        tabPanel('Statistics', 
                             # TODO
                             uiOutput('assignment_stats'),
                         ),
@@ -355,20 +355,20 @@ shinyServer(function(input, output, session) {
                 box(
                     title = 'Assignment Options',
                     selectInput('which_assignment', label=NULL, choices = assign$table$assignment),
-                    # TODO: radioButtons("assignment_score_option", "Choose an option:", 
-                    #              choices = list("Percentage" = "percentage", 
-                    #                             "By Points" = "point"),
-                    #              selected = "percentage"),
+                    # TODO: radioButtons('assignment_score_option', 'Choose an option:', 
+                    #              choices = list('Percentage' = 'percentage', 
+                    #                             'By Points' = 'point'),
+                    #              selected = 'percentage'),
                     width = 6,
                     height = '300px'
                     
                 ),
                 box(
                     tabsetPanel(
-                        tabPanel("Plot", 
+                        tabPanel('Plot', 
                             plotlyOutput('category_plotly', height = '220px'),
                         ),
-                        tabPanel("Statistics", 
+                        tabPanel('Statistics', 
                             # TODO
                             uiOutput('category_stats', height = '200px'),
                         ),
@@ -379,21 +379,22 @@ shinyServer(function(input, output, session) {
                 box(
                     title = 'Category Options', 
                     selectInput('which_category', label=NULL, choices = available_categories()),
-                    # TODO: radioButtons("choice2", "Choose an option:",
-                    #              choices = list("Percentage" = "percentage", 
-                    #                             "By Points" = "point"),
-                    #              selected = "percentage"),
+                    # TODO: radioButtons('choice2', 'Choose an option:',
+                    #              choices = list('Percentage' = 'percentage', 
+                    #                             'By Points' = 'point'),
+                    #              selected = 'percentage'),
                     width = 6,
                     height = '300px'
                 ),
                 box(
                     title = 'Overall Course Distribution',
-                    plotlyOutput('overall_plotly'),
+                    plotlyOutput('overall_plotly', height = '320px'),
                     width = 12,
                     height = '400px'
                 ),
-                uiOutput(
-                    'course_data_table'
+                box(
+                    DT::dataTableOutput('course_data_table'),
+                    width = 12
                 )
             )
         } else if (length(policy$categories) > 0) { # policy is created only
@@ -505,12 +506,24 @@ shinyServer(function(input, output, session) {
         plt
     })
     
-    output$course_data_table <- renderUI({
-        DT::datatable()
+    output$course_data_table <- DT::renderDataTable({ 
+        # Removing max points column
+        wanted_columns <- colnames(policy$grades)[!grepl('- Max Points', colnames(policy$grades))]
+        tbl <- policy$grades |>
+            select(wanted_columns)
+        
+        # Renaming columns for display purposes 
+        names(tbl) <- gsub('\\(H:M:S\\)', '(Minutes)', names(tbl))
+        
+        # Rounding minutes to nearest tenth decimal place
+        column_names <- grep('\\(Minutes\\)', names(tbl), value = TRUE)
+        tbl[column_names] <- lapply(tbl[column_names], {function(x) round(x, 1)})
+        
+        DT::datatable(tbl, options = list(scrollX = TRUE, scrollY = '500px'))
     })
     
     available_categories <- reactive({
-        return(sapply(policy$categories, function(df) df$category))
+        return(sapply(policy$categories, {function(df) df$category}))
     })
     
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
