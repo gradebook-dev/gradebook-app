@@ -45,7 +45,6 @@ shinyUI(
                 div(downloadButton("download_grades","Download Grades")),
                 ),
                 hr(),
-              #div(actionButton('demogs', "demo gs")),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
                     h5("Download Your Yaml Policy File")
                 ),
