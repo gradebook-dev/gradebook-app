@@ -1,0 +1,48 @@
+coursewide:
+  course: Refactored Class
+categories:
+- category: Labs
+  score: raw_over_max
+  aggregation: weighted_by_points
+  aggregation_max_pts: sum_max_pts
+  aggregation_lateness: max_lateness
+  assignments:
+  - Lab 1
+  - Lab 2
+  - Lab 3
+  - Lab 4
+  - Lab 5
+  - Lab 6
+- category: Discussion
+  score: raw_over_max
+  aggregation: equally_weighted
+  aggregation_max_pts: sum_max_pts
+  aggregation_lateness: max_lateness
+  assignments:
+  - Discussion 1
+  - Discussion 2
+- category: Midterm_Grade
+  score: raw_over_max
+  aggregation: none
+  aggregation_max_pts: sum_max_pts
+  aggregation_lateness: max_lateness
+  assignments: Midterm
+- category: Final_Grade
+  score: raw_over_max
+  aggregation: none
+  aggregation_max_pts: sum_max_pts
+  aggregation_lateness: max_lateness
+  assignments: Final
+- category: Overall_Grade
+  aggregation: weighted_mean
+  aggregation_max_pts: sum_max_pts
+  weights:
+  - 0.5
+  - 0.05
+  - 0.20
+  - 0.25
+  assignments: 
+  - Labs
+  - Discussion
+  - Midterm_Grade
+  - Final_Grade
