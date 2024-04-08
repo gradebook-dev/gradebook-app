@@ -124,6 +124,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$new_cat, {
         showModal(edit_category_modal) #opens edit modal
         #updates values that aren't always the same but still default
+        current_edit$category <- NULL
         updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
             choices <- getUnassigned(assign$table)
