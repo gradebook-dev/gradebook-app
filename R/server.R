@@ -1,6 +1,11 @@
 library(DT)
+library(gradebook)
 library(tidyverse)
+library(plotly)
+library(bslib)
 library(readr)
+library(shinydashboard)
+
 #load helper scripts
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
@@ -9,19 +14,27 @@ shinyServer(function(input, output, session) {
     
     #### -------------------------- UPLOADS ----------------------------####   
     
+    data <- reactiveVal(NULL)
+    
     #can only upload data that can be read in by read_gs()
-    data <- reactive({
+    observeEvent(input$upload_gs,{
         req(input$upload_gs)
-        
         tryCatch({
-            data <- gradebook::read_gs(input$upload_gs$datapath)
-            return(data)
+            uploaded_data <- gradebook::read_gs(input$upload_gs$datapath)
+            data(uploaded_data)
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
-            return(NULL)
+            
         })
     })
     
+    observeEvent(input$demogs, {
+       if(is.null(data())){
+        demo_data <- gradebook::gs_demo 
+        data(demo_data)
+       }
+    })
+  
     observe({
         req(input$upload_policy)
         #eventually validate
@@ -34,6 +47,15 @@ shinyServer(function(input, output, session) {
         })
     })
     
+    # observe({
+    #     req(input$demogs)
+    #     tryCatch({
+    #         yaml <- yaml::read_yaml("../inst/extdata/sample_policy.yaml")
+    #         policy$coursewide <- yaml$coursewide
+    #         policy$categories <- yaml$categories
+    #     })
+    # })
+    # 
     #### -------------------------- POLICY ----------------------------####  
     policy <- reactiveValues(coursewide = list(course_name = "Course Name", description = "Description"),
                              categories = list(),
@@ -56,6 +78,8 @@ shinyServer(function(input, output, session) {
         ))
     })
     
+    
+    
     # When save_changes is clicked, update the reactive values and close modal
     observeEvent(input$save_changes_course, {
         policy$coursewide$course_name <- isolate(input$course_name_input)
@@ -77,16 +101,18 @@ shinyServer(function(input, output, session) {
     # all assignments default to "Unassigned"
     observe({
         colnames <- gradebook::get_assignments(data())
+        if(length(colnames) > 0){
         assign$table <- data.frame(assignment = colnames) |>
             mutate(category = "Unassigned")
+        }
     })
     
     #a list of unassigned assignments in policies tab
     output$unassigned <- renderUI(
-        if (!is.null(assign$table)){
+        if (!is.null(assign$table$assignment)){
             HTML(markdown::renderMarkdown(text = paste(paste0("- ", getUnassigned(assign$table), "\n"), collapse = "")))
         } else {
-            h5("Let's upload some data first...")
+            h5('New assignments will appear here.')
         }
     )
     
@@ -98,6 +124,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$new_cat, {
         showModal(edit_category_modal) #opens edit modal
         #updates values that aren't always the same but still default
+        current_edit$category <- NULL
         updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
             choices <- getUnassigned(assign$table)
@@ -197,31 +224,41 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$save,{
-        
-        removeModal() #closes edit modal
-       
-        sum <- 0
-        if (!is.null(assign$table) & !is.null(input$assignments)){
-            sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
+        existingCategories <- unlist(map(policy$flat$categories, "category"))
+        if (!is.null(assign$table$assignment)){
+            existingCategories <- c(existingCategories, gradebook::get_assignments(data()))
         }
-        
-        if (sum %in% c(0,1)){
-            #update policy
-            if (!is.null(current_edit$category$category)){
-                
-                #add new category
-                policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
-                                                    input$name, input, assign$table)
-            } else {
-                policy$categories <- append(policy$categories,
-                                            list(createCategory(input$name, input = input,
-                                                                assign$table)))
+        if (!is.null(current_edit$category)){
+            existingCategories <- existingCategories[existingCategories != current_edit$category$category]
+        }
+        if(!is.null(existingCategories)  & input$name %in% existingCategories) {
+            showNotification("Please enter a different category name. You cannot have repeating names. ", type = "error")
+        }else{
+            removeModal() #closes edit modal
+
+            sum <- 0
+            if (!is.null(assign$table) & !is.null(input$assignments)){
+                sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
             }
-        } else {
-            showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
+            
+            
+            if (sum %in% c(0,1)){
+                #update policy
+                if (!is.null(current_edit$category$category)){
+                    
+                    #add new category
+                    policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
+                                                        input$name, input, assign$table)
+                } else {
+                    policy$categories <- append(policy$categories,
+                                                list(createCategory(input$name, input = input,
+                                                                    assign$table)))
+                }
+            } else {
+                showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
+            }
         }
     })
-    
     
     observe({
         names <- purrr::map(policy$flat$categories, "category") |> unlist()
@@ -271,7 +308,6 @@ shinyServer(function(input, output, session) {
     observeEvent(input$delete, {
         req(category_to_be_deleted$cat)
         removeModal()
-        print(category_to_be_deleted$cat$category)
         policy$categories <- deleteCategory(policy$categories, category_to_be_deleted$cat$category)
         category_to_be_deleted$cat <- NULL
     })
@@ -304,7 +340,6 @@ shinyServer(function(input, output, session) {
         
     })
     
-    
     #### -------------------------- GRADING ----------------------------####
     
     observeEvent(policy$categories,{
@@ -321,13 +356,207 @@ shinyServer(function(input, output, session) {
                                     letter_grades = policy$letter_grades,
                                     exceptions = policy$exceptions) |>
                     gradebook::flatten_policy()
+               
                 policy$grades <- cleaned_data |>
-                    calculate_lateness(flat_policy) |>
-                    get_category_grades(flat_policy)
+                    gradebook::calculate_lateness(flat_policy) |>
+                    gradebook::get_category_grades(flat_policy)
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
             })
         }
+    })
+    
+    #### -------------------------- DASHBOARD ----------------------------####
+    
+    output$dashboard <- renderUI({
+        # if categories are made OR data is uploaded.
+        if (length(policy$categories) > 0 && !is.null(assign$table$assignment)) {
+            fluidRow(
+                box(
+                    tabsetPanel(
+                        tabPanel('Plot', 
+                            plotlyOutput('assignment_plotly', height = '220px')
+                        ),
+                        tabPanel('Statistics', 
+                            # TODO
+                            uiOutput('assignment_stats'),
+                        ),
+                    ),
+                    width = 6,
+                    height = '300px',
+                ),
+                box(
+                    title = 'Assignment Options',
+                    selectInput('which_assignment', label=NULL, choices = assign$table$assignment),
+                    # TODO: radioButtons('assignment_score_option', 'Choose an option:', 
+                    #              choices = list('Percentage' = 'percentage', 
+                    #                             'By Points' = 'point'),
+                    #              selected = 'percentage'),
+                    width = 6,
+                    height = '300px'
+                    
+                ),
+                box(
+                    tabsetPanel(
+                        tabPanel('Plot', 
+                            plotlyOutput('category_plotly', height = '220px'),
+                        ),
+                        tabPanel('Statistics', 
+                            # TODO
+                            uiOutput('category_stats', height = '200px'),
+                        ),
+                    ),
+                    width = 6,
+                    height = '300px'
+                ),
+                box(
+                    title = 'Category Options', 
+                    selectInput('which_category', label=NULL, choices = available_categories()),
+                    # TODO: radioButtons('choice2', 'Choose an option:',
+                    #              choices = list('Percentage' = 'percentage', 
+                    #                             'By Points' = 'point'),
+                    #              selected = 'percentage'),
+                    width = 6,
+                    height = '300px'
+                ),
+                box(
+                    title = 'Overall Course Distribution',
+                    plotlyOutput('overall_plotly', height = '320px'),
+                    width = 12,
+                    height = '400px'
+                ),
+                box(
+                    DT::dataTableOutput('course_data_table'),
+                    width = 12
+                )
+            )
+        } else if (length(policy$categories) > 0) { # policy is created only
+            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+                     tagList(
+                         h4(strong('You haven\'t uploaded any student data yet.')),
+                         h5('Upload course data from Gradescope to get started.')
+                     )
+            )
+        } else if (!is.null(assign$table$assignment)) {
+            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+                     tagList(
+                         h4(strong('You still need to build your course policy.')),
+                         h5('See "Policies" tab to get started.')
+                     )
+            )
+        } else {
+            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+                     tagList(
+                         h4(strong('You haven\'t uploaded any student data yet.')),
+                         h5('Summary statistics and plots will appear here as you build your course policy.')
+                     )
+            )
+        }
+    })
+
+    output$assignment_plotly <- renderPlotly({
+        assignment_grades <- policy$grades |>
+            dplyr::select(input$which_assignment) |>
+            dplyr::pull(1)
+        
+        # if (input$assignment_score_option == 'point') {
+        #     assignment_grades
+        # }
+        
+        plt <- plot_ly(x = ~assignment_grades, type='histogram') |>
+            config(displayModeBar = FALSE) |>
+            layout(
+                title = list(text = 'Assignment Distribution', font = list(size = 14), y = 0.95),
+                xaxis = list(title = 'percentage'),
+                dragmode = FALSE
+            )
+        
+        plt
+    })
+    
+    output$assignment_stats <- renderUI({
+        assignment_vec <- policy$grades |>
+            dplyr::select(input$which_assignment) |> 
+            drop_na() |>
+            dplyr::pull(1)
+        
+        mu <- paste0((mean(assignment_vec) |> round(digits = 4)) * 100, '%')
+        med <- paste0((median(assignment_vec) |> round(digits = 4)) * 100, '%')
+        sd <- paste0((sd(assignment_vec) |> round(digits = 4)) * 100, '%')
+        tfive <- paste0((quantile(assignment_vec, 0.25) |> round(digits = 4)) * 100, '%')
+        sfive <- paste0((quantile(assignment_vec, 0.75) |> round(digits = 4)) * 100, '%')
+        
+        HTML(paste0(
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Mean</p> <p>', mu, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Standard Deviation</p> <p>', sd, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Median</p> <p>', med, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>25%ile</p> <p>', tfive, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; padding: 5px 0;"><p>75%ile</p> <p>', sfive, '</p></div>'
+        ))
+    })
+    
+    output$category_plotly <- renderPlotly({
+        category_grades <- policy$grades |>
+            dplyr::select(input$which_category) |>
+            dplyr::pull(1)
+        
+        plt <- plot_ly(x = ~category_grades, type = 'histogram') |>
+            config(displayModeBar = FALSE) |>
+            layout(
+                title = list(text = 'Category Distribution', font = list(size = 14), y = 0.95),
+                xaxis = list(title = 'percentage'),
+                dragmode = FALSE
+            )
+        
+        plt
+    })
+    
+    output$category_stats <- renderUI({
+        category_vec <- policy$grades |>
+            dplyr::select(input$which_category) |> 
+            drop_na() |>
+            dplyr::pull(1)
+        
+        mu <- paste0((mean(category_vec) |> round(digits = 4)) * 100, '%')
+        med <- paste0((median(category_vec) |> round(digits = 4)) * 100, '%')
+        sd <- paste0((sd(category_vec) |> round(digits = 4)) * 100, '%')
+        tfive <- paste0((quantile(category_vec, 0.25) |> round(digits = 4)) * 100, '%')
+        sfive <- paste0((quantile(category_vec, 0.75) |> round(digits = 4)) * 100, '%')
+
+        HTML(paste0(
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Mean</p> <p>', mu, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Standard Deviation</p> <p>', sd, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Median</p> <p>', med, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>25%ile</p> <p>', tfive, '</p></div>',
+            '<div style="display: flex; justify-content: space-between; padding: 5px 0;"><p>75%ile</p> <p>', sfive, '</p></div>'
+        ))
+    })
+    
+    output$overall_plotly <- renderPlotly({
+        plt <- plot_ly(x = policy$grades$`Overall Score`, type = 'histogram') |>
+            config(displayModeBar = FALSE) |>
+            layout(dragmode = FALSE)
+        plt
+    })
+    
+    output$course_data_table <- DT::renderDataTable({ 
+        # Removing max points column
+        wanted_columns <- colnames(policy$grades)[!grepl('- Max Points', colnames(policy$grades))]
+        tbl <- policy$grades |>
+            select(wanted_columns)
+        
+        # Renaming columns for display purposes 
+        names(tbl) <- gsub('\\(H:M:S\\)', '(Minutes)', names(tbl))
+        
+        # Rounding minutes to nearest tenth decimal place
+        column_names <- grep('\\(Minutes\\)', names(tbl), value = TRUE)
+        tbl[column_names] <- lapply(tbl[column_names], {function(x) round(x, 1)})
+        
+        DT::datatable(tbl, options = list(scrollX = TRUE, scrollY = '500px'))
+    })
+    
+    available_categories <- reactive({
+        return(sapply(policy$categories, {function(df) df$category}))
     })
     
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
