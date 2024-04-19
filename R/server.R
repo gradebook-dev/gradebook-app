@@ -10,6 +10,7 @@ library(shinydashboard)
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
 source(paste0(HSLocation, "categories.R"), local = TRUE)
+source(paste0(HSLocation, "lateness.R"), local = TRUE)
 shinyServer(function(input, output, session) {
     
     #### -------------------------- UPLOADS ----------------------------####   
@@ -340,6 +341,13 @@ shinyServer(function(input, output, session) {
         
     })
     
+    #### -------------------------- LATENESS POLICIES UI ----------------------------####
+    
+    # Opening category modal to create a NEW LATENESS
+    observeEvent(input$new_lateness, {
+        showModal(edit_lateness_modal) #opens lateness modal
+
+    })
     
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
     

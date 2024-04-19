@@ -2,6 +2,7 @@
 library(shinydashboard)
 library(shiny)
 library(DT)
+library(shinyWidgets)
 library(tidyverse)
 library(gradebook)
 library(yaml)

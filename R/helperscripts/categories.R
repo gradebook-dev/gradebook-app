@@ -3,7 +3,6 @@ edit_category_modal <- modalDialog(
     h4("Edit this Category"),
     fluidRow(column(6,textInput("name", "Category Name", value = "", width = "100%")
     )),
-    h6("Insert More Criteria Here Later..."),
     fluidRow(
         column(6,
                selectInput("aggregation", "Aggregation:", selected = "equally_weighted",
