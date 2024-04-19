@@ -133,29 +133,6 @@ shinyServer(function(input, output, session) {
         
     })
     
-    
-    # Reactive Lateness Cells in Modal
-    output$lateness <- renderUI({
-        if (input$num_lateness > 0){
-            lapply(1:as.integer(input$num_lateness), function(i) {
-                
-                fluidRow(
-                    column(4,
-                           textInput(inputId = paste0("from", i), label = "From:", value = "",
-                                     placeholder = "HH:MM:SS")
-                    ),
-                    column(4,
-                           textInput(inputId = paste0("to", i), label = "To:", value = "",
-                                     placeholder = "HH:MM:SS")
-                    ),
-                    column(4,
-                           numericInput(inputId = paste0("scale", i), label = "Scale by:", value = "")
-                    )
-                )
-            })
-        }
-    })
-    
     observe({
         req(category_labels$edit)
         

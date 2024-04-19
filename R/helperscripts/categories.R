@@ -21,7 +21,6 @@ edit_category_modal <- modalDialog(
     selectizeInput("assignments", "Select Assignments:",
                    choices = "", multiple = TRUE, width = "100%",
                    options = list(create = TRUE)),
-    uiOutput("lateness"),
     easyClose = TRUE,
     footer = tagList(
         actionButton("cancel", "Cancel"),
@@ -63,20 +62,6 @@ createCategory <- function(name, input, assigns_table){
         category = name,
         aggregation = unname(aggregation[input$aggregation])
     )
-    
-    if (input$num_lateness > 0){
-        lateness <- list()
-        for (i in 1:as.integer(input$num_lateness)){
-            late_policy <- list(
-                from = input[[paste0("from", i)]],
-                to = input[[paste0("to", i)]],
-                scale = input[[paste0("scale", i)]]
-            )
-            lateness <- append(lateness, list(late_policy))
-        }
-        
-        category <- append(category, list(lateness = lateness))
-    }
     
     if (input$clobber != "None"){
         category <- append(category, list(clobber = input$clobber))
