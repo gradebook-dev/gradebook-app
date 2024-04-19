@@ -3,12 +3,11 @@ edit_category_modal <- modalDialog(
     h4("Edit this Category"),
     fluidRow(column(6,textInput("name", "Category Name", value = "", width = "100%")
     )),
-    h6("Insert More Criteria Here Later..."),
     fluidRow(
         column(6,
                selectInput("aggregation", "Aggregation:", selected = "equally_weighted",
-                           choices = c("equally_weighted", "weighted_by_points", 
-                                       "max_score", "min_score", "none"))),
+                           choices = c("Equally Weighted", "Weighted By Points", 
+                                       "Max Score", "Min Score", "None"))),
         column(3,
                shinyWidgets::autonumericInput("weight", "Weight:", value = 0, currencySymbol = "%",
                                               currencySymbolPlacement = "s", width = "100px"),
@@ -54,10 +53,15 @@ createCategory <- function(name, input, assigns_table){
             }
         }
     }
-    
+    aggregation <- c(`Equally Weighted` = "equally_weighted",
+                     `Weighted By Points` = "weighted_by_points",
+                     `Max Score` = "max_score",
+                     `Min Score` = "min_score",
+                     None = "none"
+                     )
     category <- list(
         category = name,
-        aggregation = input$aggregation
+        aggregation = unname(aggregation[input$aggregation])
     )
     
     if (input$num_lateness > 0){
