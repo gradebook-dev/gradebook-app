@@ -343,6 +343,10 @@ shinyServer(function(input, output, session) {
     
     #### -------------------------- LATENESS POLICIES UI ----------------------------####
     
+    lateness <- reactiveValues(table = list(
+        default = NULL
+    ))
+    
     # Opening category modal to create a NEW LATENESS
     observeEvent(input$new_lateness, {
         showModal(edit_lateness_modal) #opens lateness modal
