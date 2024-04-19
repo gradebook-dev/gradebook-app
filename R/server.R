@@ -20,7 +20,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$upload_gs,{
         req(input$upload_gs)
         tryCatch({
-            uploaded_data <- gradebook::read_gs(input$upload_gs$datapath)
+            uploaded_data <- read_csv(input$upload_gs$datapath)
             data(uploaded_data)
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
@@ -339,8 +339,7 @@ shinyServer(function(input, output, session) {
                     gradebook::flatten_policy()
                
                 policy$grades <- cleaned_data |>
-                    gradebook::calculate_lateness(flat_policy) |>
-                    gradebook::get_category_grades(flat_policy)
+                    gradebook::get_grades(flat_policy)
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
             })
