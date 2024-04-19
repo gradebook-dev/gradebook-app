@@ -222,14 +222,18 @@ shinyServer(function(input, output, session) {
             if (sum %in% c(0,1)){
                 #update policy
                 if (!is.null(current_edit$category$category)){
-                    
-                    #add new category
-                    policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
-                                                        input$name, input, assign$table)
+                    temp_policy <- list(categories = updateCategory(policy$categories, policy$flat, current_edit$category$category,
+                                                                    input$name, input, assign$table)
+                                        )
+                    temp_policy <- gradebook::validate_policy(temp_policy)
+                    policy$categories <- temp_policy
                 } else {
-                    policy$categories <- append(policy$categories,
-                                                list(createCategory(input$name, input = input,
-                                                                    assign$table)))
+                    temp_policy <- list(categories = append(policy$categories,
+                                                       list(createCategory(input$name, input = input,
+                                                                           assign$table)))
+                                   )
+                    temp_policy <- gradebook::validate_policy(temp_policy)
+                    policy$categories <- temp_policy
                 }
             } else {
                 showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")

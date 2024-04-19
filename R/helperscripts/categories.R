@@ -52,29 +52,28 @@ createCategory <- function(name, input, assigns_table){
             }
         }
     }
+    
+    #INSERT LATENESS HERE!
+    
+    # if (input$clobber != "None"){
+    #     category <- append(category, list(clobber = input$clobber))
+    # }
+    
+    
+    if (input$n_drops > 0){
+        category <- append(category, list(drop_n_lowest = input$n_drops))
+    }
+    
     aggregation <- c(`Equally Weighted` = "equally_weighted",
                      `Weighted By Points` = "weighted_by_points",
                      `Max Score` = "max_score",
                      `Min Score` = "min_score",
                      None = "none"
-                     )
+    )
     category <- list(
         category = name,
         aggregation = unname(aggregation[input$aggregation])
     )
-    
-    if (input$clobber != "None"){
-        category <- append(category, list(clobber = input$clobber))
-    }
-    
-    if (input$weight != 0){
-        weight <-  input$weight/100
-        category <- append(category, list(weight = input$weight/100))
-    }
-    
-    if (input$n_drops > 0){
-        category <- append(category, list(n_drops = input$n_drops))
-    }
     
     return (append(category, list(assignments = assignments)))
     
