@@ -340,6 +340,29 @@ shinyServer(function(input, output, session) {
         
     })
     
+    
+    #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
+    
+    advanced_visible <- reactiveVal(FALSE)
+    
+    # Observe the toggle button
+    observeEvent(input$advanced_toggle_lateness, {
+        # Toggle the visibility
+        advanced_visible(!advanced_visible())
+    })
+    
+    # Render the advanced panel UI based on visibility
+    output$advanced_lateness_policies_panel <- renderUI({
+        if(advanced_visible()) {
+            div(
+                style = "margin-top: 20px; padding: 20px; background-color: #ffffff; border-radius: 5px;",
+                h4("Advanced lateness policies here....")
+            )
+        }
+    })
+    
+    
+    
     #### -------------------------- GRADING ----------------------------####
     
     observeEvent(policy$categories,{
