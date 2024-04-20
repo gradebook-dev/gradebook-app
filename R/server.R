@@ -353,6 +353,10 @@ shinyServer(function(input, output, session) {
 
     })
     
+    observeEvent(input$save_lateness,{
+        removeModal()
+    })
+    
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
     
     advanced_visible <- reactiveVal(FALSE)
