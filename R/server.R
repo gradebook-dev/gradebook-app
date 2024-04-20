@@ -134,29 +134,6 @@ shinyServer(function(input, output, session) {
         
     })
     
-    
-    # Reactive Lateness Cells in Modal
-    output$lateness <- renderUI({
-        if (input$num_lateness > 0){
-            lapply(1:as.integer(input$num_lateness), function(i) {
-                
-                fluidRow(
-                    column(4,
-                           textInput(inputId = paste0("from", i), label = "From:", value = "",
-                                     placeholder = "HH:MM:SS")
-                    ),
-                    column(4,
-                           textInput(inputId = paste0("to", i), label = "To:", value = "",
-                                     placeholder = "HH:MM:SS")
-                    ),
-                    column(4,
-                           numericInput(inputId = paste0("scale", i), label = "Scale by:", value = "")
-                    )
-                )
-            })
-        }
-    })
-    
     observe({
         req(category_labels$edit)
         
@@ -344,13 +321,66 @@ shinyServer(function(input, output, session) {
     #### -------------------------- LATENESS POLICIES UI ----------------------------####
     
     lateness <- reactiveValues(table = list(
-        default = NULL
+        default = NULL,
+        current_policy = NULL,
+        num_lateness = 1
     ))
     
     # Opening category modal to create a NEW LATENESS
     observeEvent(input$new_lateness, {
         showModal(edit_lateness_modal) #opens lateness modal
+        lateness$num_lateness <- 1
 
+    })
+    
+    observeEvent(input$add_interval, {
+        lateness$num_lateness <- lateness$num_lateness + 1
+        recordValues()
+    })
+    
+    observeEvent(input$remove_interval, {
+        lateness$num_lateness <- lateness$num_lateness - 1
+    })
+    
+    observe({
+        print(lateness$num_lateness)
+    })
+    
+    recordValues <- function(){
+        
+    }
+    
+    output$lateness <- renderUI({
+        if (lateness$num_lateness > 1){
+            lapply(2:as.integer(lateness$num_lateness), function(i) {
+                fluidRow(
+                    column(width = 2, offset = 0,
+                           selectInput(paste0("lateness_preposition", i), NULL, choices = c("Until", "After", "Between"))
+                    ),
+                    column(width = 3, offset = 0,
+                           textInput(paste0("start", i), label = NULL, value = "", placeholder = "HH:MM:SS"),
+                           #custom json to handle special time input
+                           #file is saved in folder www
+                           tags$head(includeScript("www/timeInputHandler.js"))
+                    ),
+                    column(width = 3, offset = 0,
+                           conditionalPanel(
+                               condition = paste0("input.lateness_preposition",i, "== 'Between'"),
+                               textInput(paste0("end", i), label = NULL, value = "", placeholder = "HH:MM:SS"),
+                               #custom json to handle special time input
+                               #file is saved in folder www
+                               tags$head(includeScript("www/timeInputHandler.js"))
+                           )
+                    ),
+                    column(width = 2, offset = 0,
+                           selectInput(paste0("lateness_arithmetic", i), NULL, choices = c("Add", "Scale_by", "Set_to"))
+                    ),
+                    column(width = 2, offset = 0,
+                           numericInput(paste0("lateness_value", i), label = NULL, value = 0.03)
+                    )
+                )
+            })
+        }
     })
     
     observeEvent(input$save_lateness,{
