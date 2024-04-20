@@ -327,7 +327,8 @@ shinyServer(function(input, output, session) {
         ends = list(),
         arithmetics = list(),
         values = list(),
-        num_lateness = NULL
+        num_lateness = NULL,
+        table = list()
     ))
     
     # Opening category modal to create a NEW LATENESS
@@ -419,6 +420,27 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$save_lateness,{
+        late_policy <- list()
+        for (i in 1:as.integer(lateness$num_lateness)){
+            for (key in list(c("lateness_preposition", "start"),
+                             c("lateness_arithmetic", "lateness_value")
+                             )){
+                item <- input[[paste0(key[2], i)]] #value
+                if (input[[paste0(key[1], i)]] == "Between"){
+                    item <- list(
+                        list(from = input[[paste0("start", i)]],
+                                 to = input[[paste0("end", i)]]
+                                 )
+                        )
+                }
+                names(item) <- tolower(input[[paste0(key[1], i)]]) #key name
+                late_policy <- append(late_policy, list(item))
+            }
+        }
+        print(late_policy)
+        late_policy <- list(late_policy)
+        names(late_policy) <- input$policy_name
+        lateness$table <- append(lateness$table, list(late_policy))
         removeModal()
     })
     
