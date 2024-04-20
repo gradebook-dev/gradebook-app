@@ -322,8 +322,12 @@ shinyServer(function(input, output, session) {
     
     lateness <- reactiveValues(table = list(
         default = NULL,
-        current_policy = NULL,
-        num_lateness = 1
+        prepositions = list(),
+        starts = list(),
+        ends = list(),
+        arithmetics = list(),
+        values = list(),
+        num_lateness = NULL
     ))
     
     # Opening category modal to create a NEW LATENESS
@@ -335,19 +339,25 @@ shinyServer(function(input, output, session) {
     
     observeEvent(input$add_interval, {
         lateness$num_lateness <- lateness$num_lateness + 1
-        recordValues()
+        recordValues(as.integer(lateness$num_lateness) - 1)
     })
     
     observeEvent(input$remove_interval, {
         lateness$num_lateness <- lateness$num_lateness - 1
+        if (lateness$num_lateness < 1) lateness$num_lateness <- 1
     })
     
-    observe({
-        print(lateness$num_lateness)
-    })
-    
-    recordValues <- function(){
-        
+    recordValues <- function(iterations){
+        for (i in 1:iterations){
+            lateness$prepositions[i] <- input[[paste0("lateness_preposition", i)]]
+            lateness$starts[i] <- input[[paste0("start", i)]]
+            lateness$ends[i] <- ifelse(lateness$prepositions[i] == "Between",
+                                       input[[paste0("end", i)]],
+                                       NA
+                                       )
+            lateness$arithmetics[i] <- input[[paste0("lateness_arithmetic", i)]]
+            lateness$values[i] <- input[[paste0("lateness_value", i)]]
+        }
     }
     
     output$lateness <- renderUI({
@@ -355,10 +365,20 @@ shinyServer(function(input, output, session) {
             lapply(2:as.integer(lateness$num_lateness), function(i) {
                 fluidRow(
                     column(width = 2, offset = 0,
-                           selectInput(paste0("lateness_preposition", i), NULL, choices = c("Until", "After", "Between"))
+                           selectInput(paste0("lateness_preposition", i), NULL,
+                                       ifelse(i <= length(lateness$prepositions),
+                                              lateness$prepositions[i],
+                                              "Until"
+                                              ),
+                                       choices = c("Until", "After", "Between"))
                     ),
                     column(width = 3, offset = 0,
-                           textInput(paste0("start", i), label = NULL, value = "", placeholder = "HH:MM:SS"),
+                           textInput(paste0("start", i), label = NULL,
+                                     value = ifelse(i <= length(lateness$starts),
+                                            lateness$starts[i],
+                                            ""
+                                     ),
+                                     placeholder = "HH:MM:SS"),
                            #custom json to handle special time input
                            #file is saved in folder www
                            tags$head(includeScript("www/timeInputHandler.js"))
@@ -366,17 +386,32 @@ shinyServer(function(input, output, session) {
                     column(width = 3, offset = 0,
                            conditionalPanel(
                                condition = paste0("input.lateness_preposition",i, "== 'Between'"),
-                               textInput(paste0("end", i), label = NULL, value = "", placeholder = "HH:MM:SS"),
+                               textInput(paste0("end", i), label = NULL, 
+                                         value = ifelse(i <= length(lateness$ends),
+                                                        lateness$ends[i],
+                                                        ""
+                                         ),
+                                         placeholder = "HH:MM:SS"),
                                #custom json to handle special time input
                                #file is saved in folder www
                                tags$head(includeScript("www/timeInputHandler.js"))
                            )
                     ),
                     column(width = 2, offset = 0,
-                           selectInput(paste0("lateness_arithmetic", i), NULL, choices = c("Add", "Scale_by", "Set_to"))
+                           selectInput(paste0("lateness_arithmetic", i), NULL, 
+                                       ifelse(i <= length(lateness$arithmetics),
+                                                      lateness$arithmetics[i],
+                                                      "Add"
+                                       ),
+                                       choices = c("Add", "Scale_by", "Set_to"))
                     ),
                     column(width = 2, offset = 0,
-                           numericInput(paste0("lateness_value", i), label = NULL, value = 0.03)
+                           numericInput(paste0("lateness_value", i), label = NULL,
+                                        value = ifelse(i <= length(lateness$values),
+                                                       lateness$values[i],
+                                                       0.03
+                                        )
+                                        )
                     )
                 )
             })

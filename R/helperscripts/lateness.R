@@ -21,7 +21,7 @@ edit_lateness_modal <- modalDialog(
         ),
         column(width = 3, offset = 0,
                conditionalPanel(
-                   condition = "input.lateness_preposition == 'Between'",
+                   condition = "input.lateness_preposition1 == 'Between'",
                    textInput("end1", label = NULL, value = "", placeholder = "HH:MM:SS"),
                    #custom json to handle special time input
                    #file is saved in folder www
