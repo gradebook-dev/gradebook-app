@@ -4,7 +4,6 @@ edit_category_modal <- modalDialog(
     h4("Edit this Category"),
     fluidRow(column(6,textInput("name", "Category Name", value = "", width = "100%")
     )),
-    h6("Insert More Criteria Here Later..."),
     fluidRow(
         column(6,
                selectInput('aggregation',
@@ -20,9 +19,9 @@ edit_category_modal <- modalDialog(
                id = 'aggregation_info',
                title = 'hey',
                content = paste0(
-                   'Equally Weighted: Weighs all assignments in category equally.',
-                   # TODO
+                   'Equally Weighted: Weighs all assignments in category equally.'
                ),
+               # TODO
                placement = 'right',
                trigger = 'hover'
             )
