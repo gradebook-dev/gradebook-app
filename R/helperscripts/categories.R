@@ -1,3 +1,4 @@
+library(shinyBS)
 edit_category_modal <- modalDialog(
     
     h4("Edit this Category"),
@@ -5,13 +6,30 @@ edit_category_modal <- modalDialog(
     )),
     fluidRow(
         column(6,
-               selectInput("aggregation", "Aggregation:", selected = "equally_weighted",
-                           choices = c("equally_weighted", "weighted_by_points", 
-                                       "max_score", "min_score", "none"))),
+               selectInput('aggregation',
+                           label = tags$span('Aggregation:', bsButton('aggregation_info', label = '', icon = icon('info'), style = 'default', size = 'extra-small')),
+                           selected = 'equally_weighted',
+                           choices = list('Equally Weighted' = 'equally_weighted',
+                                          'Weighted By Points' = 'weighted_by_points', 
+                                          'Max Score' = 'max_score', 
+                                          'Min Score' = 'min_score', 
+                                          'None' = 'none')
+               ),
+            bsPopover(
+               id = 'aggregation_info',
+               title = 'hey',
+               content = paste0(
+                   'Equally Weighted: Weighs all assignments in category equally.'
+               ),
+               # TODO
+               placement = 'right',
+               trigger = 'hover'
+            )
+        ),
         column(3,
                shinyWidgets::autonumericInput("weight", "Weight:", value = 0, currencySymbol = "%",
                                               currencySymbolPlacement = "s", width = "100px"),
-               numericInput("num_lateness", label = "Number of Lateness Intervals:", value = 0)
+               numericInput("num_lateness", label = "Number of Lateness Intervals:", value = 0, min = 0)
         ),
         column(3,
                numericInput("n_drops", label = "Number of Drops:", value = 0, min = 0),

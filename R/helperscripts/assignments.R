@@ -62,7 +62,7 @@ createNestedCards <- function(flat_categories, category_levels) {
                      )
         content <- div(
             strong("Weight: "), category$weight %||% "Not set", br(),
-            strong("Aggregation: "), category$aggregation, br(),
+            strong("Aggregation: "), getAggregationName(category_aggregation=category$aggregation), br(),
             strong("Number of Drops: "), " " %||% "Not set", br(),
             strong("Lateness Intervals:"), " " %||% "Not set", br(),
             strong("Assignments: "), assignments_list
@@ -107,3 +107,11 @@ createNestedCards <- function(flat_categories, category_levels) {
     return(list(ui = ui, labels = labels))
 }
 
+getAggregationName <- function(category_aggregation) {
+    switch(category_aggregation,
+           'equally_weighted' = 'Equally Weighted',
+           'weighted_by_points' = 'Weighted By Points',
+           'max_score' = 'Max Score', 
+           'min_score' = 'Min Score', 
+           'none' = 'None')
+}
