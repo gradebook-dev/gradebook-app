@@ -30,12 +30,12 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$demogs, {
-       if(is.null(data())){
-        demo_data <- gradebook::gs_demo 
-        data(demo_data)
-       }
+        if(is.null(data())){
+            demo_data <- gradebook::gs_demo 
+            data(demo_data)
+        }
     })
-  
+    
     observe({
         req(input$upload_policy)
         #eventually validate
@@ -103,8 +103,8 @@ shinyServer(function(input, output, session) {
     observe({
         colnames <- gradebook::get_assignments(data())
         if(length(colnames) > 0){
-        assign$table <- data.frame(assignment = colnames) |>
-            mutate(category = "Unassigned")
+            assign$table <- data.frame(assignment = colnames) |>
+                mutate(category = "Unassigned")
         }
     })
     
@@ -127,6 +127,10 @@ shinyServer(function(input, output, session) {
         #updates values that aren't always the same but still default
         current_edit$category <- NULL
         updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
+        lateness_policies_list = names(lateness$table)
+        print("lateness_policies_list")
+        print(lateness_policies_list)
+        updateSelectInput(session, "lateness_policies", choices = lateness_policies_list)
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
             choices <- getUnassigned(assign$table)
             updateSelectizeInput(session, "assignments", choices = choices, selected = "")
@@ -186,19 +190,19 @@ shinyServer(function(input, output, session) {
                             choices <- c(choices, selected)
                         }
                         updateSelectizeInput(session, "assignments", choices = choices, selected = selected)
-                        } else {
+                    } else {
                         showNotification("Please pick a category to edit", type = 'error')
                     }
                 },         ignoreInit = TRUE)
             })
         })
-
+        
     })   
     
     # Cancel and no changes will be made
     observeEvent(input$cancel,{
         removeModal() #closes edit modal
-       
+        
     })
     
     observeEvent(input$save,{
@@ -213,7 +217,7 @@ shinyServer(function(input, output, session) {
             showNotification("Please enter a different category name. You cannot have repeating names. ", type = "error")
         }else{
             removeModal() #closes edit modal
-
+            
             sum <- 0
             if (!is.null(assign$table) & !is.null(input$assignments)){
                 sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
@@ -250,7 +254,7 @@ shinyServer(function(input, output, session) {
     category_to_be_deleted <- reactiveValues(cat = NULL)
     observe({
         req(category_labels$delete)
-
+        
         # Iterate over each category name to set up edit observers dynamically
         lapply(names(category_labels$delete), function(cat_name) {
             local({
@@ -259,7 +263,7 @@ shinyServer(function(input, output, session) {
                 delete_id <- category_labels$delete[[local_cat_name]]
                 
                 observeEvent(input[[delete_id]], {
-                   
+                    
                     # Initialize a variable to hold the found category details
                     matched_category <- NULL
                     
@@ -274,7 +278,7 @@ shinyServer(function(input, output, session) {
                     if (!is.null(matched_category)) {
                         showModal(confirm_delete)
                         category_to_be_deleted$cat <- matched_category
-
+                        
                     } else {
                         showNotification("Please pick a category to delete",type = 'error')
                     }
@@ -289,7 +293,7 @@ shinyServer(function(input, output, session) {
         policy$categories <- deleteCategory(policy$categories, category_to_be_deleted$cat$category)
         category_to_be_deleted$cat <- NULL
     })
-
+    
     #whenever policy$categories changes, policy$flat, assign$table and UI updates
     observe({
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
@@ -322,6 +326,7 @@ shinyServer(function(input, output, session) {
     
     lateness <- reactiveValues(table = list(
         default = NULL,
+        name = list(),
         prepositions = list(),
         starts = list(),
         ends = list(),
@@ -335,7 +340,6 @@ shinyServer(function(input, output, session) {
     observeEvent(input$new_lateness, {
         showModal(edit_lateness_modal) #opens lateness modal
         lateness$num_lateness <- 1
-
     })
     
     observeEvent(input$add_interval, {
@@ -355,92 +359,39 @@ shinyServer(function(input, output, session) {
             lateness$ends[i] <- ifelse(lateness$prepositions[i] == "Between",
                                        input[[paste0("end", i)]],
                                        NA
-                                       )
+            )
             lateness$arithmetics[i] <- input[[paste0("lateness_arithmetic", i)]]
             lateness$values[i] <- input[[paste0("lateness_value", i)]]
         }
     }
     
-    output$lateness <- renderUI({
-        if (lateness$num_lateness > 1){
-            lapply(2:as.integer(lateness$num_lateness), function(i) {
-                fluidRow(
-                    column(width = 2, offset = 0,
-                           selectInput(paste0("lateness_preposition", i), NULL,
-                                       ifelse(i <= length(lateness$prepositions),
-                                              lateness$prepositions[i],
-                                              "Until"
-                                              ),
-                                       choices = c("Until", "After", "Between"))
-                    ),
-                    column(width = 3, offset = 0,
-                           textInput(paste0("start", i), label = NULL,
-                                     value = ifelse(i <= length(lateness$starts),
-                                            lateness$starts[i],
-                                            ""
-                                     ),
-                                     placeholder = "HH:MM:SS"),
-                           #custom json to handle special time input
-                           #file is saved in folder www
-                           tags$head(includeScript("www/timeInputHandler.js"))
-                    ),
-                    column(width = 3, offset = 0,
-                           conditionalPanel(
-                               condition = paste0("input.lateness_preposition",i, "== 'Between'"),
-                               textInput(paste0("end", i), label = NULL, 
-                                         value = ifelse(i <= length(lateness$ends),
-                                                        lateness$ends[i],
-                                                        ""
-                                         ),
-                                         placeholder = "HH:MM:SS"),
-                               #custom json to handle special time input
-                               #file is saved in folder www
-                               tags$head(includeScript("www/timeInputHandler.js"))
-                           )
-                    ),
-                    column(width = 2, offset = 0,
-                           selectInput(paste0("lateness_arithmetic", i), NULL, 
-                                       ifelse(i <= length(lateness$arithmetics),
-                                                      lateness$arithmetics[i],
-                                                      "Add"
-                                       ),
-                                       choices = c("Add", "Scale_by", "Set_to"))
-                    ),
-                    column(width = 2, offset = 0,
-                           numericInput(paste0("lateness_value", i), label = NULL,
-                                        value = ifelse(i <= length(lateness$values),
-                                                       lateness$values[i],
-                                                       0.03
-                                        )
-                                        )
-                    )
-                )
-            })
-        }
-    })
+    output$lateness <- generate_lateness_ui(lateness)
+    
     
     observeEvent(input$save_lateness,{
         late_policy <- list()
         for (i in 1:as.integer(lateness$num_lateness)){
             for (key in list(c("lateness_preposition", "start"),
                              c("lateness_arithmetic", "lateness_value")
-                             )){
+            )){
                 item <- input[[paste0(key[2], i)]] #value
                 if (input[[paste0(key[1], i)]] == "Between"){
                     item <- list(
                         list(from = input[[paste0("start", i)]],
-                                 to = input[[paste0("end", i)]]
-                                 )
+                             to = input[[paste0("end", i)]]
                         )
+                    )
                 }
                 names(item) <- tolower(input[[paste0(key[1], i)]]) #key name
                 late_policy <- append(late_policy, list(item))
             }
         }
-        print(late_policy)
+        
         late_policy <- list(late_policy)
         names(late_policy) <- input$policy_name
+        
         lateness$table <- append(lateness$table, list(late_policy))
+        
         removeModal()
     })
     
@@ -482,7 +433,7 @@ shinyServer(function(input, output, session) {
                                     letter_grades = policy$letter_grades,
                                     exceptions = policy$exceptions) |>
                     gradebook::flatten_policy()
-               
+                
                 policy$grades <- cleaned_data |>
                     gradebook::calculate_lateness(flat_policy) |>
                     gradebook::get_category_grades(flat_policy)
@@ -501,11 +452,11 @@ shinyServer(function(input, output, session) {
                 box(
                     tabsetPanel(
                         tabPanel('Plot', 
-                            plotlyOutput('assignment_plotly', height = '220px')
+                                 plotlyOutput('assignment_plotly', height = '220px')
                         ),
                         tabPanel('Statistics', 
-                            # TODO
-                            uiOutput('assignment_stats'),
+                                 # TODO
+                                 uiOutput('assignment_stats'),
                         ),
                     ),
                     width = 6,
@@ -525,11 +476,11 @@ shinyServer(function(input, output, session) {
                 box(
                     tabsetPanel(
                         tabPanel('Plot', 
-                            plotlyOutput('category_plotly', height = '220px'),
+                                 plotlyOutput('category_plotly', height = '220px'),
                         ),
                         tabPanel('Statistics', 
-                            # TODO
-                            uiOutput('category_stats', height = '200px'),
+                                 # TODO
+                                 uiOutput('category_stats', height = '200px'),
                         ),
                     ),
                     width = 6,
@@ -579,7 +530,7 @@ shinyServer(function(input, output, session) {
             )
         }
     })
-
+    
     output$assignment_plotly <- renderPlotly({
         assignment_grades <- policy$grades |>
             dplyr::select(input$which_assignment) |>
@@ -648,7 +599,7 @@ shinyServer(function(input, output, session) {
         sd <- paste0((sd(category_vec) |> round(digits = 4)) * 100, '%')
         tfive <- paste0((quantile(category_vec, 0.25) |> round(digits = 4)) * 100, '%')
         sfive <- paste0((quantile(category_vec, 0.75) |> round(digits = 4)) * 100, '%')
-
+        
         HTML(paste0(
             '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Mean</p> <p>', mu, '</p></div>',
             '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Standard Deviation</p> <p>', sd, '</p></div>',

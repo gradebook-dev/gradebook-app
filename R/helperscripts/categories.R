@@ -29,7 +29,8 @@ edit_category_modal <- modalDialog(
         column(3,
                shinyWidgets::autonumericInput("weight", "Weight:", value = 0, currencySymbol = "%",
                                               currencySymbolPlacement = "s", width = "100px"),
-               numericInput("num_lateness", label = "Number of Lateness Intervals:", value = 0, min = 0)
+               #numericInput("num_lateness", label = "Number of Lateness Intervals:", value = 0, min = 0)
+               selectInput("lateness_policies", "Lateness Policy", selected = "None", choices = c("None"))
         ),
         column(3,
                numericInput("n_drops", label = "Number of Drops:", value = 0, min = 0),
@@ -51,7 +52,7 @@ edit_category_modal <- modalDialog(
                )
         )
     ),
-    uiOutput("lateness"),
+    #uiOutput("lateness"),
     easyClose = TRUE,
     footer = tagList(
         actionButton("cancel", "Cancel"),
