@@ -65,18 +65,7 @@ Policies <- tabItem(tabName = "policies",
                                                  hr(),
                                              )),
                                          
-                                     ),
-                                     fluidRow(
-                                         column(8,),
-                                         column(4,
-                                                div(h4('Advanced', style = " align-items: center;padding-left: 30px; font-size: 16px; display: inline-block; margin-right: 0px; " ),
-                                                    actionButton("advanced_toggle_lateness", label = NULL, icon = icon("gear"), 
-                                                                 style = "background-color: transparent; border: none; color: #50A5EA; margin-top: -5px;"),
-                                                    
-                                                    uiOutput("advanced_lateness_policies_panel")
-                                                    
-                                                )
-                                         )
+                                     
                                      )
                                  )
                         ),
