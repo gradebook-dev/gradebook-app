@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    var inputSelector = '#lateness_time1';
+    var inputSelector = '#start1';
 
     $(inputSelector).on('input', function(e) {
         var input = $(this).val().replace(/[^\d]/g, ''); // Remove non-digits

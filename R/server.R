@@ -134,29 +134,6 @@ shinyServer(function(input, output, session) {
         
     })
     
-    
-    # Reactive Lateness Cells in Modal
-    output$lateness <- renderUI({
-        if (input$num_lateness > 0){
-            lapply(1:as.integer(input$num_lateness), function(i) {
-                
-                fluidRow(
-                    column(4,
-                           textInput(inputId = paste0("from", i), label = "From:", value = "",
-                                     placeholder = "HH:MM:SS")
-                    ),
-                    column(4,
-                           textInput(inputId = paste0("to", i), label = "To:", value = "",
-                                     placeholder = "HH:MM:SS")
-                    ),
-                    column(4,
-                           numericInput(inputId = paste0("scale", i), label = "Scale by:", value = "")
-                    )
-                )
-            })
-        }
-    })
-    
     observe({
         req(category_labels$edit)
         
@@ -344,13 +321,127 @@ shinyServer(function(input, output, session) {
     #### -------------------------- LATENESS POLICIES UI ----------------------------####
     
     lateness <- reactiveValues(table = list(
-        default = NULL
+        default = NULL,
+        prepositions = list(),
+        starts = list(),
+        ends = list(),
+        arithmetics = list(),
+        values = list(),
+        num_lateness = NULL,
+        table = list()
     ))
     
     # Opening category modal to create a NEW LATENESS
     observeEvent(input$new_lateness, {
         showModal(edit_lateness_modal) #opens lateness modal
+        lateness$num_lateness <- 1
 
+    })
+    
+    observeEvent(input$add_interval, {
+        lateness$num_lateness <- lateness$num_lateness + 1
+        recordValues(as.integer(lateness$num_lateness) - 1)
+    })
+    
+    observeEvent(input$remove_interval, {
+        lateness$num_lateness <- lateness$num_lateness - 1
+        if (lateness$num_lateness < 1) lateness$num_lateness <- 1
+    })
+    
+    recordValues <- function(iterations){
+        for (i in 1:iterations){
+            lateness$prepositions[i] <- input[[paste0("lateness_preposition", i)]]
+            lateness$starts[i] <- input[[paste0("start", i)]]
+            lateness$ends[i] <- ifelse(lateness$prepositions[i] == "Between",
+                                       input[[paste0("end", i)]],
+                                       NA
+                                       )
+            lateness$arithmetics[i] <- input[[paste0("lateness_arithmetic", i)]]
+            lateness$values[i] <- input[[paste0("lateness_value", i)]]
+        }
+    }
+    
+    output$lateness <- renderUI({
+        if (lateness$num_lateness > 1){
+            lapply(2:as.integer(lateness$num_lateness), function(i) {
+                fluidRow(
+                    column(width = 2, offset = 0,
+                           selectInput(paste0("lateness_preposition", i), NULL,
+                                       ifelse(i <= length(lateness$prepositions),
+                                              lateness$prepositions[i],
+                                              "Until"
+                                              ),
+                                       choices = c("Until", "After", "Between"))
+                    ),
+                    column(width = 3, offset = 0,
+                           textInput(paste0("start", i), label = NULL,
+                                     value = ifelse(i <= length(lateness$starts),
+                                            lateness$starts[i],
+                                            ""
+                                     ),
+                                     placeholder = "HH:MM:SS"),
+                           #custom json to handle special time input
+                           #file is saved in folder www
+                           tags$head(includeScript("www/timeInputHandler.js"))
+                    ),
+                    column(width = 3, offset = 0,
+                           conditionalPanel(
+                               condition = paste0("input.lateness_preposition",i, "== 'Between'"),
+                               textInput(paste0("end", i), label = NULL, 
+                                         value = ifelse(i <= length(lateness$ends),
+                                                        lateness$ends[i],
+                                                        ""
+                                         ),
+                                         placeholder = "HH:MM:SS"),
+                               #custom json to handle special time input
+                               #file is saved in folder www
+                               tags$head(includeScript("www/timeInputHandler.js"))
+                           )
+                    ),
+                    column(width = 2, offset = 0,
+                           selectInput(paste0("lateness_arithmetic", i), NULL, 
+                                       ifelse(i <= length(lateness$arithmetics),
+                                                      lateness$arithmetics[i],
+                                                      "Add"
+                                       ),
+                                       choices = c("Add", "Scale_by", "Set_to"))
+                    ),
+                    column(width = 2, offset = 0,
+                           numericInput(paste0("lateness_value", i), label = NULL,
+                                        value = ifelse(i <= length(lateness$values),
+                                                       lateness$values[i],
+                                                       0.03
+                                        )
+                                        )
+                    )
+                )
+            })
+        }
+    })
+    
+    observeEvent(input$save_lateness,{
+        late_policy <- list()
+        for (i in 1:as.integer(lateness$num_lateness)){
+            for (key in list(c("lateness_preposition", "start"),
+                             c("lateness_arithmetic", "lateness_value")
+                             )){
+                item <- input[[paste0(key[2], i)]] #value
+                if (input[[paste0(key[1], i)]] == "Between"){
+                    item <- list(
+                        list(from = input[[paste0("start", i)]],
+                                 to = input[[paste0("end", i)]]
+                                 )
+                        )
+                }
+                names(item) <- tolower(input[[paste0(key[1], i)]]) #key name
+                late_policy <- append(late_policy, list(item))
+            }
+        }
+        print(late_policy)
+        late_policy <- list(late_policy)
+        names(late_policy) <- input$policy_name
+        lateness$table <- append(lateness$table, list(late_policy))
+        removeModal()
     })
     
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
