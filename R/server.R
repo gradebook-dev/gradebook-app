@@ -324,22 +324,23 @@ shinyServer(function(input, output, session) {
     
     #### -------------------------- LATENESS POLICIES UI ----------------------------####
     
-    lateness <- reactiveValues(table = list(
+    lateness <- reactiveValues(
         default = NULL,
-        name = list(),
+        name = NULL,
         prepositions = list(),
         starts = list(),
         ends = list(),
         arithmetics = list(),
         values = list(),
-        num_lateness = NULL,
+        num_lateness = 1,
         table = list()
-    ))
+    )
     
     # Opening category modal to create a NEW LATENESS
     observeEvent(input$new_lateness, {
         showModal(edit_lateness_modal) #opens lateness modal
         lateness$num_lateness <- 1
+        
     })
     
     observeEvent(input$add_interval, {
@@ -348,8 +349,9 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$remove_interval, {
-        lateness$num_lateness <- lateness$num_lateness - 1
-        if (lateness$num_lateness < 1) lateness$num_lateness <- 1
+        if (lateness$num_lateness > 1) { # Ensure at least one interval remains!
+            lateness$num_lateness <- lateness$num_lateness - 1
+        }
     })
     
     recordValues <- function(iterations){
@@ -386,15 +388,12 @@ shinyServer(function(input, output, session) {
                 late_policy <- append(late_policy, list(item))
             }
         }
-        
-        late_policy <- list(late_policy)
-        names(late_policy) <- input$policy_name
-        
-        lateness$table <- append(lateness$table, list(late_policy))
-        
+        policy_name <- input$policy_name
+        # Append the whole policy, including name and settings, to the lateness$table
+        lateness$table[[policy_name]] <- late_policy
         removeModal()
     })
-    
+
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
     
     advanced_visible <- reactiveVal(FALSE)
