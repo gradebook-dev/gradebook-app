@@ -4,7 +4,7 @@ edit_lateness_modal <- modalDialog(
     fluidRow(
         column(width = 3,
                actionButton("add_interval", "Add Interval"),
-               ),
+        ),
         column(width = 3,
                actionButton("remove_interval", "Remove Last Interval"),
         )
@@ -19,61 +19,59 @@ edit_lateness_modal <- modalDialog(
 
 
 generate_lateness_ui <- function(lateness){
-    renderUI({
-        
-        interval_uis <- lapply(1:as.integer(lateness$num_lateness), function(i) {
-                fluidRow(
-                    column(width = 2, offset = 0,
-                           selectInput(paste0("lateness_preposition", i), NULL,
-                                       ifelse(i <= length(lateness$prepositions),
-                                              lateness$prepositions[i],
-                                              "Until"
-                                       ),
-                                       choices = c("Until", "After", "Between"))
-                    ),
-                    column(width = 3, offset = 0,
-                           textInput(paste0("start", i), label = NULL,
-                                     value = ifelse(i <= length(lateness$starts),
-                                                    lateness$starts[i],
+    renderUI({ 
+        lapply(1:as.integer(lateness$num_lateness), function(i) {
+            fluidRow(
+                column(width = 2, offset = 0,
+                       selectInput(paste0("lateness_preposition", i), NULL,
+                                   ifelse(i <= length(lateness$prepositions),
+                                          lateness$prepositions[i],
+                                          "Until"
+                                   ),
+                                   choices = c("Until", "After", "Between"))
+                ),
+                column(width = 3, offset = 0,
+                       textInput(paste0("start", i), label = NULL,
+                                 value = ifelse(i <= length(lateness$starts),
+                                                lateness$starts[i],
+                                                ""
+                                 ),
+                                 placeholder = "HH:MM:SS"),
+                       #custom json to handle special time input
+                       #file is saved in folder www
+                       tags$head(includeScript("www/timeInputHandler.js"))
+                ),
+                column(width = 3, offset = 0,
+                       conditionalPanel(
+                           condition = paste0("input.lateness_preposition",i, "== 'Between'"),
+                           textInput(paste0("end", i), label = NULL, 
+                                     value = ifelse(i <= length(lateness$ends),
+                                                    lateness$ends[i],
                                                     ""
                                      ),
                                      placeholder = "HH:MM:SS"),
                            #custom json to handle special time input
                            #file is saved in folder www
                            tags$head(includeScript("www/timeInputHandler.js"))
-                    ),
-                    column(width = 3, offset = 0,
-                           conditionalPanel(
-                               condition = paste0("input.lateness_preposition",i, "== 'Between'"),
-                               textInput(paste0("end", i), label = NULL, 
-                                         value = ifelse(i <= length(lateness$ends),
-                                                        lateness$ends[i],
-                                                        ""
-                                         ),
-                                         placeholder = "HH:MM:SS"),
-                               #custom json to handle special time input
-                               #file is saved in folder www
-                               tags$head(includeScript("www/timeInputHandler.js"))
-                           )
-                    ),
-                    column(width = 2, offset = 0,
-                           selectInput(paste0("lateness_arithmetic", i), NULL, 
-                                       ifelse(i <= length(lateness$arithmetics),
-                                              lateness$arithmetics[i],
-                                              "Add"
-                                       ),
-                                       choices = c("Add", "Scale_by", "Set_to"))
-                    ),
-                    column(width = 2, offset = 0,
-                           numericInput(paste0("lateness_value", i), label = NULL,
-                                        value = ifelse(i <= length(lateness$values),
-                                                       lateness$values[i],
-                                                       0.03
-                                        )
-                           )
-                    )
+                       )
+                ),
+                column(width = 2, offset = 0,
+                       selectInput(paste0("lateness_arithmetic", i), NULL, 
+                                   ifelse(i <= length(lateness$arithmetics),
+                                          lateness$arithmetics[i],
+                                          "Add"
+                                   ),
+                                   choices = c("Add", "Scale_by", "Set_to"))
+                ),
+                column(width = 2, offset = 0,
+                       numericInput(paste0("lateness_value", i), label = NULL,
+                                    value = ifelse(i <= length(lateness$values),
+                                                   lateness$values[i],
+                                                   0.03
+                                    )
+                       )
                 )
-            })
-        do.call(tagList, interval_uis)
+            )
+        })
     })
 }
