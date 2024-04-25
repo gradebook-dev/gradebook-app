@@ -66,8 +66,11 @@ confirm_delete <- modalDialog(
 )
 
 createCategory <- function(name, input, assigns_table){
-    assignments = c()
+    #with the current implementation of the R Package, order matters
+    #order should be: category, lateness, drops, aggregation, assignments
+    #other defaults (e.g. score, aggregation_max_pts, etc) are added by validate_policy()
     
+    assignments = c()
     #logic: if assignment appears in assignment table, add as assignment in policy file
     #       if assignment isn't in assign$table, create subcategory
     if (length(input$assignments) != 0){
@@ -83,8 +86,7 @@ createCategory <- function(name, input, assigns_table){
     }
     
     category <- list(
-        category = name,
-        aggregation = input$aggregation
+        category = name
     )
     
     # if (input$num_lateness > 0){
@@ -111,10 +113,11 @@ createCategory <- function(name, input, assigns_table){
     }
     
     if (input$n_drops > 0){
-        category <- append(category, list(n_drops = input$n_drops))
+        category <- append(category, list(drop_n_lowest = input$n_drops))
     }
     
-    return (append(category, list(assignments = assignments)))
+    return (append(category, list(aggregation = input$aggregation,
+                                  assignments = assignments)))
     
 }
 
