@@ -60,6 +60,12 @@ shinyServer(function(input, output, session) {
     #### -------------------------- POLICY ----------------------------####  
     policy <- reactiveValues(coursewide = list(course_name = "Course Name", description = "Description"),
                              categories = list(),
+                             overall_grade = list(
+                                 category = "Overall Grade",
+                                 aggregation = "weighted_mean",
+                                 weights = c(),
+                                 assignments = c()
+                             ),
                              letter_grades = list(),
                              grades = NULL,
                              exceptions = list(),
@@ -291,6 +297,8 @@ shinyServer(function(input, output, session) {
     observe({
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
         assign$table <- updateAssignsTable(assign$table, gradebook::flatten_policy(list(categories = policy$categories)))
+        policy$overall_grade <- update_overall_grade(policy$flat)
+        print(policy$overall_grade)
     })
     
     #### -------------------------- DISPLAY CATEGORIES UI ----------------------------####
@@ -411,6 +419,10 @@ shinyServer(function(input, output, session) {
         your_global_variable <<- lateness$table
     })
     
+    observe({
+        flat_policy <<- policy$flat
+    })
+    
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
     
     advanced_visible <- reactiveVal(FALSE)
@@ -459,6 +471,7 @@ shinyServer(function(input, output, session) {
                                     exceptions = policy$exceptions) |>
                     gradebook::flatten_policy()
                 
+                #remember to add overall_grade at the end
                 policy$grades <- cleaned_data |>
                     gradebook::calculate_lateness(flat_policy) |>
                     gradebook::get_category_grades(flat_policy)

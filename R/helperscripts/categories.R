@@ -107,11 +107,12 @@ createCategory <- function(name, input, assigns_table){
     #     category <- append(category, list(clobber = input$clobber))
     # }
     # 
-    # if (input$weight != 0){
-    #     weight <-  input$weight/100
-    #     category <- append(category, list(weight = input$weight/100))
-    # }
-    # 
+    if (input$weight != 0){
+        weight <-  input$weight/100
+        #this argument will be rightfully ignored in get_grades()
+        category <- append(category, list(weights = input$weight/100))
+    }
+
     if (input$n_drops > 0){
         category <- append(category, list(drop_n_lowest = input$n_drops))
     }
@@ -199,4 +200,21 @@ getIndex <- function(flat_policy, name){
         gsub(pattern = "[^a-zA-Z0-9]+", replacement = "")
     name <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", name)
     which(names == name)
+}
+
+update_overall_grade <- function(flat_policy){
+    weights <- c()
+    assignments <- c()
+    for (cat in flat_policy$categories){
+        if (!is.null(cat$weights)){
+            weights <- c(weights, cat$weights)
+            assignments <- c(assignments, cat$category)
+        }
+    }
+    list(
+        category = "Overall Grade",
+        aggregation = "weighted_mean",
+        weights = weights,
+        assignments = assignments
+    )
 }
