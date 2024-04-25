@@ -105,66 +105,47 @@ generate_lateness_ui <- function(lateness){
 
 
 createLatenessCards <- function(lateness_table) {
-    lapply((lateness_table), function(policy_name) {
-        items <- lateness_table[[policy_name]]
+    lapply(names(lateness_table), function(late_policy_name) {
+        late_policy <- lateness_table[[late_policy_name]]
+        i <- 0.5
+        content <- lapply(late_policy, function(item) {
+            # Type of lateness and its value
+            i <<- i + 0.5
+            policy_line <- if (names(item) == "between") {
+                # Special format for BETWEEN
+                print(item)
+                tags$div(
+                    tags$strong(paste0("INTERVAL ", i)),
+                    tags$br(),
+                    tags$strong(ucfirst(names(item))), 
+                    tags$br(),
+                    tags$strong("From:"), item$between$from,
+                    tags$br(),
+                    tags$strong("To:"), item$between$to,
+                    tags$br()
+                )
+            } else if(names(item) %in% c("until", "after")){
+                tags$div(
+                    tags$strong(paste0("INTERVAL ", i)),
+                    tags$br(),
+                    tags$strong(ucfirst(names(item))), ":", item,
+                    tags$br()
+                )
+            } else {
+                tags$div(
+                    tags$strong(ucfirst(names(item))), ":", item,
+                    tags$br()
+                )
+            }
+            policy_line
+        })
         
-        
-        content <- if ("between" %in% names(items)){
-            tags$div(
-                tags$strong("Interval"),
-                br(),
-                tags$strong(ucfirst(names(item))), 
-                tags$br(),
-                tags$strong("From:"), item[["from"]], 
-                tags$br(),
-                tags$strong("To:"), item[["to"]],
-                tags$br()
-            )
-        } else {
-            tags$div(
-                tags$strong("Interval"),
-                br(),
-                tags$strong(ucfirst(names(item))), 
-                tags$br(),
-                tags$strong(ucfirst(name)), ":", items[[name]], 
-                tags$br()
-            )
-        }
-        
-        
-        # content <- lapply(items, function(item) {
-        #     # Type of lateness and its value
-        #     policy_line <- if ("between" %in% names(item) ) {
-        #         # Special format for BETWEEN
-        #         
-        #         tags$div(
-        #             tags$strong(ucfirst(names(item))), 
-        #             tags$br(),
-        #             tags$strong("From:"), item[["from"]], 
-        #             tags$br(),
-        #             tags$strong("To:"), item[["to"]],
-        #             tags$br()
-        #         )
-        #     } else {
-        #        
-        #         tags$div(
-        #             tags$strong(ifelse(name %in% c("until", "after"),
-        #                                paste0("Interval ", 1 + which(names(items) == name)%/%2),
-        #                                ""
-        #                                )), #doesn't work
-        #             tags$br(),
-        #             tags$strong(ucfirst(name)), ":", items[[name]], 
-        #             tags$br()
-        #         )
-        #     }
-        #     policy_line
-        # })
         
         title <- div(
             class = "category-title",
-            policy_name,
-            actionButton(paste0('lateness_delete_', policy_name), label = NULL, icon = icon("trash"), style = "background-color: transparent; margin-right: 10px;"),
-            actionButton(paste0('lateness_edit_', policy_name), label = NULL, icon = icon("edit"), style = "background-color: transparent;")
+            late_policy_name,
+            actionButton(paste0('lateness_delete_', late_policy_name), label = NULL, icon = icon("trash"), style = "background-color: transparent; margin-right: 10px;"),
+            actionButton(paste0('lateness_edit_', late_policy_name), label = NULL, icon = icon("edit"), style = "background-color: transparent;")
         )
         
         content <- do.call(tagList, content)
