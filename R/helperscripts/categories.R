@@ -106,12 +106,12 @@ createCategory <- function(name, input, assigns_table){
     # if (input$clobber != "None"){
     #     category <- append(category, list(clobber = input$clobber))
     # }
-    
-    if (input$weight != 0){
-        weight <-  input$weight/100
-        category <- append(category, list(weight = input$weight/100))
-    }
-    
+    # 
+    # if (input$weight != 0){
+    #     weight <-  input$weight/100
+    #     category <- append(category, list(weight = input$weight/100))
+    # }
+    # 
     if (input$n_drops > 0){
         category <- append(category, list(drop_n_lowest = input$n_drops))
     }
