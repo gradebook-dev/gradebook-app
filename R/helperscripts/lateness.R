@@ -1,21 +1,34 @@
 ###### --------------- LATENESS MODAL ------------- ####
 
+
 edit_lateness_modal <- modalDialog(
+    tags$head(
+        tags$style(
+            HTML('.modal-lg { width: 55%; }')
+        )
+    ),
     title = h4("Edit Lateness Policy"),
-    textInput("policy_name", label = "Policy Name", value = "Policy Name"),
+    textInput("policy_name", label = "Policy Name", value = "Your Policy Name"),
     fluidRow(
-        column(width = 3,
-               actionButton("add_interval", "Add Interval"),
-        ),
-        column(width = 3,
-               actionButton("remove_interval", "Remove Last Interval"),
+        tagList(
+            div(style = "padding: 1.5rem;",
+                actionButton("add_interval", "Add Interval")
+            )
         )
     ),
     uiOutput("lateness_modal"),
+    size = "l",
     easyClose = TRUE,
     footer = tagList(
-        modalButton("Cancel"),
-        actionButton("save_lateness", "Save", style = "color: white; background-color: #337ab7;")
+        fluidRow(
+            column(2,
+                   actionButton("remove_interval", "Remove Last Interval")),
+            column(10,
+                   
+                   modalButton("Cancel"),
+                   actionButton("save_lateness", "Save", style = "color: white; background-color: #337ab7;")
+            )
+        )
     )
 )
 
@@ -25,7 +38,8 @@ generate_lateness_ui <- function(lateness){
     renderUI({ 
         lapply(1:as.integer(lateness$num_late_cats), function(i) {
             fluidRow(
-                column(width = 2, offset = 0,
+                
+                column(width = 3, offset = 0,
                        selectInput(paste0("lateness_preposition", i), NULL,
                                    ifelse(i <= length(lateness$prepositions),
                                           lateness$prepositions[i],
@@ -33,7 +47,7 @@ generate_lateness_ui <- function(lateness){
                                    ),
                                    choices = c("Until", "After", "Between"))
                 ),
-                column(width = 3, offset = 0,
+                column(width = 2, offset = 0,
                        textInput(paste0("start", i), label = NULL,
                                  value = ifelse(i <= length(lateness$starts),
                                                 lateness$starts[i],
@@ -44,7 +58,7 @@ generate_lateness_ui <- function(lateness){
                        #file is saved in folder www
                        tags$head(includeScript("www/timeInputHandler.js"))
                 ),
-                column(width = 3, offset = 0,
+                column(width = 2, offset = 0,
                        conditionalPanel(
                            condition = paste0("input.lateness_preposition",i, "== 'Between'"),
                            textInput(paste0("end", i), label = NULL, 
@@ -58,19 +72,26 @@ generate_lateness_ui <- function(lateness){
                            tags$head(includeScript("www/timeInputHandler.js"))
                        )
                 ),
-                column(width = 2, offset = 0,
+                column(width = 3, offset = 0,
                        selectInput(paste0("lateness_arithmetic", i), NULL, 
                                    ifelse(i <= length(lateness$arithmetics),
                                           lateness$arithmetics[i],
                                           "Add"
                                    ),
-                                   choices = c("Add", "Scale_by", "Set_to"))
+                                   
+                                   choices = c('Add' = 'Add',
+                                               'Scale By' = 'Scale_by', 
+                                               'Set To' = 'Set_to'
+                                   )
+                                   
+                       )
                 ),
                 column(width = 2, offset = 0,
                        numericInput(paste0("lateness_value", i), label = NULL,
                                     value = ifelse(i <= length(lateness$values),
                                                    lateness$values[i],
                                                    0.03
+                                                   
                                     )
                        )
                 )
@@ -89,28 +110,6 @@ createLatenessCards <- function(lateness_table) {
         
         print("items")
         print(items)
-        
-        # content <- lapply(names(items), function(name) {
-        #     # Type of lateness and its value
-        #     policy_line <- paste(strong(name), ":", items[[name]])
-        #     
-        #     if (tolower(name) == "between") {
-        #         # Special format for BETWEEN
-        #         from_to_values <- items[[name]]
-        #         
-        #         policy_line <-  div(strong(name), " ", br(),
-        #                             strong("From:"), from_to_values[["from"]], br(),
-        #                             strong("To:"), from_to_values[["to"]], br(),
-        #                             sep = " ")
-        #         
-        #         
-        #     } else {
-        #         
-        #         policy_line <- paste(strong(name), ":", items[[name]])
-        #     }
-        #     
-        #     HTML(policy_line)
-        # })
         
         content <- lapply(names(items), function(name) {
             # Type of lateness and its value
