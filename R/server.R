@@ -330,6 +330,11 @@ shinyServer(function(input, output, session) {
     # Opening category modal to create a NEW LATENESS
     observeEvent(input$new_lateness, {
         showModal(edit_lateness_modal) #opens lateness modal
+        lateness$prepositions <- list()
+        lateness$starts <- list()
+        lateness$ends <- list()
+        lateness$arithmetics <- list()
+        lateness$values <- list()
         lateness$num_late_cats <- 1
         
     })
