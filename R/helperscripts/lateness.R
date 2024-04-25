@@ -110,12 +110,14 @@ createLatenessCards <- function(lateness_table) {
         
         print("items")
         print(items)
+        i <- 1
         
         content <- lapply(names(items), function(name) {
             # Type of lateness and its value
             policy_line <- if (tolower(name) == "between") {
                 # Special format for BETWEEN
                 from_to_values <- items[[name]]
+               
                 tags$div(
                     tags$strong(ucfirst(name)), 
                     tags$br(),
@@ -125,11 +127,15 @@ createLatenessCards <- function(lateness_table) {
                     tags$br()
                 )
             } else {
+               
                 tags$div(
+                    tags$strong(paste0("Interval ", i)), #doesn't work
+                    tags$br(),
                     tags$strong(ucfirst(name)), ":", items[[name]], 
                     tags$br()
                 )
             }
+            i <- i + 1
             policy_line
         })
         
