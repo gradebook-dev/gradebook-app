@@ -135,7 +135,7 @@ shinyServer(function(input, output, session) {
         updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
         #Gets the list of names of the policies
         lateness_policies_list = names(lateness$table)
-        updateSelectInput(session, "lateness_policies", choices = c("None", lateness_policies_list), selected = "")
+        updateSelectInput(session, "lateness_policies", choices = c("None", lateness_policies_list), selected = "None")
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
             choices <- getUnassigned(assign$table)
             updateSelectizeInput(session, "assignments", choices = choices, selected = "")
