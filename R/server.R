@@ -135,7 +135,7 @@ shinyServer(function(input, output, session) {
         updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
         #Gets the list of names of the policies
         lateness_policies_list = names(lateness$table)
-        updateSelectInput(session, "lateness_policies", choices = c("None", lateness_policies_list), selected = "")
+        updateSelectInput(session, "lateness_policies", choices = c("None", lateness_policies_list), selected = "None")
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
             choices <- getUnassigned(assign$table)
             updateSelectizeInput(session, "assignments", choices = choices, selected = "")
@@ -229,11 +229,11 @@ shinyServer(function(input, output, session) {
                     
                     #add new category
                     policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
-                                                        input$name, input, assign$table)
+                                                        input$name, input, assign$table, lateness$table)
                 } else {
                     policy$categories <- append(policy$categories,
                                                 list(createCategory(input$name, input = input,
-                                                                    assign$table)))
+                                                                    assign$table, lateness$table)))
                 }
             } else {
                 showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")
