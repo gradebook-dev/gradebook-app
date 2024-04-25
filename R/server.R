@@ -175,6 +175,8 @@ shinyServer(function(input, output, session) {
                         shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)   
                         updateNumericInput(session, "n_drops", value = cat_details$n_drops)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
+                        lateness_policies_list = names(lateness$table) #defaults to None, despite what's saved!!
+                        updateSelectInput(session, "lateness_policies", choices = c("None", lateness_policies_list), selected = "None")
                         # num_lateness <- length(cat_details$lateness)
                         # updateNumericInput(session, "num_lateness", value = num_lateness)
                         # 
@@ -420,6 +422,8 @@ shinyServer(function(input, output, session) {
     })
     
     observe({
+        flat_policy <- policy$flat$categories
+        flat_policy$categories <- append(flat_policy$categories, list(policy$overall_grade))
         flat_policy <<- policy$flat
     })
     
@@ -682,7 +686,7 @@ shinyServer(function(input, output, session) {
         },
         content = function(file) {
             yaml::write_yaml(list(coursewide = policy$coursewide,
-                                  categories = policy$categories,
+                                  categories = append(policy$categories, list(policy$overall_grade)),
                                   exceptions = policy$exceptions), file)
         }
     )
