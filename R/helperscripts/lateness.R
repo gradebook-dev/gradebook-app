@@ -11,7 +11,7 @@ edit_lateness_modal <- modalDialog(
                actionButton("remove_interval", "Remove Last Interval"),
         )
     ),
-    uiOutput("lateness"),
+    uiOutput("lateness_modal"),
     easyClose = TRUE,
     footer = tagList(
         modalButton("Cancel"),
@@ -23,7 +23,7 @@ edit_lateness_modal <- modalDialog(
 
 generate_lateness_ui <- function(lateness){
     renderUI({ 
-        lapply(1:as.integer(lateness$num_lateness), function(i) {
+        lapply(1:as.integer(lateness$num_late_cats), function(i) {
             fluidRow(
                 column(width = 2, offset = 0,
                        selectInput(paste0("lateness_preposition", i), NULL,
@@ -90,27 +90,52 @@ createLatenessCards <- function(lateness_table) {
         print("items")
         print(items)
         
+        # content <- lapply(names(items), function(name) {
+        #     # Type of lateness and its value
+        #     policy_line <- paste(strong(name), ":", items[[name]])
+        #     
+        #     if (tolower(name) == "between") {
+        #         # Special format for BETWEEN
+        #         from_to_values <- items[[name]]
+        #         
+        #         policy_line <-  div(strong(name), " ", br(),
+        #                             strong("From:"), from_to_values[["from"]], br(),
+        #                             strong("To:"), from_to_values[["to"]], br(),
+        #                             sep = " ")
+        #         
+        #         
+        #     } else {
+        #         
+        #         policy_line <- paste(strong(name), ":", items[[name]])
+        #     }
+        #     
+        #     HTML(policy_line)
+        # })
+        
         content <- lapply(names(items), function(name) {
             # Type of lateness and its value
-            policy_line <- paste(strong(name), ":", items[[name]])
-            
-            if (tolower(name) == "between") {
+            policy_line <- if (tolower(name) == "between") {
                 # Special format for BETWEEN
-                from_to_values <- items[[name]] 
-                policy_line <- paste(strong(name), "--", 
-                                     strong("From:"), from_to_values[["from"]], 
-                                     strong("To:"), from_to_values[["to"]],
-                                     sep = " ")
+                from_to_values <- items[[name]]
+                tags$div(
+                    tags$strong(ucfirst(name)), 
+                    tags$br(),
+                    tags$strong("From:"), from_to_values[["from"]], 
+                    tags$br(),
+                    tags$strong("To:"), from_to_values[["to"]],
+                    tags$br()
+                )
             } else {
-                
-                policy_line <- paste(strong(name), ":", items[[name]])
+                tags$div(
+                    tags$strong(ucfirst(name)), ":", items[[name]], 
+                    tags$br()
+                )
             }
-            
-            HTML(policy_line)
+            policy_line
         })
         
         title <- div(
-            class = "category-title", 
+            class = "category-title",
             policy_name,
             actionButton(paste0('lateness_delete_', policy_name), label = NULL, icon = icon("trash"), style = "background-color: transparent; margin-right: 10px;"),
             actionButton(paste0('lateness_edit_', policy_name), label = NULL, icon = icon("edit"), style = "background-color: transparent;")
@@ -125,4 +150,11 @@ createLatenessCards <- function(lateness_table) {
             content
         )
     })
+}
+
+# Helper function to capitalize the first letter of each word
+ucfirst <- function(s) {
+    sapply(strsplit(s, " "), function(x) {
+        paste(toupper(substring(x, 1, 1)), substring(x, 2), sep = "", collapse = " ")
+    }, USE.NAMES = FALSE)
 }

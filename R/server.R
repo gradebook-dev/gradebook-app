@@ -169,15 +169,9 @@ shinyServer(function(input, output, session) {
                         shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)   
                         updateNumericInput(session, "n_drops", value = cat_details$n_drops)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
-                        num_lateness <- length(cat_details$lateness)
-                        updateNumericInput(session, "num_lateness", value = num_lateness)
-                        # for (j in 1:num_lateness){
-                        #     late_policy <- policy$flat$categories[[i]]$lateness[[j]]
-                        #     updateTextInput(session, paste0("from", j), value = late_policy$from)
-                        #     updateTextInput(session, paste0("to", j), value = late_policy$to)
-                        #     updateTextInput(session, paste0("scale", j), value = late_policy$scale)
-                        # }
-                        
+                        # num_lateness <- length(cat_details$lateness)
+                        # updateNumericInput(session, "num_lateness", value = num_lateness)
+                        # 
                         #update assignments
                         choices <- c()
                         if (!is.null(assign$table)){ #updates assignments if data has been loaded
@@ -329,25 +323,25 @@ shinyServer(function(input, output, session) {
         ends = list(),
         arithmetics = list(),
         values = list(),
-        num_lateness = 1,
+        num_late_cats = 1,
         table = list()
     )
     
     # Opening category modal to create a NEW LATENESS
     observeEvent(input$new_lateness, {
         showModal(edit_lateness_modal) #opens lateness modal
-        lateness$num_lateness <- 1
+        lateness$num_late_cats <- 1
         
     })
     
     observeEvent(input$add_interval, {
-        lateness$num_lateness <- lateness$num_lateness + 1
-        recordValues(as.integer(lateness$num_lateness) - 1)
+        lateness$num_late_cats <- lateness$num_late_cats + 1
+        recordValues(as.integer(lateness$num_late_cats) - 1)
     })
     
     observeEvent(input$remove_interval, {
-        if (lateness$num_lateness > 1) { # Ensure at least one interval remains!
-            lateness$num_lateness <- lateness$num_lateness - 1
+        if (lateness$num_late_cats > 1) { # Ensure at least one interval remains!
+            lateness$num_late_cats <- lateness$num_late_cats - 1
         }
     })
     
@@ -364,14 +358,14 @@ shinyServer(function(input, output, session) {
         }
     }
     
-    output$lateness <- generate_lateness_ui(lateness)
+    output$lateness_modal <- generate_lateness_ui(lateness)
     
     
     observeEvent(input$save_lateness,{
         #make an empty list
         late_policy <- list()
         #loop over each interval
-        for (i in 1:as.integer(lateness$num_lateness)){
+        for (i in 1:as.integer(lateness$num_late_cats)){
             #loop over each key
             for (key in list(c("lateness_preposition", "start"),
                              c("lateness_arithmetic", "lateness_value")
@@ -421,8 +415,8 @@ shinyServer(function(input, output, session) {
         # Toggle the visibility
         advanced_visible(!advanced_visible())
     })
-    
-    # Render the advanced panel UI based on visibility
+
+    #Render the advanced panel UI based on visibility
     output$advanced_lateness_policies_panel <- renderUI({
         if(advanced_visible()) {
             div(
@@ -431,7 +425,7 @@ shinyServer(function(input, output, session) {
             )
         }
     })
-    
+
     
     #### -------------------------- DISPLAY LATENESS POLICIES UI ----------------------------####
     

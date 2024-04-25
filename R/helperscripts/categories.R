@@ -9,11 +9,12 @@ edit_category_modal <- modalDialog(
                selectInput('aggregation',
                            label = tags$span('Aggregation:', bsButton('aggregation_info', label = '', icon = icon('info'), style = 'default', size = 'extra-small')),
                            selected = 'equally_weighted',
-                           choices = list('Equally Weighted' = 'equally_weighted',
+                           choices = c('Equally Weighted' = 'equally_weighted',
                                           'Weighted By Points' = 'weighted_by_points', 
-                                          'Max Score' = 'max_score', 
-                                          'Min Score' = 'min_score', 
-                                          'None' = 'none')
+                                          'Max Score' = 'max_score',
+                                          'Min Score' = 'min_score',
+                                          'None' = 'none'
+                                       )
                ),
             bsPopover(
                id = 'aggregation_info',
@@ -29,7 +30,6 @@ edit_category_modal <- modalDialog(
         column(3,
                shinyWidgets::autonumericInput("weight", "Weight:", value = 0, currencySymbol = "%",
                                               currencySymbolPlacement = "s", width = "100px"),
-               #numericInput("num_lateness", label = "Number of Lateness Intervals:", value = 0, min = 0)
                selectInput("lateness_policies", "Lateness Policy", selected = "None", choices = c("None"))
         ),
         column(3,
@@ -52,7 +52,6 @@ edit_category_modal <- modalDialog(
                )
         )
     ),
-    #uiOutput("lateness"),
     easyClose = TRUE,
     footer = tagList(
         actionButton("cancel", "Cancel"),
@@ -90,20 +89,20 @@ createCategory <- function(name, input, assigns_table){
         aggregation = input$aggregation
     )
     
-    if (input$num_lateness > 0){
-        lateness <- list()
-        for (i in 1:as.integer(input$num_lateness)){
-            late_policy <- list(
-                from = input[[paste0("from", i)]],
-                to = input[[paste0("to", i)]],
-                scale = input[[paste0("scale", i)]]
-            )
-            lateness <- append(lateness, list(late_policy))
-        }
-        
-        category <- append(category, list(lateness = lateness))
-    }
-    
+    # if (input$num_lateness > 0){
+    #     lateness <- list()
+    #     for (i in 1:as.integer(input$num_lateness)){
+    #         late_policy <- list(
+    #             from = input[[paste0("from", i)]],
+    #             to = input[[paste0("to", i)]],
+    #             scale = input[[paste0("scale", i)]]
+    #         )
+    #         lateness <- append(lateness, list(late_policy))
+    #     }
+    # 
+    #     category <- append(category, list(lateness = lateness))
+    # }
+
     if (input$clobber != "None"){
         category <- append(category, list(clobber = input$clobber))
     }
@@ -129,16 +128,6 @@ createEmptyCategory <- function(name){
          assignments = NULL)
 }
 
-
-# deleteCategory <- function(policy_categories, flat_policy, label){
-#     if (length(getIndex(flat_policy, label)) > 0){
-#         name <- flat_policy$categories[[getIndex(flat_policy, label)]]$category
-#         index <- find_indices(policy_categories, name)
-#         index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
-#         eval(parse(text = paste(index, "< -", "NULL")))
-#     }
-#     return (policy_categories)
-# }
 
 deleteCategory <- function(policy_categories, matched_category_name) {
     # Using find_indices function to directly find the category to delete

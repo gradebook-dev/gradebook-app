@@ -111,7 +111,7 @@ getAggregationName <- function(category_aggregation) {
     switch(category_aggregation,
            'equally_weighted' = 'Equally Weighted',
            'weighted_by_points' = 'Weighted By Points',
-           'max_score' = 'Max Score', 
-           'min_score' = 'Min Score', 
+           'max_score' = 'Max Score',
+           'min_score' = 'Min Score',
            'none' = 'None')
 }
