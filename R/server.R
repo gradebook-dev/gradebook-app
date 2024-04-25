@@ -420,8 +420,7 @@ shinyServer(function(input, output, session) {
     output$advanced_lateness_policies_panel <- renderUI({
         if(advanced_visible()) {
             div(
-                style = "margin-top: 20px; padding: 20px; background-color: #ffffff; border-radius: 5px;",
-                h4("Advanced lateness policies here....")
+                selectInput("clobber", "Clobber with:", selected = "None", choices = c("None"))
             )
         }
     })

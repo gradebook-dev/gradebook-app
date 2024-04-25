@@ -2,12 +2,13 @@ library(shinyBS)
 edit_category_modal <- modalDialog(
     
     h4("Edit this Category"),
-    fluidRow(column(6,textInput("name", "Category Name", value = "", width = "100%")
+    fluidRow(column(6,offset = 0,
+                    textInput("name", "Category Name", value = "", width = "100%")
     )),
     fluidRow(
-        column(6,
+        column(6,offset = 0,
                selectInput('aggregation',
-                           label = tags$span('Aggregation:', bsButton('aggregation_info', label = '', icon = icon('info'), style = 'default', size = 'extra-small')),
+                           label = tags$span('Aggregation:', bsButton('aggregation_info', label = '', icon = icon('info'), size = 'extra-small')),
                            selected = 'equally_weighted',
                            choices = c('Equally Weighted' = 'equally_weighted',
                                           'Weighted By Points' = 'weighted_by_points', 
@@ -25,25 +26,22 @@ edit_category_modal <- modalDialog(
                # TODO
                placement = 'right',
                trigger = 'hover'
-            )
+            ),
+            selectInput("lateness_policies", "Lateness Policy", selected = "None", choices = c("None"))
         ),
-        column(3,
+        column(3,offset = 0,
                shinyWidgets::autonumericInput("weight", "Weight:", value = 0, currencySymbol = "%",
-                                              currencySymbolPlacement = "s", width = "100px"),
-               selectInput("lateness_policies", "Lateness Policy", selected = "None", choices = c("None"))
-        ),
-        column(3,
-               numericInput("n_drops", label = "Number of Drops:", value = 0, min = 0),
-               selectInput("clobber", "Clobber with:", selected = "None", choices = c("None"))
+                                              currencySymbolPlacement = "s"),
+               numericInput("n_drops", label = "Number of Drops:", value = 0, min = 0)
+               
         )
     ),
     selectizeInput("assignments", "Select Assignments:",
                    choices = "", multiple = TRUE, width = "100%",
                    options = list(create = TRUE)),
     fluidRow(
-        column(8,),
-        column(4,
-               div(h4('Advanced', style = " align-items: center;padding-left: 30px; font-size: 16px; display: inline-block; margin-right: 0px; " ),
+        column(6,offset = 0,
+               div(h4('Advanced', style = " align-items: center; font-size: 16px; display: inline-block; margin-right: 0px; " ),
                    actionButton("advanced_toggle_lateness", label = NULL, icon = icon("gear"), 
                                 style = "background-color: transparent; border: none; color: #50A5EA; margin-top: -5px;"),
                    
