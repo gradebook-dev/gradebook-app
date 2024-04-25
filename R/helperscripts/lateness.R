@@ -18,7 +18,7 @@ edit_lateness_modal <- modalDialog(
         actionButton("save_lateness", "Save", style = "color: white; background-color: #337ab7;")
     )
 )
- 
+
 ###### --------------- LATENESS UI INSIDE MODAL ------------- ####
 
 generate_lateness_ui <- function(lateness){
@@ -86,18 +86,28 @@ generate_lateness_ui <- function(lateness){
 createLatenessCards <- function(lateness_table) {
     lapply(names(lateness_table), function(policy_name) {
         items <- lateness_table[[policy_name]]
-    
+        
         print("items")
         print(items)
-        content_list <- lapply(items, function(item) {
-                policy_details <- paste(
-                  
-                    item,
-                    sep = " "
-                )
+        
+        content <- lapply(names(items), function(name) {
+            # Type of lateness and its value
+            policy_line <- paste(strong(name), ":", items[[name]])
+            
+            if (tolower(name) == "between") {
+                # Special format for BETWEEN
+                from_to_values <- items[[name]] 
+                policy_line <- paste(strong(name), "--", 
+                                     strong("From:"), from_to_values[["from"]], 
+                                     strong("To:"), from_to_values[["to"]],
+                                     sep = " ")
+            } else {
                 
-                HTML(policy_details)
-            })
+                policy_line <- paste(strong(name), ":", items[[name]])
+            }
+            
+            HTML(policy_line)
+        })
         
         title <- div(
             class = "category-title", 
@@ -106,7 +116,7 @@ createLatenessCards <- function(lateness_table) {
             actionButton(paste0('lateness_edit_', policy_name), label = NULL, icon = icon("edit"), style = "background-color: transparent;")
         )
         
-        content <- do.call(tagList, content_list)
+        content <- do.call(tagList, content)
         
         box(
             title = title,

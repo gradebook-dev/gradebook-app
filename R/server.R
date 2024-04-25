@@ -297,8 +297,6 @@ shinyServer(function(input, output, session) {
     observe({
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
         assign$table <- updateAssignsTable(assign$table, gradebook::flatten_policy(list(categories = policy$categories)))
-        # names <- purrr::map(policy$flat$categories, "category") |> unlist()
-        # purrr::walk(names, rerender_ui)
     })
     
     #### -------------------------- DISPLAY CATEGORIES UI ----------------------------####
@@ -370,25 +368,45 @@ shinyServer(function(input, output, session) {
     
     
     observeEvent(input$save_lateness,{
+        #make an empty list
         late_policy <- list()
+        #loop over each interval
         for (i in 1:as.integer(lateness$num_lateness)){
+            #loop over each key
             for (key in list(c("lateness_preposition", "start"),
                              c("lateness_arithmetic", "lateness_value")
             )){
+                # extract the value from the input 
                 item <- input[[paste0(key[2], i)]] #value
-                if (input[[paste0(key[1], i)]] == "Between"){
-                    item <- list(
-                        list("start" = input[[paste0("start", i)]],
-                             "end" = input[[paste0("end", i)]]
-                        )
+                #check if "BETWEEN"
+                # if (input[[paste0(key[1], i)]] == "Between"){
+                #     item <- list(
+                #         list(from = input[[paste0("start", i)]],
+                #                to = input[[paste0("end", i)]]
+                #         )
+                #     )
+                # }
+                # #assign lowercase
+                # names(item) <- tolower(input[[paste0(key[1], i)]]) #key name
+                # #append item to late_policy list
+                # late_policy <- append(late_policy, list(item))
+                if (input[[paste0(key[1], i)]] == "Between") {
+                    # Directly create a named list for 'Between' intervals
+                    late_policy[["between"]] <- list(
+                        from = input[[paste0("start", i)]],
+                        to = input[[paste0("end", i)]]
                     )
+                } else {
+                    # For 'Until' and 'After', add the details directly to late_policy!
+                    key_name <- tolower(input[[paste0(key[1], i)]])
+                    late_policy[[key_name]] <- item
                 }
-                names(item) <- tolower(input[[paste0(key[1], i)]]) #key name
-                late_policy <- append(late_policy, list(item))
+                
             }
         }
+        #get policy name from $input
         policy_name <- input$policy_name
-        # Append the whole policy, including name and settings, to the lateness$table
+        # appnd late_policy list to lateness$table using the policy name as the key!
         lateness$table[[policy_name]] <- late_policy
         print(lateness$table)
         removeModal()
