@@ -105,7 +105,7 @@ generate_lateness_ui <- function(lateness){
 
 
 createLatenessCards <- function(lateness_table) {
-    lapply(names(lateness_table), function(policy_name) {
+    lapply((lateness_table), function(policy_name) {
         items <- lateness_table[[policy_name]]
         
         

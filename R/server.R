@@ -401,8 +401,9 @@ shinyServer(function(input, output, session) {
         #get policy name from $input
         policy_name <- input$policy_name
         # appnd late_policy list to lateness$table using the policy name as the key!
-        lateness$table[[policy_name]] <- late_policy
-        print(lateness$table)
+        late_policy <- list(late_policy)
+        names(late_policy) <- input$policy_name
+        lateness$table <- append(lateness$table, late_policy)
         removeModal()
     })
     
