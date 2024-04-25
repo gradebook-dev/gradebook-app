@@ -101,9 +101,9 @@ createCategory <- function(name, input, assigns_table){
     #     category <- append(category, list(lateness = lateness))
     # }
 
-    if (input$clobber != "None"){
-        category <- append(category, list(clobber = input$clobber))
-    }
+    # if (input$clobber != "None"){
+    #     category <- append(category, list(clobber = input$clobber))
+    # }
     
     if (input$weight != 0){
         weight <-  input$weight/100
