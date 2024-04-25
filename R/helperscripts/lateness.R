@@ -1,3 +1,5 @@
+###### --------------- LATENESS MODAL ------------- ####
+
 edit_lateness_modal <- modalDialog(
     title = h4("Edit Lateness Policy"),
     textInput("policy_name", label = "Policy Name", value = "Policy Name"),
@@ -16,7 +18,8 @@ edit_lateness_modal <- modalDialog(
         actionButton("save_lateness", "Save", style = "color: white; background-color: #337ab7;")
     )
 )
-
+ 
+###### --------------- LATENESS UI INSIDE MODAL ------------- ####
 
 generate_lateness_ui <- function(lateness){
     renderUI({ 
@@ -73,5 +76,43 @@ generate_lateness_ui <- function(lateness){
                 )
             )
         })
+    })
+}
+
+
+###### --------------- LATENESS POLICIES UI ------------- ####
+
+
+createLatenessCards <- function(lateness_table) {
+    lapply(names(lateness_table), function(policy_name) {
+        items <- lateness_table[[policy_name]]
+    
+        print("items")
+        print(items)
+        content_list <- lapply(items, function(item) {
+                policy_details <- paste(
+                  
+                    item,
+                    sep = " "
+                )
+                
+                HTML(policy_details)
+            })
+        
+        title <- div(
+            class = "category-title", 
+            policy_name,
+            actionButton(paste0('lateness_delete_', policy_name), label = NULL, icon = icon("trash"), style = "background-color: transparent; margin-right: 10px;"),
+            actionButton(paste0('lateness_edit_', policy_name), label = NULL, icon = icon("edit"), style = "background-color: transparent;")
+        )
+        
+        content <- do.call(tagList, content_list)
+        
+        box(
+            title = title,
+            status = "primary",
+            width = 8,
+            content
+        )
     })
 }

@@ -65,9 +65,17 @@ Policies <- tabItem(tabName = "policies",
                                                  hr(),
                                              )),
                                          
-                                     
+                                         
                                      )
+                                 ),
+                                 fluidRow(
+                                    
+                                     br(),
+                                     fluidRow(style = "margin-left: 10px;"),
+                                     uiOutput("latenessUI"),
+                                 
                                  )
+                                 
                         ),
                         
                         ### TAB COURSEWiDE
@@ -80,4 +88,3 @@ Policies <- tabItem(tabName = "policies",
                         )
                     )
 )
-

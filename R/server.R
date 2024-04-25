@@ -127,10 +127,9 @@ shinyServer(function(input, output, session) {
         #updates values that aren't always the same but still default
         current_edit$category <- NULL
         updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
+        #Gets the list of names of the policies
         lateness_policies_list = names(lateness$table)
-        print("lateness_policies_list")
-        print(lateness_policies_list)
-        updateSelectInput(session, "lateness_policies", choices = lateness_policies_list)
+        updateSelectInput(session, "lateness_policies", choices = c("None", lateness_policies_list), selected = "")
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
             choices <- getUnassigned(assign$table)
             updateSelectizeInput(session, "assignments", choices = choices, selected = "")
@@ -322,7 +321,7 @@ shinyServer(function(input, output, session) {
         
     })
     
-    #### -------------------------- LATENESS POLICIES UI ----------------------------####
+    #### -------------------------- LATENESS POLICIES ----------------------------####
     
     lateness <- reactiveValues(
         default = NULL,
@@ -379,8 +378,8 @@ shinyServer(function(input, output, session) {
                 item <- input[[paste0(key[2], i)]] #value
                 if (input[[paste0(key[1], i)]] == "Between"){
                     item <- list(
-                        list(from = input[[paste0("start", i)]],
-                             to = input[[paste0("end", i)]]
+                        list("start" = input[[paste0("start", i)]],
+                             "end" = input[[paste0("end", i)]]
                         )
                     )
                 }
@@ -391,9 +390,10 @@ shinyServer(function(input, output, session) {
         policy_name <- input$policy_name
         # Append the whole policy, including name and settings, to the lateness$table
         lateness$table[[policy_name]] <- late_policy
+        print(lateness$table)
         removeModal()
     })
-
+    
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
     
     advanced_visible <- reactiveVal(FALSE)
@@ -414,6 +414,16 @@ shinyServer(function(input, output, session) {
         }
     })
     
+    
+    #### -------------------------- DISPLAY LATENESS POLICIES UI ----------------------------####
+    
+    
+    observe({
+        output$latenessUI <- renderUI({
+            req(lateness$table)
+            createLatenessCards(lateness$table)
+        })
+    })
     
     
     #### -------------------------- GRADING ----------------------------####
