@@ -229,11 +229,11 @@ shinyServer(function(input, output, session) {
                     
                     #add new category
                     policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
-                                                        input$name, input, assign$table)
+                                                        input$name, input, assign$table, lateness$table)
                 } else {
                     policy$categories <- append(policy$categories,
                                                 list(createCategory(input$name, input = input,
-                                                                    assign$table)))
+                                                                    assign$table, lateness$table)))
                 }
             } else {
                 showNotification('You cannot combine subcategories and assignments; please try again','',type = "error")

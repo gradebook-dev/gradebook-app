@@ -65,7 +65,7 @@ confirm_delete <- modalDialog(
     
 )
 
-createCategory <- function(name, input, assigns_table){
+createCategory <- function(name, input, assigns_table, lateness_table){
     #with the current implementation of the R Package, order matters
     #order should be: category, lateness, drops, aggregation, assignments
     #other defaults (e.g. score, aggregation_max_pts, etc) are added by validate_policy()
@@ -111,6 +111,10 @@ createCategory <- function(name, input, assigns_table){
         weight <-  input$weight/100
         #this argument will be rightfully ignored in get_grades()
         category <- append(category, list(weights = input$weight/100))
+    }
+    
+    if (input$lateness_policies != "None"){
+        category <- append(category, list(lateness = lateness_table[[input$lateness_policies]]))
     }
 
     if (input$n_drops > 0){
@@ -166,12 +170,12 @@ find_indices <- function(lst, target, current_index = c()) {
     return(indices)
 }
 
-updateCategory <- function(policy_categories, flat_policy, original_name, name, input, assigns_table){
+updateCategory <- function(policy_categories, flat_policy, original_name, name, input, assigns_table, lateness_table){
     original_name <- flat_policy$categories[[getIndex(flat_policy, original_name)]]$category
     index <- find_indices(policy_categories, original_name)
     index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
     eval(parse(text = paste("category", "<-", index))) #category now stores original version of category
-    new_category <- createCategory(name, input, assigns_table) #needs to be updated
+    new_category <- createCategory(name, input, assigns_table, lateness_table)
     #at this point, new_category has all updated qualities except nested subcats, if applicable
     if (length(input$assignments) != 0){
         #if assignments are only subcats
