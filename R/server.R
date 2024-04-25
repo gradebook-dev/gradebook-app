@@ -376,31 +376,26 @@ shinyServer(function(input, output, session) {
                              c("lateness_arithmetic", "lateness_value")
             )){
                 # extract the value from the input 
-                item <- input[[paste0(key[2], i)]] #value
-                #check if "BETWEEN"
-                # if (input[[paste0(key[1], i)]] == "Between"){
-                #     item <- list(
-                #         list(from = input[[paste0("start", i)]],
-                #                to = input[[paste0("end", i)]]
-                #         )
-                #     )
-                # }
-                # #assign lowercase
-                # names(item) <- tolower(input[[paste0(key[1], i)]]) #key name
-                # #append item to late_policy list
-                # late_policy <- append(late_policy, list(item))
+                item <- input[[paste0(key[2], i)]] 
                 if (input[[paste0(key[1], i)]] == "Between") {
                     # Directly create a named list for 'Between' intervals
-                    late_policy[["between"]] <- list(
+                    between <-list(between = list(
                         from = input[[paste0("start", i)]],
                         to = input[[paste0("end", i)]]
-                    )
-                } else {
+                    ))
+                    late_policy <- append(late_policy, list(between))
+                 } else {
                     # For 'Until' and 'After', add the details directly to late_policy!
-                    key_name <- tolower(input[[paste0(key[1], i)]])
-                    late_policy[[key_name]] <- item
-                }
-                
+                    threshold <- list(input[[paste0(key[2], i)]])
+                    names(threshold) <- tolower(input[[paste0(key[1], i)]])
+                    #key_name <- tolower(input[[paste0(key[1], i)]])
+                    late_policy <- append(late_policy, list(threshold))
+                 }
+                # #penalty (doesn't matter what threshold)
+                # penalty <- list(input[[paste0(key[2], i)]])
+                # names(penalty) <- tolower(input[[paste0(key[2], i)]])
+                # #key_name <- tolower(input[[paste0(key[1], i)]])
+                # late_policy <- append(late_policy, list(penalty))
             }
         }
         #get policy name from $input
@@ -409,6 +404,10 @@ shinyServer(function(input, output, session) {
         lateness$table[[policy_name]] <- late_policy
         print(lateness$table)
         removeModal()
+    })
+    
+    observe({
+        your_global_variable <<- lateness$table
     })
     
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####

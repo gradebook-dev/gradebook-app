@@ -108,36 +108,57 @@ createLatenessCards <- function(lateness_table) {
     lapply(names(lateness_table), function(policy_name) {
         items <- lateness_table[[policy_name]]
         
-        print("items")
-        print(items)
-        i <- 1
         
-        content <- lapply(names(items), function(name) {
-            # Type of lateness and its value
-            policy_line <- if (tolower(name) == "between") {
-                # Special format for BETWEEN
-                from_to_values <- items[[name]]
-               
-                tags$div(
-                    tags$strong(ucfirst(name)), 
-                    tags$br(),
-                    tags$strong("From:"), from_to_values[["from"]], 
-                    tags$br(),
-                    tags$strong("To:"), from_to_values[["to"]],
-                    tags$br()
-                )
-            } else {
-               
-                tags$div(
-                    tags$strong(paste0("Interval ", i)), #doesn't work
-                    tags$br(),
-                    tags$strong(ucfirst(name)), ":", items[[name]], 
-                    tags$br()
-                )
-            }
-            i <- i + 1
-            policy_line
-        })
+        content <- if ("between" %in% names(items)){
+            tags$div(
+                tags$strong("Interval"),
+                br(),
+                tags$strong(ucfirst(names(item))), 
+                tags$br(),
+                tags$strong("From:"), item[["from"]], 
+                tags$br(),
+                tags$strong("To:"), item[["to"]],
+                tags$br()
+            )
+        } else {
+            tags$div(
+                tags$strong("Interval"),
+                br(),
+                tags$strong(ucfirst(names(item))), 
+                tags$br(),
+                tags$strong(ucfirst(name)), ":", items[[name]], 
+                tags$br()
+            )
+        }
+        
+        
+        # content <- lapply(items, function(item) {
+        #     # Type of lateness and its value
+        #     policy_line <- if ("between" %in% names(item) ) {
+        #         # Special format for BETWEEN
+        #         
+        #         tags$div(
+        #             tags$strong(ucfirst(names(item))), 
+        #             tags$br(),
+        #             tags$strong("From:"), item[["from"]], 
+        #             tags$br(),
+        #             tags$strong("To:"), item[["to"]],
+        #             tags$br()
+        #         )
+        #     } else {
+        #        
+        #         tags$div(
+        #             tags$strong(ifelse(name %in% c("until", "after"),
+        #                                paste0("Interval ", 1 + which(names(items) == name)%/%2),
+        #                                ""
+        #                                )), #doesn't work
+        #             tags$br(),
+        #             tags$strong(ucfirst(name)), ":", items[[name]], 
+        #             tags$br()
+        #         )
+        #     }
+        #     policy_line
+        # })
         
         title <- div(
             class = "category-title",
