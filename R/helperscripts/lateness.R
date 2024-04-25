@@ -8,7 +8,7 @@ edit_lateness_modal <- modalDialog(
         )
     ),
     title = h4("Edit Lateness Policy"),
-    textInput("policy_name", label = "Policy Name", value = "Your Policy Name"),
+  #  textInput("policy_name", label = "Policy Name", value = "Your Policy Name"),
     fluidRow(
         tagList(
             div(style = "padding: 1.5rem;",
@@ -164,4 +164,52 @@ ucfirst <- function(s) {
     sapply(strsplit(s, " "), function(x) {
         paste(toupper(substring(x, 1, 1)), substring(x, 2), sep = "", collapse = " ")
     }, USE.NAMES = FALSE)
+}
+
+
+
+###### --------------- FUNCTION TO GENERATE A STRING FOR EACH POLICY ------------- ####
+format_policy <- function(policy) {
+    policy_strings <- c()
+    
+    # Loop through each item in the policy
+    for (interval in policy) {
+        # Handle the 'between' interval
+        if (!is.null(interval$between)) {
+            between_string <- sprintf("Between: FROM: %s TO: %s", interval$between$from, interval$between$to)
+            policy_strings <- c(policy_strings, between_string)
+        } 
+        
+        # Handle the 'until' interval
+        if (!is.null(interval$until)) {
+            until_string <- sprintf("Until: %s", interval$until)
+            policy_strings <- c(policy_strings, until_string)
+        }
+        
+        # Handle the 'after' interval
+        if (!is.null(interval$after)) {
+            after_string <- sprintf("After: %s", interval$after)
+            policy_strings <- c(policy_strings, after_string)
+        }
+        
+        # Handle the 'add' arithmetic 
+        if (!is.null(interval$add)) {
+            add_string <- sprintf("Add: %s", interval$add)
+            policy_strings <- c(policy_strings, add_string)
+        }
+        
+        # Handle the 'scale by' arithmetic 
+        if (!is.null(interval$scale_by)) {
+            scaleby_string <- sprintf("Scale By: %s", interval$scale_by)
+            policy_strings <- c(policy_strings, scaleby_string)
+        }
+        
+        # Handle the 'set to' arithmetic 
+        if (!is.null(interval$set_to)) {
+            setto_string <- sprintf("Set To: %s", interval$set_to)
+            policy_strings <- c(policy_strings, setto_string)
+        }
+    }
+    #does not create a new line...
+    paste(policy_strings, collapse = "\n")
 }

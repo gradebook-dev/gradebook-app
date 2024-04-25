@@ -134,8 +134,13 @@ shinyServer(function(input, output, session) {
         current_edit$category <- NULL
         updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
         #Gets the list of names of the policies
-        lateness_policies_list = names(lateness$table)
-        updateSelectInput(session, "lateness_policies", choices = c("None", lateness_policies_list), selected = "None")
+        # lateness_policies_list = names(lateness$table)
+        
+        if(!is.null(lateness$table)){
+            formatted_policies <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
+            
+            updateSelectInput(session, "lateness_policies", choices = c("None", formatted_policies), selected = "None")
+        }
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
             choices <- getUnassigned(assign$table)
             updateSelectizeInput(session, "assignments", choices = choices, selected = "")
@@ -300,7 +305,7 @@ shinyServer(function(input, output, session) {
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
         assign$table <- updateAssignsTable(assign$table, gradebook::flatten_policy(list(categories = policy$categories)))
         policy$overall_grade <- update_overall_grade(policy$flat)
-        print(policy$overall_grade)
+        
     })
     
     #### -------------------------- DISPLAY CATEGORIES UI ----------------------------####
@@ -327,7 +332,7 @@ shinyServer(function(input, output, session) {
     
     lateness <- reactiveValues(
         default = NULL,
-        name = NULL,
+        num_name = 0,
         prepositions = list(),
         starts = list(),
         ends = list(),
@@ -346,6 +351,9 @@ shinyServer(function(input, output, session) {
         lateness$arithmetics <- list()
         lateness$values <- list()
         lateness$num_late_cats <- 1
+        
+        #increment the lateness num name
+        lateness$num_name <- lateness$num_name +1
         
     })
     
@@ -377,6 +385,7 @@ shinyServer(function(input, output, session) {
     
     
     observeEvent(input$save_lateness,{
+      
         #make an empty list
         late_policy <- list()
         #loop over each interval
@@ -394,26 +403,28 @@ shinyServer(function(input, output, session) {
                         to = input[[paste0("end", i)]]
                     ))
                     late_policy <- append(late_policy, list(between))
-                 } else {
+                } else {
                     # For 'Until' and 'After', add the details directly to late_policy!
                     threshold <- list(input[[paste0(key[2], i)]])
                     names(threshold) <- tolower(input[[paste0(key[1], i)]])
-                    #key_name <- tolower(input[[paste0(key[1], i)]])
                     late_policy <- append(late_policy, list(threshold))
-                 }
-                # #penalty (doesn't matter what threshold)
-                # penalty <- list(input[[paste0(key[2], i)]])
-                # names(penalty) <- tolower(input[[paste0(key[2], i)]])
-                # #key_name <- tolower(input[[paste0(key[1], i)]])
-                # late_policy <- append(late_policy, list(penalty))
+                }
+ 
             }
         }
-        #get policy name from $input
-        policy_name <- input$policy_name
+        
+        
         # appnd late_policy list to lateness$table using the policy name as the key!
         late_policy <- list(late_policy)
-        names(late_policy) <- input$policy_name
+        #get policy name from $input
+        policy_name <- paste0("Lateness Policy ", lateness$num_name)
+        names(late_policy) <- policy_name
         lateness$table <- append(lateness$table, late_policy)
+        
+        #format policies into a list of strings
+       print(lateness$table)
+        
+        
         removeModal()
     })
     
@@ -436,7 +447,7 @@ shinyServer(function(input, output, session) {
         # Toggle the visibility
         advanced_visible(!advanced_visible())
     })
-
+    
     #Render the advanced panel UI based on visibility
     output$advanced_lateness_policies_panel <- renderUI({
         if(advanced_visible()) {
@@ -445,7 +456,7 @@ shinyServer(function(input, output, session) {
             )
         }
     })
-
+    
     
     #### -------------------------- DISPLAY LATENESS POLICIES UI ----------------------------####
     
