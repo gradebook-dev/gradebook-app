@@ -471,6 +471,7 @@ shinyServer(function(input, output, session) {
                                     exceptions = policy$exceptions) |>
                     gradebook::flatten_policy()
                 
+                #remember to add overall_grade at the end
                 policy$grades <- cleaned_data |>
                     gradebook::calculate_lateness(flat_policy) |>
                     gradebook::get_category_grades(flat_policy)
