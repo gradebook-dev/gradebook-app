@@ -185,7 +185,6 @@ updateCategory <- function(policy_categories, flat_policy, original_name, name, 
             for (assign in input$assignments){
                 if (assign %in% existing_subcats){
                     i <- which(existing_subcats == assign)
-                    print(category$assignments[[i]])
                     assignments <- append(assignments, list(category$assignments[[i]]))
                 } else {
                     sub_cat <- createEmptyCategory(assign)

@@ -136,11 +136,21 @@ shinyServer(function(input, output, session) {
         #Gets the list of names of the policies
         # lateness_policies_list = names(lateness$table)
         
+        # if(!is.null(lateness$table)){
+        #     formatted_policies <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
+        #     
+        #     updateSelectInput(session, "lateness_policies", choices = c("None", formatted_policies), selected = "None")
+        # }
         if(!is.null(lateness$table)){
-            formatted_policies <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
             
-            updateSelectInput(session, "lateness_policies", choices = c("None", formatted_policies), selected = "None")
+            formatted_policies <- setNames(
+                names(lateness$table),
+                unname(sapply(lateness$table, format_policy, simplify = FALSE))
+            )
+            updateSelectInput(session, "lateness_policies", choices = c("None" = "None", formatted_policies), selected = "None")
         }
+        
+        
         if (!is.null(assign$table)){ #updates assignments if data has been loaded
             choices <- getUnassigned(assign$table)
             updateSelectizeInput(session, "assignments", choices = choices, selected = "")
@@ -180,11 +190,20 @@ shinyServer(function(input, output, session) {
                         shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)   
                         updateNumericInput(session, "n_drops", value = cat_details$n_drops)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
-                        lateness_policies_list = names(lateness$table) #defaults to None, despite what's saved!!
-                        updateSelectInput(session, "lateness_policies", choices = c("None", lateness_policies_list), selected = "None")
-                        # num_lateness <- length(cat_details$lateness)
-                        # updateNumericInput(session, "num_lateness", value = num_lateness)
-                        # 
+                        
+                        if(!is.null(lateness$table)){
+                            print("cat_details")
+                            print(cat_details)
+                            
+                            formatted_policies <- setNames(
+                                names(lateness$table),                                        
+                                unname(sapply(lateness$table, format_policy, simplify = FALSE))
+                            )
+                            selected_policy <- unname(sapply(cat_details$lateness, format_policy, simplify = FALSE))
+                            
+                            updateSelectInput(session, "lateness_policies", choices =choices = c("None" = "None", formatted_policies), selected = selected_policy)
+                        }
+                        
                         #update assignments
                         choices <- c()
                         if (!is.null(assign$table)){ #updates assignments if data has been loaded
@@ -237,6 +256,8 @@ shinyServer(function(input, output, session) {
                     #add new category
                     policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
                                                         input$name, input, assign$table, lateness$table)
+                    print("ADDING NEW CATEGORY")
+                    print(policy$categories)
                 } else {
                     policy$categories <- append(policy$categories,
                                                 list(createCategory(input$name, input = input,
@@ -385,7 +406,7 @@ shinyServer(function(input, output, session) {
     
     
     observeEvent(input$save_lateness,{
-      
+        
         #make an empty list
         late_policy <- list()
         #loop over each interval
@@ -409,7 +430,7 @@ shinyServer(function(input, output, session) {
                     names(threshold) <- tolower(input[[paste0(key[1], i)]])
                     late_policy <- append(late_policy, list(threshold))
                 }
- 
+                
             }
         }
         
@@ -420,10 +441,6 @@ shinyServer(function(input, output, session) {
         policy_name <- paste0("Lateness Policy ", lateness$num_name)
         names(late_policy) <- policy_name
         lateness$table <- append(lateness$table, late_policy)
-        
-        #format policies into a list of strings
-       print(lateness$table)
-        
         
         removeModal()
     })
