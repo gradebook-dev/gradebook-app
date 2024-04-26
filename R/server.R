@@ -184,7 +184,6 @@ shinyServer(function(input, output, session) {
                         updateNumericInput(session, "n_drops", value = cat_details$n_drops)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
                         
-<<<<<<< HEAD
                         if(!is.null(lateness$table) & !is.null(cat_details$lateness)) {
 
                             print("cat_details$lateness")
@@ -209,22 +208,7 @@ shinyServer(function(input, output, session) {
 
                             updateSelectInput(session, "lateness_policies", choices = c("None" = "None", formatted_policies), selected = selected_policy)
                         }
-                    
-=======
-                        # if(!is.null(lateness$table)){
-                        #     print("cat_details")
-                        #     print(cat_details)
-                        #     
-                        #     formatted_policies <- setNames(
-                        #         names(lateness$table),                                        
-                        #         unname(sapply(lateness$table, format_policy, simplify = FALSE))
-                        #     )
-                        #     selected_policy <- unname(sapply(cat_details$lateness, format_policy, simplify = FALSE))
-                        #     
-                        #     updateSelectInput(session, "lateness_policies", choices =choices = c("None" = "None", formatted_policies), selected = selected_policy)
-                        # }
-                        # 
->>>>>>> 7d9c7b0e142202ce142f177e74c3a9ae2f9695d9
+
                         #update assignments
                         choices <- c()
                         if (!is.null(assign$table)){ #updates assignments if data has been loaded
