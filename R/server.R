@@ -191,19 +191,19 @@ shinyServer(function(input, output, session) {
                         updateNumericInput(session, "n_drops", value = cat_details$n_drops)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
                         
-                        if(!is.null(lateness$table)){
-                            print("cat_details")
-                            print(cat_details)
-                            
-                            formatted_policies <- setNames(
-                                names(lateness$table),                                        
-                                unname(sapply(lateness$table, format_policy, simplify = FALSE))
-                            )
-                            selected_policy <- unname(sapply(cat_details$lateness, format_policy, simplify = FALSE))
-                            
-                            updateSelectInput(session, "lateness_policies", choices =choices = c("None" = "None", formatted_policies), selected = selected_policy)
-                        }
-                        
+                        # if(!is.null(lateness$table)){
+                        #     print("cat_details")
+                        #     print(cat_details)
+                        #     
+                        #     formatted_policies <- setNames(
+                        #         names(lateness$table),                                        
+                        #         unname(sapply(lateness$table, format_policy, simplify = FALSE))
+                        #     )
+                        #     selected_policy <- unname(sapply(cat_details$lateness, format_policy, simplify = FALSE))
+                        #     
+                        #     updateSelectInput(session, "lateness_policies", choices =choices = c("None" = "None", formatted_policies), selected = selected_policy)
+                        # }
+                        # 
                         #update assignments
                         choices <- c()
                         if (!is.null(assign$table)){ #updates assignments if data has been loaded
