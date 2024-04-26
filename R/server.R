@@ -134,13 +134,6 @@ shinyServer(function(input, output, session) {
         current_edit$category <- NULL
         updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
         #Gets the list of names of the policies
-        # lateness_policies_list = names(lateness$table)
-        
-        # if(!is.null(lateness$table)){
-        #     formatted_policies <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
-        #     
-        #     updateSelectInput(session, "lateness_policies", choices = c("None", formatted_policies), selected = "None")
-        # }
         if(!is.null(lateness$table)){
             
             formatted_policies <- setNames(
@@ -191,19 +184,31 @@ shinyServer(function(input, output, session) {
                         updateNumericInput(session, "n_drops", value = cat_details$n_drops)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
                         
-                        if(!is.null(lateness$table)){
-                            print("cat_details")
-                            print(cat_details)
+                        if(!is.null(lateness$table) & !is.null(cat_details$lateness)) {
+
+                            print("cat_details$lateness")
+                            print(cat_details$lateness)
+                            
+                            print("lateness$table")
+                            print(lateness$table)
                             
                             formatted_policies <- setNames(
-                                names(lateness$table),                                        
+                                names(lateness$table),
                                 unname(sapply(lateness$table, format_policy, simplify = FALSE))
                             )
-                            selected_policy <- unname(sapply(cat_details$lateness, format_policy, simplify = FALSE))
-                            
-                            updateSelectInput(session, "lateness_policies", choices =choices = c("None" = "None", formatted_policies), selected = selected_policy)
+                            print("formatter")
+                            print(formatted_policies)
+
+                            selected_policy <- setNames(
+                                cat_details$lateness,
+                                unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
+                            )
+                            print("seelcted")
+                            print(selected_policy)
+
+                            updateSelectInput(session, "lateness_policies", choices = c("None" = "None", formatted_policies), selected = selected_policy)
                         }
-                        
+                    
                         #update assignments
                         choices <- c()
                         if (!is.null(assign$table)){ #updates assignments if data has been loaded
