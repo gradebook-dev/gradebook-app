@@ -76,15 +76,6 @@ Policies <- tabItem(tabName = "policies",
                                  
                                  )
                                  
-                        ),
-                        
-                        ### TAB COURSEWiDE
-                        tabPanel("Coursewide",
-                                 fluidRow(
-                                     tagList(
-                                         br(),
-                                     )
-                                 )
                         )
                     )
 )
