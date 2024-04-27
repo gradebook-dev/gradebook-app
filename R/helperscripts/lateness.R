@@ -113,7 +113,7 @@ createLatenessCards <- function(lateness_table) {
             i <<- i + 0.5
             policy_line <- if (names(item) == "between") {
                 # Special format for BETWEEN
-                print(item)
+
                 tags$div(
                     tags$strong(paste0("INTERVAL ", i)),
                     tags$br(),
@@ -216,3 +216,12 @@ format_policy <- function(policy) {
     #does not create a new line...
     paste(policy_strings, collapse = " ")
 }
+###### --------------- DELETE LATENESS POLICY ------------- ####
+confirm_delete_lateness <- modalDialog(
+    h4("Are you sure you want to delete this lateness policy ?"),
+    easyClose = TRUE,
+    footer = tagList(
+        actionButton("cancel", "Cancel"),
+        actionButton("delete_late", "Delete"))
+    
+)
