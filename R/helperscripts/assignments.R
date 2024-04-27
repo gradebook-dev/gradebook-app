@@ -64,7 +64,7 @@ createNestedCards <- function(flat_categories, category_levels) {
             strong("Weight: "), category$weights %||% "Not set", br(),
             strong("Aggregation: "), getAggregationName(category_aggregation=category$aggregation), br(),
             strong("Number of Drops: "), " " %||% "Not set", br(),
-            strong("Lateness Intervals:"), " " %||% "Not set", br(),
+            strong("Lateness Intervals:"), unname(sapply(list(category$lateness), format_policy, simplify = FALSE)) %||% "Not set", br(),
             strong("Assignments: "), assignments_list
         )
         style <- if (level > 1) "margin-left: 20px;" else ""
