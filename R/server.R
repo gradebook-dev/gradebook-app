@@ -196,9 +196,7 @@ shinyServer(function(input, output, session) {
                             )
 
                             #formatted_policies <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
-                            
-                            print("formatted")
-                            print(formatted_policies)
+
                             key_selected <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
                             key_selected <- gsub("[^A-Za-z0-9_]", "", key_selected)
                             value_selected <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
@@ -209,8 +207,6 @@ shinyServer(function(input, output, session) {
 
                             #selected_policy <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
                             
-                            print("selected")
-                            print(selected_policy)
 
                             updateSelectInput(session, "lateness_policies", choices = c("None"="None", formatted_policies), selected = selected_policy)
                         }
@@ -447,13 +443,10 @@ shinyServer(function(input, output, session) {
         late_policy <- list(late_policy)
  
         policy_name <- unname(sapply(late_policy, format_policy, simplify = FALSE))
-        print(paste0("CHECK HERE policy_name", policy_name))
         policy_name <- gsub("[^A-Za-z0-9_]", "", policy_name)
         
         names(late_policy) <- policy_name
-        print(paste0("STILL WORKS", names(late_policy)))
         lateness$table <- append(lateness$table, late_policy)
-        print(paste0("WHAT ABOUT NOW", lateness$table))
         removeModal()
     })
     
