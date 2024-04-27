@@ -135,12 +135,13 @@ shinyServer(function(input, output, session) {
         updateTextInput(session, "name", value = "Your Category name") #paste0("Category ", editing$num))
         #Gets the list of names of the policies
         if(!is.null(lateness$table)){
-            
-            formatted_policies <- setNames(
-                names(lateness$table),
-                unname(sapply(lateness$table, format_policy, simplify = FALSE))
+            key<- gsub("[^A-Za-z0-9_]", "", names(lateness$table))
+            value <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
+            formatted_policies <-  setNames(
+                key,
+                value
             )
-            updateSelectInput(session, "lateness_policies", choices = c("None" = "None", formatted_policies), selected = "None")
+            updateSelectInput(session, "lateness_policies", choices = c("None"= "None", formatted_policies), selected = "None")
         }
         
         
@@ -184,29 +185,20 @@ shinyServer(function(input, output, session) {
                         updateNumericInput(session, "n_drops", value = cat_details$n_drops)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
                         
+                        
                         if(!is.null(lateness$table) & !is.null(cat_details$lateness)) {
 
-                            print("cat_details$lateness")
-                            print(cat_details$lateness)
+                            formatted_policies <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
                             
-                            print("lateness$table")
-                            print(lateness$table)
-                            
-                            formatted_policies <- setNames(
-                                names(lateness$table),
-                                unname(sapply(lateness$table, format_policy, simplify = FALSE))
-                            )
-                            print("formatter")
+                            print("formatted")
                             print(formatted_policies)
 
-                            selected_policy <- setNames(
-                                cat_details$lateness,
-                                unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
-                            )
-                            print("seelcted")
+                            selected_policy <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
+                            
+                            print("selected")
                             print(selected_policy)
 
-                            updateSelectInput(session, "lateness_policies", choices = c("None" = "None", formatted_policies), selected = selected_policy)
+                            updateSelectInput(session, "lateness_policies", choices = c("None", formatted_policies), selected = selected_policy)
                         }
 
                         #update assignments
@@ -261,8 +253,8 @@ shinyServer(function(input, output, session) {
                     #add new category
                     policy$categories <- updateCategory(policy$categories, policy$flat, current_edit$category$category,
                                                         input$name, input, assign$table, lateness$table)
-                    print("ADDING NEW CATEGORY")
-                    print(policy$categories)
+                    
+                   
                 } else {
                     policy$categories <- append(policy$categories,
                                                 list(createCategory(input$name, input = input,
@@ -358,7 +350,7 @@ shinyServer(function(input, output, session) {
     
     lateness <- reactiveValues(
         default = NULL,
-        num_name = 0,
+        policy_name = " ",
         prepositions = list(),
         starts = list(),
         ends = list(),
@@ -377,10 +369,7 @@ shinyServer(function(input, output, session) {
         lateness$arithmetics <- list()
         lateness$values <- list()
         lateness$num_late_cats <- 1
-        
-        #increment the lateness num name
-        lateness$num_name <- lateness$num_name +1
-        
+ 
     })
     
     observeEvent(input$add_interval, {
@@ -442,11 +431,15 @@ shinyServer(function(input, output, session) {
         
         # appnd late_policy list to lateness$table using the policy name as the key!
         late_policy <- list(late_policy)
-        #get policy name from $input
-        policy_name <- paste0("Lateness Policy ", lateness$num_name)
-        names(late_policy) <- policy_name
-        lateness$table <- append(lateness$table, late_policy)
+ 
+        policy_name <- unname(sapply(late_policy, format_policy, simplify = FALSE))
+        print(paste0("CHECK HERE policy_name", policy_name))
+        policy_name <- gsub("[^A-Za-z0-9_]", "", policy_name)
         
+        names(late_policy) <- policy_name
+        print(paste0("STILL WORKS", names(late_policy)))
+        lateness$table <- append(lateness$table, late_policy)
+        print(paste0("WHAT ABOUT NOW", lateness$table))
         removeModal()
     })
     

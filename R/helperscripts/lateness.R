@@ -141,9 +141,10 @@ createLatenessCards <- function(lateness_table) {
         })
         
         
-        title <- div(
+        icons <- div(
             class = "category-title",
-            late_policy_name,
+            style = "text-align: right;", 
+           # late_policy_name,
             actionButton(paste0('lateness_delete_', late_policy_name), label = NULL, icon = icon("trash"), style = "background-color: transparent; margin-right: 10px;"),
             actionButton(paste0('lateness_edit_', late_policy_name), label = NULL, icon = icon("edit"), style = "background-color: transparent;")
         )
@@ -151,10 +152,12 @@ createLatenessCards <- function(lateness_table) {
         content <- do.call(tagList, content)
         
         box(
-            title = title,
+            #title = title,
             status = "primary",
             width = 8,
+            icons,
             content
+            
         )
     })
 }
@@ -211,5 +214,5 @@ format_policy <- function(policy) {
         }
     }
     #does not create a new line...
-    paste(policy_strings, collapse = "\n")
+    paste(policy_strings, collapse = " ")
 }
