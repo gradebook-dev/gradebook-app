@@ -766,7 +766,7 @@ shinyServer(function(input, output, session) {
     })
     
     output$overall_plotly <- renderPlotly({
-        plt <- plot_ly(x = policy$grades$`Overall Score`, type = 'histogram') |>
+        plt <- plot_ly(x = policy$grades$`Overall Grade`, type = 'histogram') |>
             config(displayModeBar = FALSE) |>
             layout(dragmode = FALSE)
         plt
@@ -789,7 +789,10 @@ shinyServer(function(input, output, session) {
     })
     
     available_categories <- reactive({
-        return(sapply(policy$categories, {function(df) df$category}))
+        #can plot any category with valid assignments/nested categories
+        policy <- gradebook::flatten_policy(list(categories = policy$categories)) |>
+            validate_policy(gs = data())
+        return(map(policy$categories, "category"))
     })
     
     #### -------------------------- DOWNLOAD FILES ----------------------------####   
