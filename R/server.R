@@ -187,18 +187,32 @@ shinyServer(function(input, output, session) {
                         
                         
                         if(!is.null(lateness$table) & !is.null(cat_details$lateness)) {
+                            
+                            key_formatted <- gsub("[^A-Za-z0-9_]", "", names(lateness$table))
+                            value_formatted <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
+                            formatted_policies <-  setNames(
+                                key_formatted,
+                                value_formatted
+                            )
 
-                            formatted_policies <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
+                            #formatted_policies <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
                             
                             print("formatted")
                             print(formatted_policies)
+                            key_selected <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
+                            key_selected <- gsub("[^A-Za-z0-9_]", "", key_selected)
+                            value_selected <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
+                            selected_policy <-  setNames(
+                                key_selected,
+                                value_selected
+                            )
 
-                            selected_policy <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
+                            #selected_policy <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
                             
                             print("selected")
                             print(selected_policy)
 
-                            updateSelectInput(session, "lateness_policies", choices = c("None", formatted_policies), selected = selected_policy)
+                            updateSelectInput(session, "lateness_policies", choices = c("None"="None", formatted_policies), selected = selected_policy)
                         }
 
                         #update assignments
