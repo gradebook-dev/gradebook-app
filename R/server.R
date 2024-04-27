@@ -517,7 +517,7 @@ shinyServer(function(input, output, session) {
                         current_edit$lateness <- late_name
                         
                         lateness$prepositions <- unlist(map(matched_policy, names))[c(TRUE, FALSE)] |> ucfirst()
-                        num_late_cats = length(lateness$prepositions)
+                        lateness$num_late_cats <-  length(lateness$prepositions)
                         lateness$starts <- list()
                         lateness$ends <- list()
                         lateness$arithmetics <- unlist(map(matched_policy, names))[c(FALSE, TRUE)] |> ucfirst()
