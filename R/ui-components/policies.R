@@ -28,7 +28,7 @@ Policies <- tabItem(tabName = "policies",
                     ### CATEGORIES ###
                     tabsetPanel(
                         ### TAB ASSIGNMENTS ###
-                        tabPanel("Assignments",
+                        tabPanel("Categories",
                                  fluidRow(
                                      tagList(
                                          div(style = "align-items: center; padding: 20px; background-color: #ffffff;",
