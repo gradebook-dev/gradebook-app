@@ -184,8 +184,6 @@ shinyServer(function(input, output, session) {
                         shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)   
                         updateNumericInput(session, "n_drops", value = cat_details$n_drops)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
-                        print(cat_details)
-                        print(cat_details$lateness)
                         
                         if(!is.null(lateness$table)) {
                             
