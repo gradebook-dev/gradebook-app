@@ -184,9 +184,10 @@ shinyServer(function(input, output, session) {
                         shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)   
                         updateNumericInput(session, "n_drops", value = cat_details$n_drops)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
+                        print(cat_details)
+                        print(cat_details$lateness)
                         
-                        
-                        if(!is.null(lateness$table) & !is.null(cat_details$lateness)) {
+                        if(!is.null(lateness$table)) {
                             
                             key_formatted <- gsub("[^A-Za-z0-9_]", "", names(lateness$table))
                             value_formatted <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
@@ -196,14 +197,16 @@ shinyServer(function(input, output, session) {
                             )
 
                             #formatted_policies <- unname(sapply(lateness$table, format_policy, simplify = FALSE))
-
-                            key_selected <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
-                            key_selected <- gsub("[^A-Za-z0-9_]", "", key_selected)
-                            value_selected <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
-                            selected_policy <-  setNames(
-                                key_selected,
-                                value_selected
-                            )
+                            selected_policy <- c("None" = "None")
+                            if (!is.null(cat_details$lateness)){
+                                key_selected <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
+                                key_selected <- gsub("[^A-Za-z0-9_]", "", key_selected)
+                                value_selected <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
+                                selected_policy <-  setNames(
+                                    key_selected,
+                                    value_selected
+                                )
+                            }
 
                             #selected_policy <- unname(sapply(list(cat_details$lateness), format_policy, simplify = FALSE))
                             
