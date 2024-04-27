@@ -21,7 +21,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$upload_gs,{
         req(input$upload_gs)
         tryCatch({
-            uploaded_data <- gradebook::read_gs(input$upload_gs$datapath)
+            uploaded_data <- read_csv(input$upload_gs$datapath)
             data(uploaded_data)
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
@@ -581,16 +581,17 @@ shinyServer(function(input, output, session) {
     observeEvent(policy$categories,{
         if (!is.null(data()) & length(policy$categories) != 0){
             tryCatch({
-                cleaned_data <- data() |>
-                    drop_na(SID) |>
-                    group_by(SID) |>
-                    filter(row_number() == 1) |>
-                    ungroup()
+                # cleaned_data <- data() |>
+                #     drop_na(SID) |>
+                #     group_by(SID) |>
+                #     filter(row_number() == 1) |>
+                #     ungroup()
+                gs <- data()
                 
                 valid_policy <- list(categories = append(policy$categories, list(policy$overall_grade))) |>
-                    gradebook::validate_policy(gs = cleaned_data)
+                    gradebook::validate_policy(gs = gs)
                 #remember to add overall_grade at the end
-                policy$grades <- cleaned_data |>
+                policy$grades <- gs |>
                     gradebook::get_grades(policy = valid_policy)
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
