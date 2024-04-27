@@ -545,6 +545,40 @@ shinyServer(function(input, output, session) {
         
     })
     
+    lateness_to_be_deleted <- reactiveValues(policy = NULL)
+    
+    
+    observe({
+        req(lateness$delete)
+        
+        # Iterate over each category name to set up edit observers dynamically
+        lapply(lateness$delete, function(late_name) {
+            local({
+                # Localize the variables to ensure they're correctly captured in the observer
+                
+                observeEvent(input[[late_name]], {
+                    
+                    # Initialize a variable to hold the found category details
+                    late_name <- str_remove(late_name, "lateness_delete_")
+                    matched_policy <- lateness$table[[late_name]]
+                    
+                    if (!is.null(matched_policy)) {
+                        showModal(confirm_delete_lateness)
+                        lateness_to_be_deleted$policy <- late_name
+                        
+                    } else {
+                        showNotification("Please pick a category to delete",type = 'error')
+                    }
+                },ignoreInit = TRUE)
+            })
+        })
+    })
+    
+    observeEvent(input$delete_late,{
+        lateness$table[[lateness_to_be_deleted$policy]] <- NULL
+        removeModal()
+    }, ignoreInit = TRUE)
+    
     #### -------------------------- GRADING ----------------------------####
     
     observeEvent(policy$categories,{
