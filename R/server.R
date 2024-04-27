@@ -589,11 +589,9 @@ shinyServer(function(input, output, session) {
                 
                 valid_policy <- list(categories = append(policy$categories, list(policy$overall_grade))) |>
                     gradebook::validate_policy(gs = cleaned_data)
-                print(valid_policy)
                 #remember to add overall_grade at the end
                 policy$grades <- cleaned_data |>
                     gradebook::get_grades(policy = valid_policy)
-                print(policy$grades)
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
             })
