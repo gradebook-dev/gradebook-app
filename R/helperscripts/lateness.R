@@ -113,7 +113,7 @@ createLatenessCards <- function(lateness_table) {
             i <<- i + 0.5
             policy_line <- if (names(item) == "between") {
                 # Special format for BETWEEN
-                print(item)
+
                 tags$div(
                     tags$strong(paste0("INTERVAL ", i)),
                     tags$br(),

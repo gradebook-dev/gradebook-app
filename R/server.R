@@ -124,7 +124,8 @@ shinyServer(function(input, output, session) {
     )
     
     #### -------------------------- CATEGORIES MODAL ----------------------------####
-    current_edit <- reactiveValues(category = NULL)
+    current_edit <- reactiveValues(category = NULL,
+                                   lateness = NULL)
     modalIsOpen <- reactiveVal(FALSE)
     
     # Opening category modal to create a NEW category
@@ -184,8 +185,7 @@ shinyServer(function(input, output, session) {
                         shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)   
                         updateNumericInput(session, "n_drops", value = cat_details$n_drops)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
-                        print(cat_details)
-                        print(cat_details$lateness)
+
                         
                         if(!is.null(lateness$table)) {
                             
@@ -370,12 +370,14 @@ shinyServer(function(input, output, session) {
         arithmetics = list(),
         values = list(),
         num_late_cats = 1,
-        table = list()
+        table = list(),
+        edit = list(),
+        delete = list()
     )
-    
     # Opening category modal to create a NEW LATENESS
     observeEvent(input$new_lateness, {
         showModal(edit_lateness_modal) #opens lateness modal
+        current_edit$lateness <- NULL
         lateness$prepositions <- list()
         lateness$starts <- list()
         lateness$ends <- list()
@@ -413,7 +415,9 @@ shinyServer(function(input, output, session) {
     
     
     observeEvent(input$save_lateness,{
-        
+        if (!is.null(current_edit$lateness)){
+            lateness$table[[current_edit$lateness]] <- NULL
+        }
         #make an empty list
         late_policy <- list()
         #loop over each interval
@@ -489,10 +493,57 @@ shinyServer(function(input, output, session) {
     observe({
         output$latenessUI <- renderUI({
             req(lateness$table)
+            late_policy_names <- names(lateness$table) |> unlist()
+            lateness$edit <- paste0('lateness_edit_', late_policy_names) #delete button names
+            lateness$delete <- paste0('lateness_delete_', late_policy_names) #edit button names
             createLatenessCards(lateness$table)
         })
     })
+
     
+    observe({
+        req(lateness$edit)
+        
+        # Iterate over each category name to set up edit observers dynamically
+        lapply(lateness$edit, function(late_name) {
+            local({
+                # Localize the variables to ensure they're correctly captured in the observer
+                
+                observeEvent(input[[late_name]], {
+                    # Initialize a variable to hold the found category details
+                    late_name <- str_remove(late_name, "lateness_edit_")
+                    matched_policy <- lateness$table[[late_name]]
+                    
+                    if (!is.null(matched_policy)) {
+                        current_edit$lateness <- late_name
+                        
+                        lateness$prepositions <- unlist(map(matched_policy, names))[c(TRUE, FALSE)] |> ucfirst()
+                        num_late_cats = length(lateness$prepositions)
+                        lateness$starts <- list()
+                        lateness$ends <- list()
+                        lateness$arithmetics <- unlist(map(matched_policy, names))[c(FALSE, TRUE)] |> ucfirst()
+                        lateness$values <- list()
+                        walk(matched_policy, function(policy){
+                            if (names(policy) %in% c("after", "until")){
+                                lateness$starts <- append(lateness$starts, policy)
+                                lateness$ends <- append(lateness$ends, NA)
+                            } else if (names(policy) == "between"){
+                                lateness$starts <- append(lateness$starts, unlist(policy)[1])
+                                lateness$ends <- append(lateness$ends, unlist(policy)[2])
+                            } else {
+                                lateness$values <- append(lateness$values, policy)
+                            }
+                        })
+                        showModal(edit_lateness_modal) #opens edit modal
+                        
+                    } else {
+                        showNotification("Please pick a lateness policy to edit", type = 'error')
+                    }
+                },         ignoreInit = TRUE)
+            })
+        })
+        
+    })
     
     #### -------------------------- GRADING ----------------------------####
     
