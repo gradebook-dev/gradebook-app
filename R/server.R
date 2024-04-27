@@ -461,9 +461,7 @@ shinyServer(function(input, output, session) {
     })
     
     observe({
-        flat_policy <- policy$flat$categories
-        flat_policy$categories <- append(flat_policy$categories, list(policy$overall_grade))
-        flat_policy <<- policy$flat
+        final_policy <<- list(categories = append(policy$categories, list(policy$overall_grade)))
     })
     
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
@@ -589,16 +587,13 @@ shinyServer(function(input, output, session) {
                     filter(row_number() == 1) |>
                     ungroup()
                 
-                flat_policy <- list(coursewide = policy$coursewide, 
-                                    categories = policy$categories, 
-                                    letter_grades = policy$letter_grades,
-                                    exceptions = policy$exceptions) |>
-                    gradebook::flatten_policy()
-                
+                valid_policy <- list(categories = append(policy$categories, list(policy$overall_grade))) |>
+                    gradebook::validate_policy(gs = cleaned_data)
+                print(valid_policy)
                 #remember to add overall_grade at the end
                 policy$grades <- cleaned_data |>
-                    gradebook::calculate_lateness(flat_policy) |>
-                    gradebook::get_category_grades(flat_policy)
+                    gradebook::get_grades(policy = valid_policy)
+                print(policy$grades)
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
             })
