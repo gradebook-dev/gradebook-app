@@ -42,7 +42,35 @@ shinyServer(function(input, output, session) {
         tryCatch({
             yaml <- yaml::read_yaml(input$upload_policy$datapath)
             policy$coursewide <- yaml$coursewide
-            policy$categories <- yaml$categories
+            policy$categories <- purrr::map(yaml$categories, function(cat){
+                if (cat$category == "Overall Grade"){
+                    policy$overall_grade <- cat
+                    return (NULL)
+                } else if (cat$aggregation == "weighted_mean"){
+                    policy$overall_grade$weights <- cat$weights
+                    policy$overall_grade$assignments <- cat$assignments
+                    return (NULL)
+                }
+                return (cat)
+            }) |>
+                discard(is.null)
+            #update lateness table
+            flat_policy <- gradebook::flatten_policy(yaml)
+            late_policies <- purrr::map(flat_policy$categories, "lateness") |>
+                discard(is.null)
+            late_table <- NULL
+            for (late_policy in late_policies){
+                late_policy <- list(late_policy)
+                policy_name <- unname(sapply(late_policy, format_policy, simplify = FALSE))
+                policy_name <- gsub("[^A-Za-z0-9_]", "", policy_name)
+                #prevent duplicate lateness policies
+                if (is.null(late_table) | !(policy_name %in% names(late_table))){
+                    names(late_policy) <- policy_name
+                    late_table <- append(late_table, late_policy)
+                }
+            }
+            lateness$table <- late_table
+            
         }, error = function(e) {
             showNotification('Please upload a policy file in YAML format','',type = "error")
         })
