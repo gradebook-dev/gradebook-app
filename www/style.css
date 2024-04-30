@@ -93,3 +93,64 @@
 .dashboard-stats-extra {
     border-bottom: 1px solid black; 
 }
+
+/* policies styles */
+
+.policies-top-div {
+    margin-top: 0px; 
+    padding: 15px; 
+    background-color: #ffffff;
+}
+
+.policies-title-description {
+    border: 1px solid #ddd;
+    padding: 20px; border-radius: 5px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.policies-title-and-button {
+    display: flex; 
+    justify-content: left;
+    align-items: center;
+}
+
+.policies-title {
+    font-size: 24px;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.policies-top-button {
+     margin-bottom: 10px; 
+     background-color: transparent;  
+     color: #50A5EA;
+}
+
+.policies-description {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+/* policy cards */
+
+.policies-cards-div {
+    align-items: center; 
+    padding: 20px; 
+    background-color: #ffffff;
+}
+
+.policies-cards-title {
+    align-items: center;
+    padding-left: 30px; 
+    font-size: 24px; 
+    display: inline-block; 
+    margin-right: 10px;
+}
+
+.policies-cards-new-cat-button {
+    margin-top: -5px;
+    background-color: transparent;
+    margin-right: 10px;
+    color: #50A5EA;
+}
+
