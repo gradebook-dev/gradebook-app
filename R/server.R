@@ -472,7 +472,15 @@ shinyServer(function(input, output, session) {
     
     
     observeEvent(input$save_lateness,{
+        old_late_categories <- c()
         if (!is.null(current_edit$lateness)){
+            #if editing, remove old policy
+            current_lateness <- lateness$table[[current_edit$lateness]]
+            old_late_categories <- map(policy$flat$categories, function(cat){
+                if (identical(current_lateness, cat$lateness)){
+                    return (cat$category)
+                }
+            }) |> unlist()
             lateness$table[[current_edit$lateness]] <- NULL
         }
         #make an empty list
@@ -511,6 +519,13 @@ shinyServer(function(input, output, session) {
         
         names(late_policy) <- policy_name
         lateness$table <- append(lateness$table, late_policy)
+        if (length(old_late_categories) != 0){
+            #update categories with old version lateness policy
+            for (category_name in old_late_categories){
+                policy$categories <- update_lateness(policy$categories, category_name, lateness$table[[policy_name]])
+            }
+        }
+        
         removeModal()
     })
     
