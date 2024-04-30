@@ -431,21 +431,21 @@ shinyServer(function(input, output, session) {
                 )
             )
         } else if (length(policy$categories) > 0) { # policy is created only
-            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+            tags$div(class = 'blank-dashboard-message',
                      tagList(
                          h4(strong('You haven\'t uploaded any student data yet.')),
                          h5('Upload course data from Gradescope to get started.')
                      )
             )
         } else if (!is.null(assign$table$assignment)) {
-            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+            tags$div(class = 'blank-dashboard-message',
                      tagList(
                          h4(strong('You still need to build your course policy.')),
                          h5('See "Policies" tab to get started.')
                      )
             )
         } else {
-            tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
+            tags$div(class = 'blank-dashboard-message',
                      tagList(
                          h4(strong('You haven\'t uploaded any student data yet.')),
                          h5('Summary statistics and plots will appear here as you build your course policy.')
@@ -485,14 +485,23 @@ shinyServer(function(input, output, session) {
         sd <- paste0((sd(assignment_vec) |> round(digits = 4)) * 100, '%')
         tfive <- paste0((quantile(assignment_vec, 0.25) |> round(digits = 4)) * 100, '%')
         sfive <- paste0((quantile(assignment_vec, 0.75) |> round(digits = 4)) * 100, '%')
-        
-        HTML(paste0(
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Mean</p> <p>', mu, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Standard Deviation</p> <p>', sd, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Median</p> <p>', med, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>25%ile</p> <p>', tfive, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; padding: 5px 0;"><p>75%ile</p> <p>', sfive, '</p></div>'
-        ))
+        fluidPage(
+            div(class = 'dashboard-stats dashboard-stats-extra',
+                p("Mean"), p(mu)
+            ),
+            div(class = 'dashboard-stats dashboard-stats-extra',
+                p("Standard Deviation"),p(sd)
+            ),
+            div(class = 'dashboard-stats dashboard-stats-extra',
+                p("Median"), p(med)
+            ),
+            div(class = 'dashboard-stats dashboard-stats-extra',
+                p("25%ile"), p(tfive)
+            ),
+            div(class = 'dashboard-stats',
+                p("75%ile"), p(sfive)
+            )
+        )
     })
     
     output$category_plotly <- renderPlotly({
@@ -522,14 +531,23 @@ shinyServer(function(input, output, session) {
         sd <- paste0((sd(category_vec) |> round(digits = 4)) * 100, '%')
         tfive <- paste0((quantile(category_vec, 0.25) |> round(digits = 4)) * 100, '%')
         sfive <- paste0((quantile(category_vec, 0.75) |> round(digits = 4)) * 100, '%')
-
-        HTML(paste0(
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Mean</p> <p>', mu, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Standard Deviation</p> <p>', sd, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Median</p> <p>', med, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>25%ile</p> <p>', tfive, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; padding: 5px 0;"><p>75%ile</p> <p>', sfive, '</p></div>'
-        ))
+        fluidPage(
+            div(class = 'dashboard-stats dashboard-stats-extra',
+                p("Mean"), p(mu)
+            ),
+            div(class = 'dashboard-stats dashboard-stats-extra',
+                p("Standard Deviation"),p(sd)
+            ),
+            div(class = 'dashboard-stats dashboard-stats-extra',
+                p("Median"), p(med)
+            ),
+            div(class = 'dashboard-stats dashboard-stats-extra',
+                p("25%ile"), p(tfive)
+            ),
+            div(class = 'dashboard-stats',
+                p("75%ile"), p(sfive)
+            )
+        )
     })
     
     output$overall_plotly <- renderPlotly({

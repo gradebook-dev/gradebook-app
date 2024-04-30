@@ -70,3 +70,26 @@
 .row {
     verticle-align: middle;
 }
+
+/* server styles */
+.dashboard {
+    padding: 0px 20px 20px 20px;
+}
+
+.blank-dashboard-message {
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    height: 60vh;
+}
+
+.dashboard-stats {
+    display: flex;
+    justify-content: space-between; 
+    padding: 5px 0;
+}
+
+.dashboard-stats-extra {
+    border-bottom: 1px solid black; 
+}
