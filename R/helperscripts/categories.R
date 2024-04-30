@@ -1,6 +1,39 @@
 library(shinyBS)
 edit_category_modal <- modalDialog(
-    
+    tags$head(
+        tags$style(HTML('
+                .help-icon {
+                cursor: pointer;
+            }
+            .tooltip-box {
+                display: none;
+                position: absolute;
+                background-color: #f9f9f9;
+                border: 1px solid #d3d3d3;
+                padding: 10px;
+                width: 280px;
+                border-radius: 5px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                z-index: 100;
+                font-weight: normal;
+            }
+            .help-icon:hover + .tooltip-box {
+                display: block;
+            }
+            .custom-gear-btn {
+                background-color: transparent;
+                border: none;
+                color: #007bff;
+                font-size: 16px; 
+                cursor: pointer;
+                padding: 0px;
+                vertical-align: middle;
+            }
+             .custom-gear-btn:hover {
+                background-color: transparent;
+             }
+        '))
+    ),
     h4("Edit this Category"),
     fluidRow(column(6,offset = 0,
                     textInput("name", "Category Name", value = "", width = "100%")
@@ -8,26 +41,29 @@ edit_category_modal <- modalDialog(
     fluidRow(
         column(6,offset = 0,
                selectInput('aggregation',
-                           label = tags$span('Aggregation:', bsButton('aggregation_info', label = '', icon = icon('info'), size = 'extra-small')),
+                           label = div(style = "position:relative;", 
+                                       tags$span("Aggregation: ", style = "font-weight: bold;"),
+                                       tags$i(class = "fas fa-info-circle help-icon"),
+                                       tags$div(class = "tooltip-box", 
+                                                HTML("<ul><li><b>Equally Weighted:</b> Weighs all assignments in the category equally.</li>
+                                                            <li><b>Weighted By Points:</b> Assignments are weighted based on their point values.</li>
+                                                            <li><b>Max Score:</b> Only the highest score from all assignments in the category counts.</li>
+                                                            <li><b>Min Score:</b> Only the lowest score from all assignments in the category counts.</li>
+                                                            <li><b>None:</b> No specific aggregation; Raw scores are used.</li>
+                                                        </ul>
+                                                    ")
+                                       )
+                           ),
                            selected = 'equally_weighted',
                            choices = c('Equally Weighted' = 'equally_weighted',
-                                          'Weighted By Points' = 'weighted_by_points', 
-                                          'Max Score' = 'max_score',
-                                          'Min Score' = 'min_score',
-                                          'None' = 'none'
-                                       )
+                                       'Weighted By Points' = 'weighted_by_points', 
+                                       'Max Score' = 'max_score',
+                                       'Min Score' = 'min_score',
+                                       'None' = 'none'
+                           )
                ),
-            bsPopover(
-               id = 'aggregation_info',
-               title = 'hey',
-               content = paste0(
-                   'Equally Weighted: Weighs all assignments in category equally.'
-               ),
-               # TODO
-               placement = 'right',
-               trigger = 'hover'
-            ),
-            selectInput("lateness_policies", "Lateness Policy", selected = "None", choices = c("None"))
+               
+               selectInput("lateness_policies", "Lateness Policy:", selected = "None", choices = c("None"))
         ),
         column(3,offset = 0,
                shinyWidgets::autonumericInput("weight", "Weight:", value = 0, currencySymbol = "%",
@@ -41,12 +77,12 @@ edit_category_modal <- modalDialog(
                    options = list(create = TRUE)),
     fluidRow(
         column(6,offset = 0,
-               div(h4('Advanced', style = " align-items: center; font-size: 16px; display: inline-block; margin-right: 0px; " ),
-                   actionButton("advanced_toggle_lateness", label = NULL, icon = icon("gear"), 
-                                style = "background-color: transparent; border: none; color: #50A5EA; margin-top: -5px;"),
-                   
+               div(style = "position:relative;",
+                   tags$span("Advanced:", style = "font-weight: bold;"),
+                   actionButton("advanced_toggle_lateness", label = "", icon = icon("gear"), 
+                                class = "custom-gear-btn"
+                   ),
                    uiOutput("advanced_lateness_policies_panel")
-                   
                )
         )
     ),
@@ -88,7 +124,7 @@ createCategory <- function(name, input, assigns_table, lateness_table){
     category <- list(
         category = name
     )
-
+    
     # if (input$clobber != "None"){
     #     category <- append(category, list(clobber = input$clobber))
     # }
@@ -102,7 +138,7 @@ createCategory <- function(name, input, assigns_table, lateness_table){
     if (input$lateness_policies != "None"){
         category <- append(category, list(lateness = lateness_table[[input$lateness_policies]]))
     }
-
+    
     if (input$n_drops > 0){
         category <- append(category, list(drop_n_lowest = input$n_drops))
     }
