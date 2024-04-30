@@ -3,9 +3,10 @@ coursewide:
 categories:
 - category: Labs
   score: raw_over_max
+  lateness:
+    - after: "00:00:01"
+    - scale_by: 0.7
   aggregation: weighted_by_points
-  aggregation_max_pts: sum_max_pts
-  aggregation_lateness: max_lateness
   assignments:
   - Lab 1
   - Lab 2
@@ -16,8 +17,6 @@ categories:
 - category: Discussion
   score: raw_over_max
   aggregation: equally_weighted
-  aggregation_max_pts: sum_max_pts
-  aggregation_lateness: max_lateness
   assignments:
   - Discussion 1
   - Discussion 2
@@ -25,17 +24,13 @@ categories:
   score: raw_over_max
   aggregation: none
   aggregation_max_pts: sum_max_pts
-  aggregation_lateness: max_lateness
   assignments: Midterm
 - category: Final_Grade
   score: raw_over_max
   aggregation: none
-  aggregation_max_pts: sum_max_pts
-  aggregation_lateness: max_lateness
   assignments: Final
 - category: Overall_Grade
   aggregation: weighted_mean
-  aggregation_max_pts: sum_max_pts
   weights:
   - 0.5
   - 0.05
