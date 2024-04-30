@@ -43,8 +43,12 @@ shinyServer(function(input, output, session) {
             yaml <- yaml::read_yaml(input$upload_policy$datapath)
             policy$coursewide <- yaml$coursewide
             policy$categories <- purrr::map(yaml$categories, function(cat){
-                if (cat$category == "Overall Grade" | cat$aggregation == "weighted_mean"){
+                if (cat$category == "Overall Grade"){
                     policy$overall_grade <- cat
+                    return (NULL)
+                } else if (cat$aggregation == "weighted_mean"){
+                    policy$overall_grade$weights <- cat$weights
+                    policy$overall_grade$assignments <- cat$assignments
                     return (NULL)
                 }
                 return (cat)
