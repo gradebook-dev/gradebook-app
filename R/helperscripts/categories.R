@@ -63,7 +63,18 @@ edit_category_modal <- modalDialog(
                            )
                ),
                
-               selectInput("lateness_policies", "Lateness Policy:", selected = "None", choices = c("None"))
+               selectInput("lateness_policies", 
+                           label =div(style = "position:relative;", 
+                                      tags$span("Lateness Policy: ", style = "font-weight: bold;"),
+                                      tags$i(class = "fas fa-info-circle help-icon"),
+                                      tags$div(class = "tooltip-box", 
+                                               HTML("To set up lateness policies, please navigate to the 'Lateness Policy' tab 
+                                               located next to 'Categories' on this page. 
+                                               You will find the options to add or edit policies there.
+                                                    ")
+                                      )
+                           ),
+                           selected = "None", choices = c("None"))
         ),
         column(3,offset = 0,
                shinyWidgets::autonumericInput("weight", "Weight:", value = 0, currencySymbol = "%",
