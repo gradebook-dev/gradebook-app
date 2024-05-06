@@ -169,7 +169,12 @@ ucfirst <- function(s) {
     }, USE.NAMES = FALSE)
 }
 
-
+update_lateness <- function(policy_categories, cat_to_update, late_policy){
+    index <- find_indices(policy_categories, cat_to_update)
+    index_cmd <- paste0("policy_categories[[", paste(index, collapse = "]]$assignments[["), "]]$lateness <- late_policy")
+    eval(parse(text = index_cmd))
+    return(policy_categories)
+}
 
 ###### --------------- FUNCTION TO GENERATE A STRING FOR EACH POLICY ------------- ####
 format_policy <- function(policy) {
