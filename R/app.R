@@ -1,8 +1,8 @@
 #load libraries
 library(shinydashboard)
 library(shiny)
-#library(shinyWidgets)
 library(DT)
+library(shinyWidgets)
 library(tidyverse)
 library(gradebook)
 library(yaml)

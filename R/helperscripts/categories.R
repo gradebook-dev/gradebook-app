@@ -1,28 +1,101 @@
 edit_category_modal <- modalDialog(
-    
+    tags$head(
+        tags$style(HTML('
+                .help-icon {
+                cursor: pointer;
+            }
+            .tooltip-box {
+                display: none;
+                position: absolute;
+                background-color: #f9f9f9;
+                border: 1px solid #d3d3d3;
+                padding: 10px;
+                width: 280px;
+                border-radius: 5px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                z-index: 100;
+                font-weight: normal;
+            }
+            .help-icon:hover + .tooltip-box {
+                display: block;
+            }
+            .custom-gear-btn {
+                background-color: transparent;
+                border: none;
+                color: #007bff;
+                font-size: 16px; 
+                cursor: pointer;
+                padding: 0px;
+                vertical-align: middle;
+            }
+             .custom-gear-btn:hover {
+                background-color: transparent;
+             }
+        '))
+    ),
     h4("Edit this Category"),
-    fluidRow(column(6,textInput("name", "Category Name", value = "", width = "100%")
+    fluidRow(column(6,offset = 0,
+                    textInput("name", "Category Name", value = "", width = "100%")
     )),
-    h6("Insert More Criteria Here Later..."),
     fluidRow(
-        column(6,
-               selectInput("aggregation", "Aggregation:", selected = "equally_weighted",
-                           choices = c("equally_weighted", "weighted_by_points", 
-                                       "max_score", "min_score", "none"))),
-        column(3,
-               shinyWidgets::autonumericInput("weight", "Weight:", value = 0, currencySymbol = "%",
-                                              currencySymbolPlacement = "s", width = "100px"),
-               numericInput("num_lateness", label = "Number of Lateness Intervals:", value = 0)
+        column(6,offset = 0,
+               selectInput('aggregation',
+                           label = div(style = "position:relative;", 
+                                       tags$span("Aggregation: ", style = "font-weight: bold;"),
+                                       tags$i(class = "fas fa-info-circle help-icon"),
+                                       tags$div(class = "tooltip-box", 
+                                                HTML("<ul><li><b>Equally Weighted:</b> Weighs all assignments in the category equally.</li>
+                                                            <li><b>Weighted By Points:</b> Assignments are weighted based on their point values.</li>
+                                                            <li><b>Max Score:</b> Only the highest score from all assignments in the category counts.</li>
+                                                            <li><b>Min Score:</b> Only the lowest score from all assignments in the category counts.</li>
+                                                            <li><b>None:</b> No specific aggregation; Raw scores are used.</li>
+                                                        </ul>
+                                                    ")
+                                       )
+                           ),
+                           selected = 'equally_weighted',
+                           choices = c('Equally Weighted' = 'equally_weighted',
+                                       'Weighted By Points' = 'weighted_by_points', 
+                                       'Max Score' = 'max_score',
+                                       'Min Score' = 'min_score',
+                                       'None' = 'none'
+                           )
+               ),
+               
+               selectInput("lateness_policies", 
+                           label =div(style = "position:relative;", 
+                                      tags$span("Lateness Policy: ", style = "font-weight: bold;"),
+                                      tags$i(class = "fas fa-info-circle help-icon"),
+                                      tags$div(class = "tooltip-box", 
+                                               HTML("To set up lateness policies, please navigate to the 'Lateness Policy' tab 
+                                               located next to 'Categories' on this page. 
+                                               You will find the options to add or edit policies there.
+                                                    ")
+                                      )
+                           ),
+                           selected = "None", choices = c("None"))
         ),
-        column(3,
-               numericInput("n_drops", label = "Number of Drops:", value = 0, min = 0),
-               selectInput("clobber", "Clobber with:", selected = "None", choices = c("None"))
+        column(3,offset = 0,
+               shinyWidgets::autonumericInput("weight", "Weight:", value = 0, currencySymbol = "%",
+                                              currencySymbolPlacement = "s"),
+               numericInput("n_drops", label = "Number of Drops:", value = 0, min = 0)
+               
         )
     ),
     selectizeInput("assignments", "Select Assignments:",
                    choices = "", multiple = TRUE, width = "100%",
                    options = list(create = TRUE)),
-    uiOutput("lateness"),
+    fluidRow(
+        column(6,offset = 0,
+               div(style = "position:relative;",
+                   tags$span("Advanced:", style = "font-weight: bold;"),
+                   actionButton("advanced_toggle_lateness", label = "", icon = icon("gear"), 
+                                class = "custom-gear-btn"
+                   ),
+                   uiOutput("advanced_lateness_policies_panel")
+               )
+        )
+    ),
     easyClose = TRUE,
     footer = tagList(
         actionButton("cancel", "Cancel"),
@@ -38,9 +111,12 @@ confirm_delete <- modalDialog(
     
 )
 
-createCategory <- function(name, input, assigns_table){
-    assignments = c()
+createCategory <- function(name, input, assigns_table, lateness_table){
+    #with the current implementation of the R Package, order matters
+    #order should be: category, lateness, drops, aggregation, assignments
+    #other defaults (e.g. score, aggregation_max_pts, etc) are added by validate_policy()
     
+    assignments = c()
     #logic: if assignment appears in assignment table, add as assignment in policy file
     #       if assignment isn't in assign$table, create subcategory
     if (length(input$assignments) != 0){
@@ -56,38 +132,29 @@ createCategory <- function(name, input, assigns_table){
     }
     
     category <- list(
-        category = name,
-        aggregation = input$aggregation
+        category = name
     )
     
-    if (input$num_lateness > 0){
-        lateness <- list()
-        for (i in 1:as.integer(input$num_lateness)){
-            late_policy <- list(
-                from = input[[paste0("from", i)]],
-                to = input[[paste0("to", i)]],
-                scale = input[[paste0("scale", i)]]
-            )
-            lateness <- append(lateness, list(late_policy))
-        }
-        
-        category <- append(category, list(lateness = lateness))
-    }
-    
-    if (input$clobber != "None"){
-        category <- append(category, list(clobber = input$clobber))
-    }
-    
+    # if (input$clobber != "None"){
+    #     category <- append(category, list(clobber = input$clobber))
+    # }
+    # 
     if (input$weight != 0){
         weight <-  input$weight/100
-        category <- append(category, list(weight = input$weight/100))
+        #this argument will be rightfully ignored in get_grades()
+        category <- append(category, list(weights = input$weight/100))
+    }
+    
+    if (input$lateness_policies != "None"){
+        category <- append(category, list(lateness = lateness_table[[input$lateness_policies]]))
     }
     
     if (input$n_drops > 0){
-        category <- append(category, list(n_drops = input$n_drops))
+        category <- append(category, list(drop_n_lowest = input$n_drops))
     }
     
-    return (append(category, list(assignments = assignments)))
+    return (append(category, list(aggregation = input$aggregation,
+                                  assignments = assignments)))
     
 }
 
@@ -99,16 +166,6 @@ createEmptyCategory <- function(name){
          assignments = NULL)
 }
 
-
-# deleteCategory <- function(policy_categories, flat_policy, label){
-#     if (length(getIndex(flat_policy, label)) > 0){
-#         name <- flat_policy$categories[[getIndex(flat_policy, label)]]$category
-#         index <- find_indices(policy_categories, name)
-#         index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
-#         eval(parse(text = paste(index, "< -", "NULL")))
-#     }
-#     return (policy_categories)
-# }
 
 deleteCategory <- function(policy_categories, matched_category_name) {
     # Using find_indices function to directly find the category to delete
@@ -145,12 +202,12 @@ find_indices <- function(lst, target, current_index = c()) {
     return(indices)
 }
 
-updateCategory <- function(policy_categories, flat_policy, original_name, name, input, assigns_table){
+updateCategory <- function(policy_categories, flat_policy, original_name, name, input, assigns_table, lateness_table){
     original_name <- flat_policy$categories[[getIndex(flat_policy, original_name)]]$category
     index <- find_indices(policy_categories, original_name)
     index <- paste0("policy_categories[[",paste(index, collapse = "]]$assignments[["), "]]")
     eval(parse(text = paste("category", "<-", index))) #category now stores original version of category
-    new_category <- createCategory(name, input, assigns_table) #needs to be updated
+    new_category <- createCategory(name, input, assigns_table, lateness_table)
     #at this point, new_category has all updated qualities except nested subcats, if applicable
     if (length(input$assignments) != 0){
         #if assignments are only subcats
@@ -160,7 +217,6 @@ updateCategory <- function(policy_categories, flat_policy, original_name, name, 
             for (assign in input$assignments){
                 if (assign %in% existing_subcats){
                     i <- which(existing_subcats == assign)
-                    print(category$assignments[[i]])
                     assignments <- append(assignments, list(category$assignments[[i]]))
                 } else {
                     sub_cat <- createEmptyCategory(assign)
@@ -179,4 +235,21 @@ getIndex <- function(flat_policy, name){
         gsub(pattern = "[^a-zA-Z0-9]+", replacement = "")
     name <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", name)
     which(names == name)
+}
+
+update_overall_grade <- function(flat_policy){
+    weights <- c()
+    assignments <- c()
+    for (cat in flat_policy$categories){
+        if (!is.null(cat$weights)){
+            weights <- c(weights, cat$weights)
+            assignments <- c(assignments, cat$category)
+        }
+    }
+    list(
+        category = "Overall Grade",
+        aggregation = "weighted_mean",
+        weights = weights,
+        assignments = assignments
+    )
 }
