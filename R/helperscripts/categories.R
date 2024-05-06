@@ -1,4 +1,3 @@
-library(shinyBS)
 edit_category_modal <- modalDialog(
     tags$head(
         tags$style(HTML('
