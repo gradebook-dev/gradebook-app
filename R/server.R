@@ -73,12 +73,13 @@ shinyServer(function(input, output, session) {
 
     #### -------------------------- POLICY ----------------------------####  
     policy <- reactiveValues(coursewide = list(course_name = "Course Name", description = "Description"),
-                             categories = list(),
-                             overall_grade = list(
-                                 category = "Overall Grade",
-                                 aggregation = "weighted_mean",
-                                 weights = c(),
-                                 assignments = c()
+                             categories = list(
+                                 overall_grade = list(
+                                     category = "Overall Grade",
+                                     aggregation = "weighted_mean",
+                                     weight = 1,
+                                     assignments = c()
+                                 )
                              ),
                              letter_grades = list(),
                              grades = NULL,
