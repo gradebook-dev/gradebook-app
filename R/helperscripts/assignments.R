@@ -54,7 +54,7 @@ createNestedCards <- function(flat_categories, category_levels) {
     createCategoryBox <- function(category, level, assignments_list) {
         label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", category$category)
         
-        # Check if the category is "Overall Grade"
+        # Check if the category is "Overall Grade" > If true, make custom BOX
         if (category$category == "Overall Grade") {
             
             title <- div(
@@ -66,9 +66,6 @@ createNestedCards <- function(flat_categories, category_levels) {
             content <- div(
                 p("This is your overarching category. Start creating your syllabus here."),
                 strong("Weight: "), category$weights %||% "100%", br(),
-               # strong("Aggregation: "), getAggregationName(category_aggregation=category$aggregation), br(),
-               # strong("Number of Drops: "), " " %||% "Not set", br(),
-               # strong("Lateness Intervals:"), unname(sapply(list(category$lateness), format_policy, simplify = FALSE)) %||% "Not set", br(),
                 strong("Categories: "), if (assignments_list == "No assignments") "No categories yet" else assignments_list
             )
             
@@ -122,8 +119,6 @@ createNestedCards <- function(flat_categories, category_levels) {
         labels$delete[[cat$category]] <- delete_id
         if (level == 1) {  # Check if it is a top-level category
             ui_elements[[cat$category]] <- createNestedUI(cat, level)
-            
-           # next
         }
     }
 
