@@ -54,6 +54,27 @@ createNestedCards <- function(flat_categories, category_levels) {
     createCategoryBox <- function(category, level, assignments_list) {
         label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", category$category)
         
+        # Check if the category is "Overall Grade"
+        if (category$category == "Overall Grade") {
+            
+            title <- div(
+                class = "category-title", 
+                category$category,
+                actionButton(paste0('edit', label), label = NULL, icon = icon("plus"), style = "background-color: transparent;"),
+            )
+            
+            content <- div(
+                p("This is your overarching category. Start creating your syllabus here."),
+                strong("Weight: "), category$weights %||% "100%", br(),
+               # strong("Aggregation: "), getAggregationName(category_aggregation=category$aggregation), br(),
+               # strong("Number of Drops: "), " " %||% "Not set", br(),
+               # strong("Lateness Intervals:"), unname(sapply(list(category$lateness), format_policy, simplify = FALSE)) %||% "Not set", br(),
+                strong("Categories: "), if (assignments_list == "No assignments") "No categories yet" else assignments_list
+            )
+            
+            #If category is NOT "Overall Grade" then, no restrictions
+        } else {
+            
         title <- div(class = "category-title", 
                      category$category,
                      actionButton(paste0('delete', label), label = NULL, icon = icon("trash-can"), style = "background-color: transparent; margin-right: 10px;"),
@@ -67,8 +88,10 @@ createNestedCards <- function(flat_categories, category_levels) {
             strong("Lateness Intervals:"), unname(sapply(list(category$lateness), format_policy, simplify = FALSE)) %||% "Not set", br(),
             strong("Assignments: "), assignments_list
         )
+        }
         style <- if (level > 1) "margin-left: 20px;" else ""
-        box(title = title, status = "primary", collapsible = TRUE, collapsed = (level != 1),  width = 12, div(style = style, content))
+        box(title = title, status = "primary", collapsible = TRUE, collapsed = !(level %in% c(1, 2)),  width = 12, div(style = style, content))
+        
     }
 
     # Function to recursively create cards for nested categories
@@ -99,6 +122,8 @@ createNestedCards <- function(flat_categories, category_levels) {
         labels$delete[[cat$category]] <- delete_id
         if (level == 1) {  # Check if it is a top-level category
             ui_elements[[cat$category]] <- createNestedUI(cat, level)
+            
+           # next
         }
     }
 
