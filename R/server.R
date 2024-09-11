@@ -36,12 +36,7 @@ shinyServer(function(input, output, session) {
             yaml <- yaml::read_yaml(input$upload_policy$datapath)
             policy$coursewide <- yaml$coursewide
             policy$categories <- purrr::map(yaml$categories, function(cat){
-                if (cat$category == "Overall Grade"){
-                    policy$overall_grade <- cat
-                    return (NULL)
-                } else if (cat$aggregation == "weighted_mean"){
-                    policy$overall_grade$weights <- cat$weights
-                    policy$overall_grade$assignments <- cat$assignments
+                if (cat$aggregation == "weighted_mean"){
                     return (NULL)
                 }
                 return (cat)
@@ -74,10 +69,10 @@ shinyServer(function(input, output, session) {
     #### -------------------------- POLICY ----------------------------####  
     policy <- reactiveValues(coursewide = list(course_name = "Course Name", description = "Description"),
                              categories = list(
-                                 overall_grade = list(
+                                 list(
                                      category = "Overall Grade",
                                      aggregation = "weighted_mean",
-                                     weight = 1,
+                                     weight = 1.00,
                                      assignments = c()
                                  )
                              ),
@@ -349,8 +344,6 @@ shinyServer(function(input, output, session) {
     observe({
         policy$flat <- list(categories = policy$categories) |> gradebook::flatten_policy()
         assign$table <- updateAssignsTable(assign$table, gradebook::flatten_policy(list(categories = policy$categories)))
-        policy$overall_grade <- update_overall_grade(policy$flat)
-        
     })
     
     #### -------------------------- DISPLAY CATEGORIES UI ----------------------------####
@@ -489,11 +482,7 @@ shinyServer(function(input, output, session) {
     observe({
         your_global_variable <<- lateness$table
     })
-    
-    observe({
-        final_policy <<- list(categories = append(policy$categories, list(policy$overall_grade)))
-    })
-    
+
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
     
     advanced_visible <- reactiveVal(FALSE)
@@ -611,16 +600,9 @@ shinyServer(function(input, output, session) {
     observeEvent(policy$categories,{
         if (!is.null(data()) & length(policy$categories) != 0){
             tryCatch({
-                # cleaned_data <- data() |>
-                #     drop_na(SID) |>
-                #     group_by(SID) |>
-                #     filter(row_number() == 1) |>
-                #     ungroup()
                 gs <- data()
-                
-                valid_policy <- list(categories = append(policy$categories, list(policy$overall_grade))) |>
+                valid_policy <- policy$categories |>
                     gradebook::validate_policy(gs = gs)
-                #remember to add overall_grade at the end
                 policy$grades <- gs |>
                     gradebook::get_grades(policy = valid_policy)
             }, error = function(e) {
@@ -833,7 +815,7 @@ shinyServer(function(input, output, session) {
         },
         content = function(file) {
             yaml::write_yaml(list(coursewide = policy$coursewide,
-                                  categories = append(policy$categories, list(policy$overall_grade)),
+                                  categories = policy$categories,
                                   exceptions = policy$exceptions), file)
         }
     )
