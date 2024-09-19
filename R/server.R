@@ -262,6 +262,8 @@ shinyServer(function(input, output, session) {
         }else{
             removeModal() #closes edit modal
             
+            #collapse advances block on "save"
+            advanced_visible(FALSE)
             sum <- 0
             if (!is.null(assign$table) & !is.null(input$assignments)){
                 sum <- sum(input$assignments %in% assign$table[["assignment"]])/length(input$assignments)
