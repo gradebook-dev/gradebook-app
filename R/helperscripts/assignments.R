@@ -60,7 +60,7 @@ createNestedCards <- function(flat_categories, category_levels) {
             title <- div(
                 class = "category-title", 
                 category$category,
-                actionButton(paste0('edit', label), label = NULL, icon = icon("plus"), style = "background-color: transparent;"),
+                actionButton(paste0('edit', label), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent;"),
             )
             
             content <- div(
