@@ -35,13 +35,7 @@ shinyServer(function(input, output, session) {
         tryCatch({
             yaml <- yaml::read_yaml(input$upload_policy$datapath)
             policy$coursewide <- yaml$coursewide
-            policy$categories <- purrr::map(yaml$categories, function(cat){
-                if (cat$aggregation == "weighted_mean"){
-                    return (NULL)
-                }
-                return (cat)
-            }) |>
-                discard(is.null)
+            policy$categories <- yaml$categories
             #update lateness table
             flat_policy <- gradebook::flatten_policy(yaml)
             late_policies <- purrr::map(flat_policy$categories, "lateness") |>

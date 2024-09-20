@@ -129,6 +129,7 @@ createNestedCards <- function(flat_categories, category_levels) {
 
 getAggregationName <- function(category_aggregation) {
     switch(category_aggregation,
+           'weighted_mean'= "Weighted Mean",
            'equally_weighted' = 'Equally Weighted',
            'weighted_by_points' = 'Weighted By Points',
            'max_score' = 'Max Score',

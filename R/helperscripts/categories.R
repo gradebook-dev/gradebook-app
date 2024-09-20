@@ -54,7 +54,8 @@ edit_category_modal <- modalDialog(
                                        )
                            ),
                            selected = 'equally_weighted',
-                           choices = c('Equally Weighted' = 'equally_weighted',
+                           choices = c("Weighted Mean" = 'weighted_mean',
+                               'Equally Weighted' = 'equally_weighted',
                                        'Weighted By Points' = 'weighted_by_points', 
                                        'Max Score' = 'max_score',
                                        'Min Score' = 'min_score',
