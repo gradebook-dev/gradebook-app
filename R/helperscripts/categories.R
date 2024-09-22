@@ -44,24 +44,26 @@ edit_category_modal <- modalDialog(
                                        tags$span("Aggregation: ", style = "font-weight: bold;"),
                                        tags$i(class = "fas fa-info-circle help-icon"),
                                        tags$div(class = "tooltip-box", 
-                                                HTML("<ul>
+                                                HTML("
+                                                <ul>
                                                 <li><b>Weighted Mean:</b> Weighted mean requires all of the 'assignments' in category to have assigned weights summing up to 1.</li>
                                                 <li><b>Equally Weighted:</b> Weighs all assignments in the category equally.</li>
-                                                            <li><b>Weighted By Points:</b> Assignments are weighted based on their point values.</li>
-                                                            <li><b>Max Score:</b> Only the highest score from all assignments in the category counts.</li>
-                                                            <li><b>Min Score:</b> Only the lowest score from all assignments in the category counts.</li>
-                                                            <li><b>None:</b> No specific aggregation; Raw scores are used.</li>
-                                                        </ul>
+                                                <li><b>Weighted By Points:</b> Assignments are weighted based on their point values.</li>
+                                                <li><b>Max Score:</b> Only the highest score from all assignments in the category counts.</li>
+                                                <li><b>Min Score:</b> Only the lowest score from all assignments in the category counts.</li>
+                                                <li><b>None:</b> No specific aggregation; Raw scores are used.</li>
+                                                </ul>
                                                     ")
                                        )
                            ),
                            selected = 'equally_weighted',
-                           choices = c("Weighted Mean" = 'weighted_mean',
+                           choices = c(
+                               'Weighted Mean' = 'weighted_mean',
                                'Equally Weighted' = 'equally_weighted',
-                                       'Weighted By Points' = 'weighted_by_points', 
-                                       'Max Score' = 'max_score',
-                                       'Min Score' = 'min_score',
-                                       'None' = 'none'
+                               'Weighted By Points' = 'weighted_by_points', 
+                               'Max Score' = 'max_score',
+                               'Min Score' = 'min_score',
+                               'None' = 'none'
                            )
                ),
                
