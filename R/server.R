@@ -21,7 +21,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$upload_gs,{
         req(input$upload_gs)
         tryCatch({
-            uploaded_data <- read_csv(input$upload_gs$datapath)
+            uploaded_data <- gradebook::read_gs(input$upload_gs$datapath)
             data(uploaded_data)
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
@@ -33,7 +33,7 @@ shinyServer(function(input, output, session) {
         req(input$upload_policy)
         #eventually validate
         tryCatch({
-            yaml <- yaml::read_yaml(input$upload_policy$datapath)
+            yaml <- gradebook::read_policy(input$upload_policy$datapath)
             policy$coursewide <- yaml$coursewide
             policy$categories <- yaml$categories
             #update lateness table
@@ -66,7 +66,7 @@ shinyServer(function(input, output, session) {
                                  list(
                                      category = "Overall Grade",
                                      aggregation = "weighted_mean",
-                                     weight = 1.00,
+                                     weights = 1.00,
                                      assignments = c()
                                  )
                              ),
@@ -185,7 +185,7 @@ shinyServer(function(input, output, session) {
                         cat_details <- matched_category
                         updateTextInput(session, "name", value = cat_details$category)
                         updateSelectInput(session, "aggregation", selected = cat_details$aggregation)
-                        shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)  
+                        shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weights*100)  
                         updateNumericInput(session, "n_drops", value = cat_details$drop_n_lowest)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
                         
@@ -474,10 +474,6 @@ shinyServer(function(input, output, session) {
         removeModal()
     })
     
-    observe({
-        your_global_variable <<- lateness$table
-    })
-
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
     
     advanced_visible <- reactiveVal(FALSE)
@@ -593,18 +589,28 @@ shinyServer(function(input, output, session) {
     #### -------------------------- GRADING ----------------------------####
     
     observeEvent(policy$categories,{
+        print("observeEvent triggered")
         if (!is.null(data()) & length(policy$categories) != 0){
             tryCatch({
-                gs <- data()
-                valid_policy <- policy$categories |>
-                    gradebook::validate_policy(gs = gs)
-                policy$grades <- gs |>
-                    gradebook::get_grades(policy = valid_policy)
+                 gs <- data()
+
+                 policy$grades <- gs |>
+                     gradebook::get_grades(policy = policy)
+
+                print(policy$categories)
+                
+                
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
             })
         }
     })
+    
+    observe({
+        global_variable_policy_grades <<- policy$grades
+        global_policy <<- policy$categories
+    })
+    
     
     #### -------------------------- DASHBOARD ----------------------------####
     
@@ -698,7 +704,6 @@ shinyServer(function(input, output, session) {
         assignment_grades <- policy$grades |>
             dplyr::select(input$which_assignment) |>
             dplyr::pull(1)
-        
         # if (input$assignment_score_option == 'point') {
         #     assignment_grades
         # }
@@ -797,8 +802,7 @@ shinyServer(function(input, output, session) {
     
     available_categories <- reactive({
         #can plot any category with valid assignments/nested categories
-        policy <- gradebook::flatten_policy(list(categories = policy$categories)) |>
-            validate_policy(gs = data())
+        policy <- gradebook::flatten_policy(list(categories = policy$categories))
         return(map(policy$categories, "category"))
     })
     
