@@ -159,7 +159,7 @@ shinyServer(function(input, output, session) {
     
     observe({
         req(category_labels$edit)
-        
+
         # Iterate over each category name to set up edit observers dynamically
         lapply(names(category_labels$edit), function(cat_name) {
             local({
@@ -183,11 +183,10 @@ shinyServer(function(input, output, session) {
                         showModal(edit_category_modal) #opens edit modal
                         current_edit$category <- matched_category
                         cat_details <- matched_category
-                        
                         updateTextInput(session, "name", value = cat_details$category)
                         updateSelectInput(session, "aggregation", selected = cat_details$aggregation)
-                        shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)   
-                        updateNumericInput(session, "n_drops", value = cat_details$n_drops)
+                        shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)  
+                        updateNumericInput(session, "n_drops", value = cat_details$drop_n_lowest)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
                         
                         if(!is.null(lateness$table)) {

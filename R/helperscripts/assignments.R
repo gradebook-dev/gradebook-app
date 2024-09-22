@@ -65,7 +65,7 @@ createNestedCards <- function(flat_categories, category_levels) {
             
             content <- div(
                 p("This is your overarching category. Start creating your syllabus here."),
-                strong("Weight: "), category$weights %||% "100%", br(),
+                strong("Weight: "), category$weight %||% "100%", br(),
                 strong("Categories: "), if (assignments_list == "No assignments") "No categories yet" else assignments_list
             )
             
@@ -79,9 +79,9 @@ createNestedCards <- function(flat_categories, category_levels) {
                      
                      )
         content <- div(
-            strong("Weight: "), category$weights %||% "Not set", br(),
+            strong("Weight: "), category$weight %||% "Not set", br(),
             strong("Aggregation: "), getAggregationName(category_aggregation=category$aggregation), br(),
-            strong("Number of Drops: "), " " %||% "Not set", br(),
+            strong("Number of Drops: "), category$drop_n_lowest %||% "Not set", br(),
             strong("Lateness Intervals:"), unname(sapply(list(category$lateness), format_policy, simplify = FALSE)) %||% "Not set", br(),
             strong("Assignments: "), assignments_list
         )
