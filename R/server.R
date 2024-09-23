@@ -23,6 +23,7 @@ shinyServer(function(input, output, session) {
         tryCatch({
             uploaded_data <- gradebook::read_gs(input$upload_gs$datapath)
             data(uploaded_data)
+            policy$grades <- uploaded_data
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
             
@@ -71,7 +72,7 @@ shinyServer(function(input, output, session) {
                                  )
                              ),
                              letter_grades = list(),
-                             grades = NULL,
+                             grades = data.frame(),
                              exceptions = list(),
                              flat = list())
     
@@ -607,10 +608,11 @@ shinyServer(function(input, output, session) {
                 gs <- data()
                 policy <- list(categories = policy$categories)
                 
-                policy$grades <- gradebook::get_grades(gs = gs, policy = policy)
+                grades <- gradebook::get_grades(gs = gs, policy = policy)
+                policy_grades_should_be <<-grades
+                policy$grades <- grades
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
-                print(e)
             })
         }
     })
