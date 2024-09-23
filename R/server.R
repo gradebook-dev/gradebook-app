@@ -792,20 +792,22 @@ shinyServer(function(input, output, session) {
         }
     })
     
-    output$course_data_table <- DT::renderDataTable({ 
-        # Removing max points column
-        wanted_columns <- colnames(grades())[!grepl('- Max Points', colnames(grades()))]
-        tbl <- grades() |>
-            select(wanted_columns)
-        
-        # Renaming columns for display purposes 
-        names(tbl) <- gsub('\\(H:M:S\\)', '(Minutes)', names(tbl))
-        
-        # Rounding minutes to nearest tenth decimal place
-        column_names <- grep('\\(Minutes\\)', names(tbl), value = TRUE)
-        tbl[column_names] <- lapply(tbl[column_names], {function(x) round(x, 1)})
-        
-        DT::datatable(tbl, options = list(scrollX = TRUE, scrollY = '500px'))
+    output$course_data_table <- DT::renderDataTable({
+        if (!is.null(grades())){
+            # Removing max points column
+            wanted_columns <- colnames(grades())[!grepl('- Max Points', colnames(grades()))]
+            tbl <- grades() |>
+                select(wanted_columns)
+            
+            # Renaming columns for display purposes 
+            names(tbl) <- gsub('\\(H:M:S\\)', '(Minutes)', names(tbl))
+            
+            # Rounding minutes to nearest tenth decimal place
+            column_names <- grep('\\(Minutes\\)', names(tbl), value = TRUE)
+            tbl[column_names] <- lapply(tbl[column_names], {function(x) round(x, 1)})
+            
+            DT::datatable(tbl, options = list(scrollX = TRUE, scrollY = '500px'))
+        }
     })
     
     available_categories <- reactive({
