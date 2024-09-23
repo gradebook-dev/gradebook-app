@@ -71,9 +71,10 @@ shinyServer(function(input, output, session) {
                                  )
                              ),
                              letter_grades = list(),
-                             grades = data.frame(),
                              exceptions = list(),
                              flat = list())
+    
+    grades <- reactiveVal(NULL)
     
     #### -------------------------- COURSEWIDE INFO ----------------------------####
     #modal to change saved course name + description
@@ -474,9 +475,6 @@ shinyServer(function(input, output, session) {
         removeModal()
     })
     
-    observeEvent(policy$grades, {
-        print(colnames(policy$grades))
-    })
     
     observe({
         final_policy <<- list(categories = policy$categories)
@@ -607,9 +605,8 @@ shinyServer(function(input, output, session) {
                 gs <- data()
                 policy <- list(categories = policy$categories)
                 
-                grades <- gradebook::get_grades(gs = gs, policy = policy)
-                final_grades <<-grades
-                policy$grades <- grades
+                final_grades <- gradebook::get_grades(gs = gs, policy = policy)
+                grades(final_grades)
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
             })
@@ -746,7 +743,7 @@ shinyServer(function(input, output, session) {
     })
     
     output$category_plotly <- renderPlotly({
-        category_grades <- policy$grades |>
+        category_grades <- grades() |>
             dplyr::select(input$which_category) |>
             dplyr::pull(1)
         
@@ -762,7 +759,7 @@ shinyServer(function(input, output, session) {
     })
     
     output$category_stats <- renderUI({
-        category_vec <- policy$grades |>
+        category_vec <- grades() |>
             dplyr::select(input$which_category) |> 
             drop_na() |>
             dplyr::pull(1)
@@ -783,7 +780,7 @@ shinyServer(function(input, output, session) {
     })
     
     output$overall_plotly <- renderPlotly({
-        plt <- plot_ly(x = policy$grades$`Overall Grade`, type = 'histogram') |>
+        plt <- plot_ly(x = grades()$`Overall Grade`, type = 'histogram') |>
             config(displayModeBar = FALSE) |>
             layout(dragmode = FALSE)
         plt
@@ -791,8 +788,8 @@ shinyServer(function(input, output, session) {
     
     output$course_data_table <- DT::renderDataTable({ 
         # Removing max points column
-        wanted_columns <- colnames(policy$grades)[!grepl('- Max Points', colnames(policy$grades))]
-        tbl <- policy$grades |>
+        wanted_columns <- colnames(grades())[!grepl('- Max Points', colnames(grades()))]
+        tbl <- grades() |>
             select(wanted_columns)
         
         # Renaming columns for display purposes 
@@ -829,7 +826,7 @@ shinyServer(function(input, output, session) {
             paste0(str_remove(policy$coursewide$course_name, "[^a-zA-Z0-9]"),"Grades", ".csv")
         },
         content = function(file) {
-            readr::write_csv(policy$grades, file)
+            readr::write_csv(grades(), file)
         }
     )
     
@@ -855,6 +852,6 @@ shinyServer(function(input, output, session) {
     })
     
     output$grades <- renderDataTable({ 
-        datatable(policy$grades, options = list(scrollX = TRUE, scrollY = "500px"))
+        datatable(grades(), options = list(scrollX = TRUE, scrollY = "500px"))
     })
 })
