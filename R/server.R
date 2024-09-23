@@ -23,7 +23,6 @@ shinyServer(function(input, output, session) {
         tryCatch({
             uploaded_data <- gradebook::read_gs(input$upload_gs$datapath)
             data(uploaded_data)
-            policy$grades <- uploaded_data
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
             
@@ -475,8 +474,8 @@ shinyServer(function(input, output, session) {
         removeModal()
     })
     
-    observe({
-        grades <<- policy$grades
+    observeEvent(policy$grades, {
+        print(colnames(policy$grades))
     })
     
     observe({
@@ -609,7 +608,7 @@ shinyServer(function(input, output, session) {
                 policy <- list(categories = policy$categories)
                 
                 grades <- gradebook::get_grades(gs = gs, policy = policy)
-                policy_grades_should_be <<-grades
+                final_grades <<-grades
                 policy$grades <- grades
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
@@ -706,7 +705,7 @@ shinyServer(function(input, output, session) {
     })
     
     output$assignment_plotly <- renderPlotly({
-        assignment_grades <- policy$grades |>
+        assignment_grades <- data() |>
             dplyr::select(input$which_assignment) |>
             dplyr::pull(1)
         
@@ -726,7 +725,7 @@ shinyServer(function(input, output, session) {
     })
     
     output$assignment_stats <- renderUI({
-        assignment_vec <- policy$grades |>
+        assignment_vec <- data() |>
             dplyr::select(input$which_assignment) |> 
             drop_na() |>
             dplyr::pull(1)
