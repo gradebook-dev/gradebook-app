@@ -55,7 +55,8 @@ edit_category_modal <- modalDialog(
                            ),
                            selected = 'equally_weighted',
                            choices = c('Equally Weighted' = 'equally_weighted',
-                                       'Weighted By Points' = 'weighted_by_points', 
+                                       'Weighted By Points' = 'weighted_by_points',
+                                       'Weighted Mean' = 'weighted_mean',
                                        'Max Score' = 'max_score',
                                        'Min Score' = 'min_score',
                                        'None' = 'none'
@@ -141,8 +142,7 @@ createCategory <- function(name, input, assigns_table, lateness_table){
     # 
     if (input$weight != 0){
         weight <-  input$weight/100
-        #this argument will be rightfully ignored in get_grades()
-        category <- append(category, list(weights = input$weight/100))
+        category <- append(category, list(weight = input$weight/100))
     }
     
     if (input$lateness_policies != "None"){
@@ -163,6 +163,7 @@ createCategory <- function(name, input, assigns_table, lateness_table){
 createEmptyCategory <- function(name){
     list(category = name,
          aggregation = "equally_weighted",
+         weight = 0,
          assignments = NULL)
 }
 
@@ -235,21 +236,4 @@ getIndex <- function(flat_policy, name){
         gsub(pattern = "[^a-zA-Z0-9]+", replacement = "")
     name <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", name)
     which(names == name)
-}
-
-update_overall_grade <- function(flat_policy){
-    weights <- c()
-    assignments <- c()
-    for (cat in flat_policy$categories){
-        if (!is.null(cat$weights)){
-            weights <- c(weights, cat$weights)
-            assignments <- c(assignments, cat$category)
-        }
-    }
-    list(
-        category = "Overall Grade",
-        aggregation = "weighted_mean",
-        weights = weights,
-        assignments = assignments
-    )
 }
