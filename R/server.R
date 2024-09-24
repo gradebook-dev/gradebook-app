@@ -604,7 +604,8 @@ shinyServer(function(input, output, session) {
                 grades(final_grades)
                 
             }, error = function(e) {
-                showNotification('Fix policy file','',type = "error")
+                #do not show the error message currently!
+                #showNotification('Fix policy file','',type = "error")
             })
         }
     })
