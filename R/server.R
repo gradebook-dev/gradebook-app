@@ -66,12 +66,11 @@ shinyServer(function(input, output, session) {
                                  list(
                                      category = "Overall Grade",
                                      aggregation = "weighted_mean",
-                                     weights = 1.00,
+                                     weight = 1,
                                      assignments = c()
                                  )
                              ),
                              letter_grades = list(),
-                             grades = NULL,
                              exceptions = list(),
                              flat = list())
     
@@ -186,7 +185,7 @@ shinyServer(function(input, output, session) {
                         cat_details <- matched_category
                         updateTextInput(session, "name", value = cat_details$category)
                         updateSelectInput(session, "aggregation", selected = cat_details$aggregation)
-                        shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weights*100)  
+                        shinyWidgets::updateAutonumericInput(session, "weight", value = cat_details$weight*100)  
                         updateNumericInput(session, "n_drops", value = cat_details$drop_n_lowest)
                         updateSelectInput(session, "clobber", selected = cat_details$clobber)
                         
