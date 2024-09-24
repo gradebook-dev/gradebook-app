@@ -6,6 +6,8 @@ library(bslib)
 library(readr)
 library(shinydashboard)
 
+library(dplyr)
+
 #load helper scripts
 HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
