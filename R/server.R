@@ -75,6 +75,7 @@ shinyServer(function(input, output, session) {
                              exceptions = list(),
                              flat = list())
     
+    grades <- reactiveVal(NULL)
     #### -------------------------- COURSEWIDE INFO ----------------------------####
     #modal to change saved course name + description
     observeEvent(input$edit_policy_name, {
@@ -474,6 +475,10 @@ shinyServer(function(input, output, session) {
         removeModal()
     })
     
+    observe({
+        final_policy <<- list(categories = policy$categories)
+    })
+    
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
     
     advanced_visible <- reactiveVal(FALSE)
@@ -592,13 +597,11 @@ shinyServer(function(input, output, session) {
         print("observeEvent triggered")
         if (!is.null(data()) & length(policy$categories) != 0){
             tryCatch({
-                 gs <- data()
-
-                 policy$grades <- gs |>
-                     gradebook::get_grades(policy = policy)
-
-                print(policy$categories)
+                gs <- data()
+                policy <- list(categories = policy$categories)
                 
+                final_grades <- gradebook::get_grades(gs = gs, policy = policy)
+                grades(final_grades)
                 
             }, error = function(e) {
                 showNotification('Fix policy file','',type = "error")
@@ -701,7 +704,7 @@ shinyServer(function(input, output, session) {
     })
     
     output$assignment_plotly <- renderPlotly({
-        assignment_grades <- policy$grades |>
+        assignment_grades <- data() |>
             dplyr::select(input$which_assignment) |>
             dplyr::pull(1)
         # if (input$assignment_score_option == 'point') {
@@ -720,16 +723,16 @@ shinyServer(function(input, output, session) {
     })
     
     output$assignment_stats <- renderUI({
-        assignment_vec <- policy$grades |>
+        assignment_vec <- data() |>
             dplyr::select(input$which_assignment) |> 
             drop_na() |>
             dplyr::pull(1)
         
-        mu <- paste0((mean(assignment_vec) |> round(digits = 4)) * 100, '%')
-        med <- paste0((median(assignment_vec) |> round(digits = 4)) * 100, '%')
-        sd <- paste0((sd(assignment_vec) |> round(digits = 4)) * 100, '%')
-        tfive <- paste0((quantile(assignment_vec, 0.25) |> round(digits = 4)) * 100, '%')
-        sfive <- paste0((quantile(assignment_vec, 0.75) |> round(digits = 4)) * 100, '%')
+        mu <- mean(assignment_vec) |> round(digits = 4)
+        med <- median(assignment_vec) |> round(digits = 4)
+        sd <- sd(assignment_vec) |> round(digits = 4)
+        tfive <- quantile(assignment_vec, 0.25) |> round(digits = 4)
+        sfive <- quantile(assignment_vec, 0.75) |> round(digits = 4)
         
         HTML(paste0(
             '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Mean</p> <p>', mu, '</p></div>',
@@ -741,63 +744,71 @@ shinyServer(function(input, output, session) {
     })
     
     output$category_plotly <- renderPlotly({
-        category_grades <- policy$grades |>
-            dplyr::select(input$which_category) |>
-            dplyr::pull(1)
-        
-        plt <- plot_ly(x = ~category_grades, type = 'histogram') |>
-            config(displayModeBar = FALSE) |>
-            layout(
-                title = list(text = 'Category Distribution', font = list(size = 14), y = 0.95),
-                xaxis = list(title = 'percentage'),
-                dragmode = FALSE
-            )
-        
-        plt
+        if (!is.null(grades())){
+            category_grades <- grades() |>
+                dplyr::select(input$which_category) |>
+                dplyr::pull(1)
+            
+            plt <- plot_ly(x = ~category_grades, type = 'histogram') |>
+                config(displayModeBar = FALSE) |>
+                layout(
+                    title = list(text = 'Category Distribution', font = list(size = 14), y = 0.95),
+                    xaxis = list(title = 'percentage'),
+                    dragmode = FALSE
+                )
+            
+            plt
+        }
     })
     
     output$category_stats <- renderUI({
-        category_vec <- policy$grades |>
-            dplyr::select(input$which_category) |> 
-            drop_na() |>
-            dplyr::pull(1)
-        
-        mu <- paste0((mean(category_vec) |> round(digits = 4)) * 100, '%')
-        med <- paste0((median(category_vec) |> round(digits = 4)) * 100, '%')
-        sd <- paste0((sd(category_vec) |> round(digits = 4)) * 100, '%')
-        tfive <- paste0((quantile(category_vec, 0.25) |> round(digits = 4)) * 100, '%')
-        sfive <- paste0((quantile(category_vec, 0.75) |> round(digits = 4)) * 100, '%')
-        
-        HTML(paste0(
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Mean</p> <p>', mu, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Standard Deviation</p> <p>', sd, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Median</p> <p>', med, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>25%ile</p> <p>', tfive, '</p></div>',
-            '<div style="display: flex; justify-content: space-between; padding: 5px 0;"><p>75%ile</p> <p>', sfive, '</p></div>'
-        ))
+        if (!is.null(grades())){
+            category_vec <- grades() |>
+                dplyr::select(input$which_category) |> 
+                drop_na() |>
+                dplyr::pull(1)
+            
+            mu <- paste0((mean(category_vec) |> round(digits = 4)) * 100, '%')
+            med <- paste0((median(category_vec) |> round(digits = 4)) * 100, '%')
+            sd <- paste0((sd(category_vec) |> round(digits = 4)) * 100, '%')
+            tfive <- paste0((quantile(category_vec, 0.25) |> round(digits = 4)) * 100, '%')
+            sfive <- paste0((quantile(category_vec, 0.75) |> round(digits = 4)) * 100, '%')
+            
+            HTML(paste0(
+                '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Mean</p> <p>', mu, '</p></div>',
+                '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Standard Deviation</p> <p>', sd, '</p></div>',
+                '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>Median</p> <p>', med, '</p></div>',
+                '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid black; padding: 5px 0;"><p>25%ile</p> <p>', tfive, '</p></div>',
+                '<div style="display: flex; justify-content: space-between; padding: 5px 0;"><p>75%ile</p> <p>', sfive, '</p></div>'
+            ))
+        }
     })
     
     output$overall_plotly <- renderPlotly({
-        plt <- plot_ly(x = policy$grades$`Overall Grade`, type = 'histogram') |>
-            config(displayModeBar = FALSE) |>
-            layout(dragmode = FALSE)
-        plt
+        if (!is.null(grades())){
+            plt <- plot_ly(x = grades()$`Overall Grade`, type = 'histogram') |>
+                config(displayModeBar = FALSE) |>
+                layout(dragmode = FALSE)
+            plt
+        }
     })
     
     output$course_data_table <- DT::renderDataTable({ 
-        # Removing max points column
-        wanted_columns <- colnames(policy$grades)[!grepl('- Max Points', colnames(policy$grades))]
-        tbl <- policy$grades |>
-            select(wanted_columns)
-        
-        # Renaming columns for display purposes 
-        names(tbl) <- gsub('\\(H:M:S\\)', '(Minutes)', names(tbl))
-        
-        # Rounding minutes to nearest tenth decimal place
-        column_names <- grep('\\(Minutes\\)', names(tbl), value = TRUE)
-        tbl[column_names] <- lapply(tbl[column_names], {function(x) round(x, 1)})
-        
-        DT::datatable(tbl, options = list(scrollX = TRUE, scrollY = '500px'))
+        if (!is.null(grades())){
+            # Removing max points column
+            wanted_columns <- colnames(grades())[!grepl('- Max Points', colnames(grades()))]
+            tbl <- grades() |>
+                select(wanted_columns)
+            
+            # Renaming columns for display purposes 
+            names(tbl) <- gsub('\\(H:M:S\\)', '(Minutes)', names(tbl))
+            
+            # Rounding minutes to nearest tenth decimal place
+            column_names <- grep('\\(Minutes\\)', names(tbl), value = TRUE)
+            tbl[column_names] <- lapply(tbl[column_names], {function(x) round(x, 1)})
+            
+            DT::datatable(tbl, options = list(scrollX = TRUE, scrollY = '500px'))
+        }
     })
     
     available_categories <- reactive({
@@ -824,7 +835,7 @@ shinyServer(function(input, output, session) {
             paste0(str_remove(policy$coursewide$course_name, "[^a-zA-Z0-9]"),"Grades", ".csv")
         },
         content = function(file) {
-            readr::write_csv(policy$grades, file)
+            readr::write_csv(grades(), file)
         }
     )
     
@@ -850,6 +861,6 @@ shinyServer(function(input, output, session) {
     })
     
     output$grades <- renderDataTable({ 
-        datatable(policy$grades, options = list(scrollX = TRUE, scrollY = "500px"))
+        datatable(grades(), options = list(scrollX = TRUE, scrollY = "500px"))
     })
 })

@@ -146,8 +146,7 @@ createCategory <- function(name, input, assigns_table, lateness_table){
     # 
     if (input$weight != 0){
         weight <-  input$weight/100
-        #this argument will be rightfully ignored in get_grades()
-        category <- append(category, list(weights = input$weight/100))
+        category <- append(category, list(weight = input$weight/100))
     }
     
     if (input$lateness_policies != "None"){
@@ -168,6 +167,7 @@ createCategory <- function(name, input, assigns_table, lateness_table){
 createEmptyCategory <- function(name){
     list(category = name,
          aggregation = "equally_weighted",
+         weight = 0,
          assignments = NULL)
 }
 

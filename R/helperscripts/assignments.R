@@ -80,7 +80,7 @@ createNestedCards <- function(flat_categories, category_levels) {
                          
             )
             content <- div(
-                strong("Weight: "), if (!is.null(category$weights)) paste0(category$weights * 100, "%") else "Not set", br(),
+                strong("Weight: "), if (!is.null(category$weight)) paste0(category$weight * 100, "%") else "Not set", br(),
                 strong("Aggregation: "), getAggregationName(category_aggregation=category$aggregation), br(),
                 strong("Number of Drops: "), category$drop_n_lowest %||% "Not set", br(),
                 strong("Lateness Intervals:"), unname(sapply(list(category$lateness), format_policy, simplify = FALSE)) %||% "Not set", br(),
