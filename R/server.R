@@ -594,7 +594,6 @@ shinyServer(function(input, output, session) {
     #### -------------------------- GRADING ----------------------------####
     
     observe({
-        print("observeEvent triggered")
         if (!is.null(data()) & length(policy$categories) != 0){
             tryCatch({
                 gs <- data()
@@ -605,7 +604,7 @@ shinyServer(function(input, output, session) {
                 
             }, error = function(e) {
                 #do not show the error message currently!
-                showNotification('Fix policy file','',type = "error")
+                #showNotification('Fix policy file','',type = "error")
             })
         }
     })
