@@ -90,17 +90,17 @@ edit_category_modal <- modalDialog(
     selectizeInput("assignments", "Select Assignments:",
                    choices = "", multiple = TRUE, width = "100%",
                    options = list(create = TRUE)),
-    fluidRow(
-        column(6,offset = 0,
-               div(style = "position:relative;",
-                   tags$span("Advanced:", style = "font-weight: bold;"),
-                   actionButton("advanced_toggle_lateness", label = "", icon = icon("gear"), 
-                                class = "custom-gear-btn"
-                   ),
-                   uiOutput("advanced_lateness_policies_panel")
-               )
-        )
-    ),
+    # fluidRow(
+    #     column(6,offset = 0,
+    #            div(style = "position:relative;",
+    #                tags$span("Advanced:", style = "font-weight: bold;"),
+    #                actionButton("advanced_toggle_lateness", label = "", icon = icon("gear"), 
+    #                             class = "custom-gear-btn"
+    #                ),
+    #                uiOutput("advanced_lateness_policies_panel")
+    #            )
+    #     )
+    # ),
     easyClose = TRUE,
     footer = tagList(
         actionButton("cancel", "Cancel"),
