@@ -20,7 +20,7 @@ shinyUI(
                 '))
                 ),
                 menuItem("Dashboard", tabName = "dashboard", icon = icon("chart-line", class = "fixed-width-icon")),
-              #  menuItem("Files", tabName = "files", icon = icon("folder", class = "fixed-width-icon")),
+                #  menuItem("Files", tabName = "files", icon = icon("folder", class = "fixed-width-icon")),
                 menuItem("Policies", tabName = "policies", icon = icon("file-pen", class = "fixed-width-icon")),
                 hr(),
                 div(class = "sidebar-text",
@@ -35,21 +35,17 @@ shinyUI(
                 ),
                 fileInput("upload_policy", label = NULL, accept = c(".yml")),
                 hr(),
-              # h5("Explore With Generic Data", style = 'margin-left: 20px;'),
-              # div(actionButton('demogs', "Use Demo Data and Policy")),
-              # hr(),
-                div(style = "display: flex; align-items: center; margin-left: 15px;",
-                    h5("Download Your Course Grades")
+                div(style = "display: flex; align-items: center; margin-left: 20px;",
+                    h5("Download Files")
                 ),
                 div(style = "display: flex; align-items: center; margin-left: 15px;",
-                div(downloadButton("download_grades","Download Grades")),
-                ),
-                hr(),
-                div(style = "display: flex; align-items: center; margin-left: 15px;",
-                    h5("Download Your Yaml Policy File")
+                    div(style = "flex-grow: 1; margin-right: 10px;", 
+                        downloadButton("download_grades", "Grades", style = "width: 100%;")),
+                    div(style = "flex-grow: 1; margin-right: 10px;", 
+                        downloadButton("download_policy_file", "Policy File", style = "width: 100%;"))
                 ),
                 div(style = "display: flex; align-items: center; margin-left: 15px; color: #007bff;",
-                    downloadButton("download_policy_file","Download Policy File")
+                    
                 )
             )
         ),
@@ -107,10 +103,10 @@ shinyUI(
                               }
                                 '))),
             tabItems(
-             #   Files,
+                #   Files,
                 Policies,
                 Dashboard
-                )
+            )
         )
     )
 )
