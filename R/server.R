@@ -609,11 +609,6 @@ shinyServer(function(input, output, session) {
         }
     })
     
-    observe({
-        global_variable_policy_grades <<- policy$grades
-        global_policy <<- policy$categories
-    })
-    
     
     #### -------------------------- DASHBOARD ----------------------------####
     
