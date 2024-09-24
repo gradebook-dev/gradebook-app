@@ -32,11 +32,11 @@ Policies <- tabItem(tabName = "policies",
                                  fluidRow(
                                      tagList(
                                          div(style = "align-items: center; padding: 20px; background-color: #ffffff;",
-                                             fluidRow(
-                                                 h4('Course Policy', style = " align-items: center;padding-left: 30px; font-size: 24px; display: inline-block; margin-right: 10px; " ),
-                                                 actionButton("new_cat", label = NULL, icon = icon("plus"), style = "margin-top: -5px;  background-color: transparent; margin-right: 10px; color: #50A5EA;"),
-                                                 hr(),
-                                             ),
+                                             # fluidRow(
+                                             #     h4('Course Policy', style = " align-items: center;padding-left: 30px; font-size: 24px; display: inline-block; margin-right: 10px; " ),
+                                             #     actionButton("new_cat", label = NULL, icon = icon("plus"), style = "margin-top: -5px;  background-color: transparent; margin-right: 10px; color: #50A5EA;"),
+                                             #     hr(),
+                                             # ),
                                              fluidRow(
                                                  column(8, 
                                                         # h4('Policy View', style = "font-size: 24px; display: inline-block; margin-right: 10px; " ),

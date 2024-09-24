@@ -54,23 +54,44 @@ createNestedCards <- function(flat_categories, category_levels) {
     createCategoryBox <- function(category, level, assignments_list) {
         label <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", category$category)
         
-        title <- div(class = "category-title", 
-                     category$category,
-                     actionButton(paste0('delete', label), label = NULL, icon = icon("trash-can"), style = "background-color: transparent; margin-right: 10px;"),
-                     actionButton(paste0('edit', label), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent;"),
-                     
-                     )
-        content <- div(
-            strong("Weight: "), category$weights %||% "Not set", br(),
-            strong("Aggregation: "), getAggregationName(category_aggregation=category$aggregation), br(),
-            strong("Number of Drops: "), " " %||% "Not set", br(),
-            strong("Lateness Intervals:"), unname(sapply(list(category$lateness), format_policy, simplify = FALSE)) %||% "Not set", br(),
-            strong("Assignments: "), assignments_list
-        )
+        # Check if the category is "Overall Grade" > If true, make custom BOX
+        if (category$category == "Overall Grade") {
+            
+            title <- div(
+                class = "category-title", 
+                category$category,
+                actionButton(paste0('edit', label), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent;"),
+            )
+            
+            content <- div(
+                p("This is your overarching category. Start creating your syllabus here."),
+                strong("Weight: "), if (!is.null(category$weight)) paste0(category$weight * 100, "%") else "100%", br(),
+                #strong("Weight: "), "100%", br(),
+                strong("Categories: "), if (assignments_list == "No assignments") "No categories yet" else assignments_list
+            )
+            
+            #If category is NOT "Overall Grade" then, no restrictions
+        } else {
+            
+            title <- div(class = "category-title", 
+                         category$category,
+                         actionButton(paste0('delete', label), label = NULL, icon = icon("trash-can"), style = "background-color: transparent; margin-right: 10px;"),
+                         actionButton(paste0('edit', label), label = NULL, icon = icon("pen-to-square"), style = "background-color: transparent;"),
+                         
+            )
+            content <- div(
+                strong("Weight: "), if (!is.null(category$weight)) paste0(category$weight * 100, "%") else "Not set", br(),
+                strong("Aggregation: "), getAggregationName(category_aggregation=category$aggregation), br(),
+                strong("Number of Drops: "), category$drop_n_lowest %||% "Not set", br(),
+                strong("Lateness Intervals:"), unname(sapply(list(category$lateness), format_policy, simplify = FALSE)) %||% "Not set", br(),
+                strong("Assignments: "), assignments_list
+            )
+        }
         style <- if (level > 1) "margin-left: 20px;" else ""
-        box(title = title, status = "primary", collapsible = TRUE, collapsed = (level != 1),  width = 12, div(style = style, content))
+        box(title = title, status = "primary", collapsible = TRUE, collapsed = !(level %in% c(1, 2)),  width = 12, div(style = style, content))
+        
     }
-
+    
     # Function to recursively create cards for nested categories
     createNestedUI <- function(category_name, level) {
         children <- lapply(flat_categories, function(cat) {
@@ -86,7 +107,7 @@ createNestedCards <- function(flat_categories, category_levels) {
         }
         createCategoryBox(category_name, level, assignments_list) %>% tagAppendChild(children_ui)
     }
-
+    
     # Loop over flat_categories and create the UI elements
     for (cat in flat_categories) {
         level <- category_levels[cat$category]
@@ -101,7 +122,7 @@ createNestedCards <- function(flat_categories, category_levels) {
             ui_elements[[cat$category]] <- createNestedUI(cat, level)
         }
     }
-
+    
     # Combine all the elements into a single UI element
     ui <- do.call(tagList, ui_elements)
     return(list(ui = ui, labels = labels))
@@ -109,6 +130,7 @@ createNestedCards <- function(flat_categories, category_levels) {
 
 getAggregationName <- function(category_aggregation) {
     switch(category_aggregation,
+           'weighted_mean'= "Weighted Mean",
            'equally_weighted' = 'Equally Weighted',
            'weighted_by_points' = 'Weighted By Points',
            'max_score' = 'Max Score',

@@ -44,21 +44,26 @@ edit_category_modal <- modalDialog(
                                        tags$span("Aggregation: ", style = "font-weight: bold;"),
                                        tags$i(class = "fas fa-info-circle help-icon"),
                                        tags$div(class = "tooltip-box", 
-                                                HTML("<ul><li><b>Equally Weighted:</b> Weighs all assignments in the category equally.</li>
-                                                            <li><b>Weighted By Points:</b> Assignments are weighted based on their point values.</li>
-                                                            <li><b>Max Score:</b> Only the highest score from all assignments in the category counts.</li>
-                                                            <li><b>Min Score:</b> Only the lowest score from all assignments in the category counts.</li>
-                                                            <li><b>None:</b> No specific aggregation; Raw scores are used.</li>
-                                                        </ul>
+                                                HTML("
+                                                <ul>
+                                                <li><b>Weighted Mean:</b> Weighted mean requires all of the 'assignments' in category to have assigned weights summing up to 1.</li>
+                                                <li><b>Equally Weighted:</b> Weighs all assignments in the category equally.</li>
+                                                <li><b>Weighted By Points:</b> Assignments are weighted based on their point values.</li>
+                                                <li><b>Max Score:</b> Only the highest score from all assignments in the category counts.</li>
+                                                <li><b>Min Score:</b> Only the lowest score from all assignments in the category counts.</li>
+                                                <li><b>None:</b> No specific aggregation; Raw scores are used.</li>
+                                                </ul>
                                                     ")
                                        )
                            ),
                            selected = 'equally_weighted',
-                           choices = c('Equally Weighted' = 'equally_weighted',
-                                       'Weighted By Points' = 'weighted_by_points', 
-                                       'Max Score' = 'max_score',
-                                       'Min Score' = 'min_score',
-                                       'None' = 'none'
+                           choices = c(
+                               'Weighted Mean' = 'weighted_mean',
+                               'Equally Weighted' = 'equally_weighted',
+                               'Weighted By Points' = 'weighted_by_points', 
+                               'Max Score' = 'max_score',
+                               'Min Score' = 'min_score',
+                               'None' = 'none'
                            )
                ),
                
@@ -85,17 +90,17 @@ edit_category_modal <- modalDialog(
     selectizeInput("assignments", "Select Assignments:",
                    choices = "", multiple = TRUE, width = "100%",
                    options = list(create = TRUE)),
-    fluidRow(
-        column(6,offset = 0,
-               div(style = "position:relative;",
-                   tags$span("Advanced:", style = "font-weight: bold;"),
-                   actionButton("advanced_toggle_lateness", label = "", icon = icon("gear"), 
-                                class = "custom-gear-btn"
-                   ),
-                   uiOutput("advanced_lateness_policies_panel")
-               )
-        )
-    ),
+    # fluidRow(
+    #     column(6,offset = 0,
+    #            div(style = "position:relative;",
+    #                tags$span("Advanced:", style = "font-weight: bold;"),
+    #                actionButton("advanced_toggle_lateness", label = "", icon = icon("gear"), 
+    #                             class = "custom-gear-btn"
+    #                ),
+    #                uiOutput("advanced_lateness_policies_panel")
+    #            )
+    #     )
+    # ),
     easyClose = TRUE,
     footer = tagList(
         actionButton("cancel", "Cancel"),
@@ -141,8 +146,7 @@ createCategory <- function(name, input, assigns_table, lateness_table){
     # 
     if (input$weight != 0){
         weight <-  input$weight/100
-        #this argument will be rightfully ignored in get_grades()
-        category <- append(category, list(weights = input$weight/100))
+        category <- append(category, list(weight = input$weight/100))
     }
     
     if (input$lateness_policies != "None"){
@@ -163,6 +167,7 @@ createCategory <- function(name, input, assigns_table, lateness_table){
 createEmptyCategory <- function(name){
     list(category = name,
          aggregation = "equally_weighted",
+         weight = 0,
          assignments = NULL)
 }
 
@@ -235,21 +240,4 @@ getIndex <- function(flat_policy, name){
         gsub(pattern = "[^a-zA-Z0-9]+", replacement = "")
     name <- gsub(pattern = "[^a-zA-Z0-9]+", replacement = "", name)
     which(names == name)
-}
-
-update_overall_grade <- function(flat_policy){
-    weights <- c()
-    assignments <- c()
-    for (cat in flat_policy$categories){
-        if (!is.null(cat$weights)){
-            weights <- c(weights, cat$weights)
-            assignments <- c(assignments, cat$category)
-        }
-    }
-    list(
-        category = "Overall Grade",
-        aggregation = "weighted_mean",
-        weights = weights,
-        assignments = assignments
-    )
 }
