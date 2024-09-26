@@ -789,7 +789,7 @@ shinyServer(function(input, output, session) {
     
     output$course_data_table <- DT::renderDT({ 
         if (!is.null(grades())){
-            # Don't display unnecessary columns
+            # Don't display any lateness columns
             grades_for_DT <- grades() |>
                 select(!ends_with(" - Submission Time")) |>
                 select(!ends_with(" - Lateness (H:M:S)")) |>
