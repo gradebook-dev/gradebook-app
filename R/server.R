@@ -669,7 +669,7 @@ shinyServer(function(input, output, session) {
                     height = '400px'
                 ),
                 box(
-                    DT::dataTableOutput('course_data_table'),
+                    DT::DTOutput('course_data_table'),
                     width = 12
                 )
             )
@@ -787,21 +787,15 @@ shinyServer(function(input, output, session) {
         }
     })
     
-    output$course_data_table <- DT::renderDataTable({ 
+    output$course_data_table <- DT::renderDT({ 
         if (!is.null(grades())){
-            # Removing max points column
-            wanted_columns <- colnames(grades())[!grepl('- Max Points', colnames(grades()))]
-            tbl <- grades() |>
-                select(wanted_columns)
+            # Don't display any lateness columns
+            grades_for_DT <- grades() |>
+                select(!ends_with(" - Submission Time")) |>
+                select(!ends_with(" - Lateness (H:M:S)")) |>
+                select(!contains("Total Lateness"))
             
-            # Renaming columns for display purposes 
-            names(tbl) <- gsub('\\(H:M:S\\)', '(Minutes)', names(tbl))
-            
-            # Rounding minutes to nearest tenth decimal place
-            column_names <- grep('\\(Minutes\\)', names(tbl), value = TRUE)
-            tbl[column_names] <- lapply(tbl[column_names], {function(x) round(x, 1)})
-            
-            DT::datatable(tbl, options = list(scrollX = TRUE, scrollY = '500px'))
+            DT::datatable(grades_for_DT, options = list(scrollX = TRUE, scrollY = '500px'))
         }
     })
     
@@ -835,12 +829,12 @@ shinyServer(function(input, output, session) {
     
     #### -------------------------- DATA FILES ----------------------------####   
     # print out uploaded Gradescope data
-    output$original_gs <- renderDataTable({
+    output$original_gs <- DT::renderDT({
         datatable(data(), options = list(scrollX = TRUE, scrollY = "500px"))
     })
     
     #print out assignment table
-    output$assigns_table <- renderDataTable({ assign$table })
+    output$assigns_table <- DT::renderDT({ assign$table })
     
     #shows policy$categories in Scratchpad under policy_list tab
     output$policy_list <- renderPrint({
@@ -854,7 +848,7 @@ shinyServer(function(input, output, session) {
         Hmisc::list.tree(policy$flat)
     })
     
-    output$grades <- renderDataTable({ 
+    output$grades <- DT::renderDT({ 
         datatable(grades(), options = list(scrollX = TRUE, scrollY = "500px"))
     })
 })
