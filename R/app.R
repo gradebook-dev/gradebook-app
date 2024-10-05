@@ -1,5 +1,3 @@
-app_version <- "0.5.3"
-
 #load libraries
 library(shinydashboard)
 library(shiny)

@@ -1,6 +1,7 @@
 library(shinydashboard)
 
 UICompDirectory <- "ui-components/"
+app_version <- "0.5.3"
 
 source(paste0(UICompDirectory, "files.R"), local = TRUE)
 source(paste0(UICompDirectory, "policies.R"), local = TRUE)
