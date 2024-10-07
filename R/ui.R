@@ -1,7 +1,7 @@
 library(shinydashboard)
 
 UICompDirectory <- "ui-components/"
-app_version <- "0.5.3"
+app_version <- system("git describe --tags --abbrev=0", intern = TRUE)
 
 source(paste0(UICompDirectory, "files.R"), local = TRUE)
 source(paste0(UICompDirectory, "policies.R"), local = TRUE)
