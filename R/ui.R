@@ -63,7 +63,7 @@ shinyUI(
         ),
         div(class = "version-tooltip",
           icon("question-circle"),
-          div(class = "tooltiptext", paste("Gradebook Version:", app_version))
+          div(class = "tooltiptext", paste0("Gradebook Version: ", app_version, ". Hosted by Netlify."))
         )
       )
     ),
