@@ -45,7 +45,7 @@ Policies <- tabItem(tabName = "policies",
                                                         uiOutput("categoriesUI"),
                                                  ),
                                                  column(4,
-                                                        h4("New Assignments:", style = "margin-bottom: 20px;"),
+                                                        h4("Existing Assignments:", style = "margin-bottom: 20px;"),
                                                         uiOutput("unassigned")
                                                  )
                                              )

@@ -3,7 +3,6 @@
 getUnassigned <- function(assign_table){
     assigns <- assign_table[["assignment"]] #[assign_table$category == "Unassigned"]
     if (length(assigns) != 0){
-        print(assigns)
         return (assigns) 
     }
     return ()
@@ -89,7 +88,8 @@ createNestedCards <- function(flat_categories, category_levels) {
             )
         }
         style <- if (level > 1) "margin-left: 20px;" else ""
-        box(title = title, status = "primary", collapsible = TRUE, collapsed = !(level %in% c(1, 2)),  width = 12, div(style = style, content))
+        box(title = title, status = "primary", collapsible = TRUE, collapsed = FALSE #!(level %in% c(1, 2))
+            ,  width = 12, div(style = style, content))
         
     }
     
