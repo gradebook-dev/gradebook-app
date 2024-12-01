@@ -11,6 +11,7 @@ HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
 source(paste0(HSLocation, "categories.R"), local = TRUE)
 source(paste0(HSLocation, "lateness.R"), local = TRUE)
+source(paste0(HSLocation, "slip_days.R"), local = TRUE)
 shinyServer(function(input, output, session) {
     
     #### -------------------------- UPLOADS ----------------------------####   
@@ -62,6 +63,7 @@ shinyServer(function(input, output, session) {
 
     #### -------------------------- POLICY ----------------------------####  
     policy <- reactiveValues(coursewide = list(course_name = "Course Name", description = "Description"),
+                             slip_days = list(),
                              categories = list(
                                  list(
                                      category = "Overall Grade",
@@ -589,6 +591,39 @@ shinyServer(function(input, output, session) {
         lateness$table[[lateness_to_be_deleted$policy]] <- NULL
         removeModal()
     }, ignoreInit = TRUE)
+    
+    
+    #### -------------------------- SLIP DAYS ----------------------------####
+    
+    slip_days <- reactiveValues(
+        default = NULL,
+        slip_days_policy_name = " ",
+        num_slip_days = 0, #number of slip days in a policy
+        order = "chronological", #order of applying slip days
+        assignments = list(), #which assignments are included
+        num_slip_days_cats = 1, #number of "slip days" policies existing in syllabus
+        table = list(),
+        edit = list(),
+        delete = list()
+    )
+    
+    # Opening category modal to create a NEW SLIP DAYS POLICY
+    observeEvent(input$new_slip_days, {
+        showModal(edit_slip_days_modal) #opens slip days modal
+        current_edit$slip_days <- NULL
+       # slip_days$slip_days_policy_name <- "New Slip Days Policy"
+        #slip_days$order <- 'chronological'
+        slip_days$assignments <- list()
+        slip_days$num_slip_days_cats <- 1
+        
+    })
+    
+    
+    
+    #### -------------------------- DISPLAY SLIP DAYS UI ----------------------------####
+    
+    
+    
     
     #### -------------------------- GRADING ----------------------------####
     

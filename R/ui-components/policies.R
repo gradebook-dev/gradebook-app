@@ -76,6 +76,29 @@ Policies <- tabItem(tabName = "policies",
                                  
                                  )
                                  
+                        ),
+                        ### TAB SLIP DAYS ###
+                        tabPanel("Slip Days",
+                                 fluidRow(
+                                     tagList(
+                                         div(style = "align-items: center; padding: 20px; background-color: #ffffff;",
+                                             fluidRow(
+                                                 h4('Add New Slip Day Policy', style = " align-items: center;padding-left: 30px; font-size: 24px; display: inline-block; margin-right: 10px; " ),
+                                                 actionButton("new_slip_days", label = NULL, icon = icon("plus"), style = "margin-top: -5px;  background-color: transparent; margin-right: 10px; color: #50A5EA;"),
+                                                 hr(),
+                                             )),
+                                         
+                                         
+                                     )
+                                 ),
+                                 fluidRow(
+                                     
+                                     br(),
+                                     fluidRow(style = "margin-left: 10px;"),
+                                     uiOutput("latenessUI"),
+                                     
+                                 )
+                                 
                         )
                     )
 )
