@@ -649,25 +649,34 @@ shinyServer(function(input, output, session) {
         
         # Check if editing an existing policy
         if (!is.null(slip_days$edit)) {
-            # Update the existing policy
-            slip_days$table[[slip_days$edit]] <- new_policy
-            policy$slip_days[[slip_days$edit]] <- new_policy
-            slip_days$edit <- NULL
-        } else {
-            # Check for duplicate names before adding a new policy
-            #Do not allow for duplicate names
-            if (policy_name %in% names(slip_days$table)) {
-                showNotification("Policy name already exists. Please choose a different name.", type = "error")
+            old_name <- slip_days$edit
+            # Update both slip_days$table and policy$slip_days
+            if (old_name != policy_name) {
+                # Rename the policy in both locations if the name is changed
+                slip_days$table[[policy_name]] <- new_policy
+                slip_days$table[[old_name]] <- NULL
+                policy$slip_days[[policy_name]] <- new_policy
+                policy$slip_days[[old_name]] <- NULL
             } else {
-                # Add the new policy
+                # Update the existing policy without renaming
                 slip_days$table[[policy_name]] <- new_policy
                 policy$slip_days[[policy_name]] <- new_policy
             }
+            slip_days$edit <- NULL
+        } else {
+            # Add a new policy, checking for duplicate names
+            if (policy_name %in% names(slip_days$table)) {
+                showNotification("Policy name already exists. Please choose a different name.", type = "error")
+                return()
+            }
+            slip_days$table[[policy_name]] <- new_policy
+            policy$slip_days[[policy_name]] <- new_policy
         }
         
         removeModal()
         showNotification("Slip days policy saved successfully.", type = "message")
     })
+    
 
     
     observe({
@@ -719,7 +728,7 @@ shinyServer(function(input, output, session) {
         
         # Remove the policy from both slip_days$table and policy$slip_days
         slip_days$table[[slip_days_to_be_deleted$policy]] <- NULL
-        policy$slip_days[[slip_days_to_be_deleted$policy]] <- NULL
+        policy$slip_days <- policy$slip_days[!names(policy$slip_days) %in% slip_days_to_be_deleted$policy]
         
         # Clear the reactive value -- otherwise delete confirmation shows up
         #if you have deleted this slip day policy wit hteh same name before.
@@ -964,7 +973,7 @@ shinyServer(function(input, output, session) {
         },
         content = function(file) {
             yaml::write_yaml(list(coursewide = policy$coursewide,
-                                  slip_days = policy$slip_days,
+                                  slip_days = unname(policy$slip_days),
                                   categories = policy$categories,
                                   exceptions = policy$exceptions), file)
         }
