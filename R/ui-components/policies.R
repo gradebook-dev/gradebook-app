@@ -64,15 +64,13 @@ Policies <- tabItem(tabName = "policies",
                                                  actionButton("new_lateness", label = NULL, icon = icon("plus"), style = "margin-top: -5px;  background-color: transparent; margin-right: 10px; color: #50A5EA;"),
                                                  hr(),
                                              )),
-                                         
-                                         
                                      )
                                  ),
                                  fluidRow(
                                     
                                      br(),
                                      fluidRow(style = "margin-left: 10px;"),
-                                     uiOutput("latenessUI"),
+                                     uiOutput("latenessUI")
                                  
                                  )
                                  
@@ -87,15 +85,12 @@ Policies <- tabItem(tabName = "policies",
                                                  actionButton("new_slip_days", label = NULL, icon = icon("plus"), style = "margin-top: -5px;  background-color: transparent; margin-right: 10px; color: #50A5EA;"),
                                                  hr(),
                                              )),
-                                         
-                                         
-                                     )
-                                 ),
+                                     )),
                                  fluidRow(
                                      
                                      br(),
                                      fluidRow(style = "margin-left: 10px;"),
-                                     uiOutput("latenessUI"),
+                                     uiOutput("slip_days_ui"),
                                      
                                  )
                                  
