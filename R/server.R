@@ -790,16 +790,20 @@ shinyServer(function(input, output, session) {
     
     output$course_data_table <- DT::renderDT({
         if (!is.null(grades())) {
-            # Process and display grades()
+            # Process and display grades() and do not show lateness columns
             grades_for_DT <- grades() |>
                 select(!ends_with(" - Submission Time")) |>
                 select(!ends_with(" - Lateness (H:M:S)")) |>
                 select(!contains("Total Lateness"))
             
-            datatable(grades_for_DT, options = list(scrollX = TRUE, scrollY = '300px'))
+            DT::datatable(grades_for_DT, options = list(scrollX = TRUE, scrollY = '300px'))
         } else if (!is.null(data())) {
+            data_for_DT <- data() |>
+                select(!ends_with(" - Submission Time")) |>
+                select(!ends_with(" - Lateness (H:M:S)")) |>
+                select(!contains("Total Lateness"))
             # Display data() even if no policy exists yet
-            datatable(data(), options = list(scrollX = TRUE, scrollY = '300px'))
+            DT::datatable(data_for_DT, options = list(scrollX = TRUE, scrollY = '300px'))
         }
     })
     
