@@ -830,9 +830,10 @@ shinyServer(function(input, output, session) {
                     height = '400px'
                 ),
                 box(
+                    title = 'Student Data',
                     DT::DTOutput('course_data_table'),
                     width = 12
-                )
+                    )
             )
         } else if (length(policy$categories) > 0) { # policy is created only
             tags$div(style = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh;',
@@ -948,17 +949,25 @@ shinyServer(function(input, output, session) {
         }
     })
     
-    output$course_data_table <- DT::renderDT({ 
-        if (!is.null(grades())){
-            # Don't display any lateness columns
+    output$course_data_table <- DT::renderDT({
+        if (!is.null(grades())) {
+            # Process and display grades() and do not show lateness columns
             grades_for_DT <- grades() |>
                 select(!ends_with(" - Submission Time")) |>
                 select(!ends_with(" - Lateness (H:M:S)")) |>
                 select(!contains("Total Lateness"))
             
-            DT::datatable(grades_for_DT, options = list(scrollX = TRUE, scrollY = '500px'))
+            DT::datatable(grades_for_DT, options = list(scrollX = TRUE, scrollY = '300px'))
+        } else if (!is.null(data())) {
+            data_for_DT <- data() |>
+                select(!ends_with(" - Submission Time")) |>
+                select(!ends_with(" - Lateness (H:M:S)")) |>
+                select(!contains("Total Lateness"))
+            # Display data() even if no policy exists yet
+            DT::datatable(data_for_DT, options = list(scrollX = TRUE, scrollY = '300px'))
         }
     })
+    
     
     available_categories <- reactive({
         #can plot any category with valid assignments/nested categories
@@ -989,28 +998,5 @@ shinyServer(function(input, output, session) {
         }
     )
     
-    #### -------------------------- DATA FILES ----------------------------####   
-    # print out uploaded Gradescope data
-    output$original_gs <- DT::renderDT({
-        datatable(data(), options = list(scrollX = TRUE, scrollY = "500px"))
-    })
-    
-    #print out assignment table
-    output$assigns_table <- DT::renderDT({ assign$table })
-    
-    #shows policy$categories in Scratchpad under policy_list tab
-    output$policy_list <- renderPrint({
-        Hmisc::list.tree(list(coursewide = policy$coursewide, 
-                              categories = policy$categories, 
-                              letter_grades = policy$letter_grades,
-                              exceptions = policy$exceptions))
-    })
-    
-    output$flat_policy_list <- renderPrint({
-        Hmisc::list.tree(policy$flat)
-    })
-    
-    output$grades <- DT::renderDT({ 
-        datatable(grades(), options = list(scrollX = TRUE, scrollY = "500px"))
-    })
+
 })
