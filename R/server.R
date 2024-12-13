@@ -11,6 +11,7 @@ HSLocation <- "helperscripts/"
 source(paste0(HSLocation, "assignments.R"), local = TRUE)
 source(paste0(HSLocation, "categories.R"), local = TRUE)
 source(paste0(HSLocation, "lateness.R"), local = TRUE)
+source(paste0(HSLocation, "slip_days.R"), local = TRUE)
 shinyServer(function(input, output, session) {
     
     #### -------------------------- UPLOADS ----------------------------####   
@@ -21,7 +22,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$upload_gs,{
         req(input$upload_gs)
         tryCatch({
-            uploaded_data <- gradebook::read_gs(input$upload_gs$datapath)
+            uploaded_data <- gradebook::read_files(input$upload_gs$datapath)
             data(uploaded_data)
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
@@ -62,6 +63,7 @@ shinyServer(function(input, output, session) {
 
     #### -------------------------- POLICY ----------------------------####  
     policy <- reactiveValues(coursewide = list(course_name = "Course Name", description = "Description"),
+                             slip_days = list(),
                              categories = list(
                                  list(
                                      category = "Overall Grade",
@@ -474,9 +476,17 @@ shinyServer(function(input, output, session) {
         removeModal()
     })
     
-    observe({
-        final_policy <<- list(categories = policy$categories)
-    })
+    # observe({
+    #     final_policy <<- list(categories = policy$categories)
+    # })
+        observe({
+            final_policy <<- list(
+                coursewide = policy$coursewide,
+                slip_days = policy$slip_days,
+                categories = policy$categories
+            )
+        })
+
     
     #### -------------------------- ADVANCED LATENESS POLICIES UI ----------------------------####
     
@@ -589,6 +599,157 @@ shinyServer(function(input, output, session) {
         lateness$table[[lateness_to_be_deleted$policy]] <- NULL
         removeModal()
     }, ignoreInit = TRUE)
+    
+    
+    #### -------------------------- SLIP DAYS ----------------------------####
+
+    slip_days <- reactiveValues(
+        table = list(),
+        edit = NULL
+    )
+    
+    # Opening category modal to create a NEW SLIP DAYS POLICY
+    observeEvent(input$new_slip_days, {
+        showModal(edit_slip_days_modal)
+        current_edit$slip_days <- NULL
+        updateTextInput(session, "slip_days_policy_name", value = "Slip Days Policy 1")
+        updateNumericInput(session, "num_slip_days", value = 0)
+        updateSelectInput(session, "slip_days_order", selected = "chronological")
+        if (!is.null(assign$table)) {
+            updateSelectizeInput(session, "assignments", choices = assign$table$assignment, selected = NULL)
+        }
+    })
+    
+    #Edit a slip day policy
+    observeEvent(input$edit_slip_days, {
+        req(current_edit$slip_days)
+        policy <- slip_days$table[[current_edit$slip_days]]
+        showModal(edit_slip_days_modal)
+        updateTextInput(session, "slip_days_policy_name", value = policy)
+        updateNumericInput(session, "num_slip_days", value = policy$num_slip_days)
+        updateSelectInput(session, "slip_days_order", selected = policy$order)
+        updateSelectizeInput(session, "assignments", choices = assign$table$assignment, selected = policy$assignments)
+    }, ignoreInit = TRUE)
+
+    #saving a slip day policy (both new and edit)
+    observeEvent(input$save_slip_days, {
+        req(input$slip_days_policy_name)
+        
+        policy_name <- input$slip_days_policy_name
+        num_days <- input$num_slip_days
+        order <- input$slip_days_order
+        assignments <- input$assignments
+        
+        new_policy <- list(
+            name = policy_name,
+            num_slip_days = num_days,
+            order = order,
+            assignments = assignments
+        )
+        
+        
+        # Check if editing an existing policy
+        if (!is.null(slip_days$edit)) {
+            old_name <- slip_days$edit
+            # Update both slip_days$table and policy$slip_days
+            if (old_name != policy_name) {
+                # Rename the policy in both locations if the name is changed
+                slip_days$table[[policy_name]] <- new_policy
+                slip_days$table[[old_name]] <- NULL
+                policy$slip_days[[policy_name]] <- new_policy
+                policy$slip_days[[old_name]] <- NULL
+            } else {
+                # Update the existing policy without renaming
+                slip_days$table[[policy_name]] <- new_policy
+                policy$slip_days[[policy_name]] <- new_policy
+            }
+            slip_days$edit <- NULL
+        } else {
+            # Add a new policy, checking for duplicate names
+            if (policy_name %in% names(slip_days$table)) {
+                showNotification("Policy name already exists. Please choose a different name.", type = "error")
+                return()
+            }
+            slip_days$table[[policy_name]] <- new_policy
+            policy$slip_days[[policy_name]] <- new_policy
+        }
+        
+        removeModal()
+        showNotification("Slip days policy saved successfully.", type = "message")
+    })
+    
+
+    
+    observe({
+        lapply(names(slip_days$table), function(policy_name) {
+            
+            
+            observeEvent(input[[paste0("slip_days_edit_", policy_name)]], {
+                slip_days$edit <- policy_name
+                policy <- slip_days$table[[policy_name]]
+                
+                
+                showModal(edit_slip_days_modal)
+                updateTextInput(session, "slip_days_policy_name", value = policy$name)
+                updateNumericInput(session, "num_slip_days", value = policy$num_slip_days)
+                updateSelectInput(session, "slip_days_order", selected = policy$order)
+                updateSelectizeInput(session, "assignments", choices = assign$table$assignment, selected = policy$assignments)
+                #ignoreInIt is important for closure of modal to work properly!
+            }, ignoreInit = TRUE)
+        })
+    })
+    
+    #### -------------------------- DELETING SLIP DAYS POLICY ----------------------------####
+    
+    slip_days_to_be_deleted <- reactiveValues(policy = NULL)
+    
+    observe({
+        req(slip_days$table)
+        lapply(names(slip_days$table), function(policy_name) {
+            local({
+                # Localize the variables to ensure correct binding in the observer
+                local_policy_name <- policy_name
+                
+                observeEvent(input[[paste0("slip_days_delete_", local_policy_name)]], {
+                    matched_policy <- slip_days$table[[local_policy_name]]
+                    
+                    if (!is.null(matched_policy)) {
+                        showModal(confirm_delete_slip_days)
+                        slip_days_to_be_deleted$policy <- local_policy_name
+                    } else {
+                        showNotification("Please pick a valid slip days policy to delete.", type = "error")
+                    }
+                }, ignoreInit = TRUE)
+            })
+        })
+    })
+    
+    observeEvent(input$delete_slip_days_confirm, {
+        req(slip_days_to_be_deleted$policy)
+        
+        # Remove the policy from both slip_days$table and policy$slip_days
+        slip_days$table[[slip_days_to_be_deleted$policy]] <- NULL
+        policy$slip_days <- policy$slip_days[!names(policy$slip_days) %in% slip_days_to_be_deleted$policy]
+        
+        # Clear the reactive value -- otherwise delete confirmation shows up
+        #if you have deleted this slip day policy wit hteh same name before.
+        slip_days_to_be_deleted$policy <- NULL
+        
+        removeModal()
+        showNotification("Slip days policy deleted successfully.", type = "message")
+    }, ignoreInit = TRUE)
+    
+    
+    #### -------------------------- DISPLAY SLIP DAYS UI ----------------------------####
+    
+    
+    output$slip_days_ui <- renderUI({
+        req(slip_days$table)
+        createSlipDaysCards(slip_days$table)
+    })
+    
+
+    
     
     #### -------------------------- GRADING ----------------------------####
     
@@ -813,6 +974,7 @@ shinyServer(function(input, output, session) {
         },
         content = function(file) {
             yaml::write_yaml(list(coursewide = policy$coursewide,
+                                  slip_days = unname(policy$slip_days),
                                   categories = policy$categories,
                                   exceptions = policy$exceptions), file)
         }
