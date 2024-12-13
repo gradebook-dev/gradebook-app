@@ -22,7 +22,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$upload_gs,{
         req(input$upload_gs)
         tryCatch({
-            uploaded_data <- gradebook::read_gs(input$upload_gs$datapath)
+            uploaded_data <- gradebook::read_files(input$upload_gs$datapath)
             data(uploaded_data)
         }, error = function(e) {
             showNotification('Please upload a file with the Gradescope format','',type = "error")
@@ -646,6 +646,7 @@ shinyServer(function(input, output, session) {
             order = order,
             assignments = assignments
         )
+        
         
         # Check if editing an existing policy
         if (!is.null(slip_days$edit)) {
